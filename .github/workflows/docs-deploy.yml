@@ -1,0 +1,56 @@
+name: Deploy Understanding GSD Core docs
+
+# Rebuilds and republishes the "Understanding GSD Core" MkDocs site (learn/) to
+# GitHub Pages via mike whenever docs-relevant paths change on next. Additive to
+# this repo's existing workflows — does not touch or depend on any of them.
+
+on:
+  push:
+    branches: [next]
+    paths:
+      - "learn/**"
+      - "mkdocs.yml"
+      - "requirements.txt"
+      - ".github/workflows/docs-deploy.yml"
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+concurrency:
+  group: docs-deploy
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Configure git identity
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+
+      - run: pip install -r requirements.txt
+
+      - name: Resolve docs version (major.minor of package.json)
+        id: version
+        run: |
+          FULL=$(node -p "require('./package.json').version")
+          MM=$(echo "$FULL" | cut -d. -f1,2)
+          echo "full=$FULL" >> "$GITHUB_OUTPUT"
+          echo "mm=$MM" >> "$GITHUB_OUTPUT"
+
+      - name: Deploy with mike
+        env:
+          DOCS_VERSION: ${{ steps.version.outputs.mm }}
+        run: |
+          mike deploy --push --update-aliases "$DOCS_VERSION" latest
+          mike set-default latest --push
