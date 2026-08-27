@@ -1,0 +1,8 @@
+# Documentation tooling for "Understanding GSD Core"
+mkdocs-material>=9.5
+# Diagram-as-code rendering via Kroki (PlantUML / Excalidraw / ...)
+# PINNED to 0.9.0 — v1.x forces a `properdocs` dependency that injects advertising
+# into every build. 0.9.0 is the last clean release (PascalCase config API).
+mkdocs-kroki-plugin==0.9.0
+# Antora-style doc versioning + version switcher (deploys to a gh-pages branch)
+mike

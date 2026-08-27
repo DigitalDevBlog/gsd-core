@@ -1,0 +1,91 @@
+site_name: Understanding GSD Core
+site_description: How GSD Core is built internally — and how to build a framework like it yourself.
+
+# NOTE: docs_dir is relocated. MkDocs defaults to docs/, but this repo's own docs/ tree
+# holds 400+ tracked files belonging to the framework being documented. The learn/ tree
+# keeps this project self-contained and leaves framework source untouched.
+docs_dir: learn
+site_dir: learn-site
+
+# Treat a page that exists but is missing from nav as a build failure. MkDocs logs this
+# at INFO by default, so --strict alone would let unreachable pages ship silently.
+validation:
+  nav:
+    omitted_files: warn
+  links:
+    absolute_links: warn
+
+theme:
+  name: material
+  palette:
+    - scheme: default
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    - scheme: slate
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+  features:
+    - navigation.tabs
+    - navigation.sections
+    - navigation.top
+    - content.code.copy
+    - toc.follow
+
+markdown_extensions:
+  - admonition
+  - pymdownx.details
+  - pymdownx.superfences
+  - toc:
+      permalink: true
+
+# NOTE: declaring `plugins:` overrides the implicit [search] default, so search is listed
+# explicitly. Dropping it silently removes site search.
+plugins:
+  - search
+  - kroki:
+      # ServerURL defaults to $KROKI_SERVER_URL || https://kroki.io; set explicitly so the
+      # env override is self-documenting. Swap in a local Docker Kroki later via
+      # `export KROKI_SERVER_URL=http://localhost:8000`.
+      ServerURL: !ENV [KROKI_SERVER_URL, "https://kroki.io"]
+      FencePrefix: kroki-
+
+# diagrams.md is an authoring reference (engine demos), not reader content — kept in the
+# repo but unlinked from nav. not_in_nav suppresses the --strict "not in nav" warning.
+not_in_nav: |
+  /diagrams.md
+
+nav:
+  - Home: index.md
+  - The Loop:
+      - Overview: loop/index.md
+      - Stage internals: loop/stages.md
+  - Files & State:
+      - Overview: files/index.md
+      - State machinery: files/dataflow.md
+  - Skills:
+      - Overview: skills/index.md
+      - Catalogue: skills/catalogue.md
+  - Agents:
+      - Overview: agents/index.md
+      - Orchestration patterns: agents/orchestration.md
+  - Runtime:
+      - Overview: runtime/index.md
+      - The hook system: runtime/hooks.md
+      - Bootstrap & distribution: runtime/bootstrap.md
+  - Capabilities:
+      - Overview: capabilities/index.md
+      - Multi-harness portability: capabilities/harnesses.md
+  - Architecture:
+      - Overview: architecture/index.md
+  - Build Your Own:
+      - Overview: build-your-own/index.md
+      - Minimal blueprint: build-your-own/blueprint.md
+
+# Antora-style version switcher, backed by mike (deploys versions to the gh-pages branch).
+# The dropdown only appears when the site is viewed via `mike serve` or a mike-deployed
+# build — not from a plain `mkdocs serve`.
+extra:
+  version:
+    provider: mike

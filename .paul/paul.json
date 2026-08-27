@@ -1,0 +1,25 @@
+{
+  "name": "Understanding GSD Core",
+  "version": "0.1.0",
+  "milestone": {
+    "name": "v0.1 Initial Release",
+    "version": "0.1.0",
+    "status": "complete"
+  },
+  "phase": {
+    "number": 9,
+    "name": "Build Your Own",
+    "status": "complete"
+  },
+  "loop": {
+    "plan": null,
+    "position": "IDLE"
+  },
+  "timestamps": {
+    "created_at": "2026-08-21T19:42:16Z",
+    "updated_at": "2026-08-22T00:10:00Z"
+  },
+  "satellite": {
+    "groom": true
+  }
+}
