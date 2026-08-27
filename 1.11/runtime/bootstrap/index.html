@@ -1,0 +1,2514 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="How GSD Core is built internally — and how to build a framework like it yourself.">
+      
+      
+      
+      
+        <link rel="prev" href="../hooks/">
+      
+      
+        <link rel="next" href="../../capabilities/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
+    
+    
+      
+        <title>Bootstrap & distribution - Understanding GSD Core</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.ec1eaa64.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#bootstrap-distribution" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+      <div data-md-color-scheme="default" data-md-component="outdated" hidden>
+        
+      </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="Understanding GSD Core" class="md-header__button md-logo" aria-label="Understanding GSD Core" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Understanding GSD Core
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Bootstrap & distribution
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../.." class="md-tabs__link">
+        
+  
+  
+    
+  
+  Home
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../loop/" class="md-tabs__link">
+          
+  
+  
+  The Loop
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../files/" class="md-tabs__link">
+          
+  
+  
+  Files & State
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../skills/" class="md-tabs__link">
+          
+  
+  
+  Skills
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../agents/" class="md-tabs__link">
+          
+  
+  
+  Agents
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+    
+  
+  
+    
+    
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="../" class="md-tabs__link">
+          
+  
+  
+  Runtime
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../capabilities/" class="md-tabs__link">
+          
+  
+  
+  Capabilities
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../architecture/" class="md-tabs__link">
+          
+  
+  
+  Architecture
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../build-your-own/" class="md-tabs__link">
+          
+  
+  
+  Build Your Own
+
+        </a>
+      </li>
+    
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="Understanding GSD Core" class="md-nav__button md-logo" aria-label="Understanding GSD Core" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    Understanding GSD Core
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    The Loop
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    The Loop
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../loop/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../loop/stages/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Stage internals
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Files & State
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Files & State
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../files/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../files/dataflow/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    State machinery
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Skills
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Skills
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../skills/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../skills/catalogue/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Catalogue
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Agents
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Agents
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../agents/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../agents/orchestration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Orchestration patterns
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Runtime
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Runtime
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../hooks/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    The hook system
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Bootstrap & distribution
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Bootstrap & distribution
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#four-bin-entries-two-directories-one-rule" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Four bin entries, two directories, one rule
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#what-actually-ships" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What actually ships
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="What actually ships">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#capabilities-does-not-ship-and-that-is-the-design" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        capabilities/ does not ship, and that is the design
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#the-install-time-layout-mapping" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The install-time layout mapping
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#the-self-healing-build-and-the-two-entrypoints-that-do-not-heal" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The self-healing build, and the two entrypoints that do not heal
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="The self-healing build, and the two entrypoints that do not heal">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#why-the-ignore-list-is-enumerated-instead-of-globbed" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Why the ignore list is enumerated instead of globbed
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#gsd_run-authoring-for-a-harness-with-no-shell-continuity" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        gsd_run: authoring for a harness with no shell continuity
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="gsd_run: authoring for a harness with no shell continuity">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#the-same-snippet-carries-two-mechanisms-and-it-is-easy-to-misread" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The same snippet carries two mechanisms, and it is easy to misread
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#the-mcp-server-one-protocol-instead-of-n-plugins" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The MCP server: one protocol instead of N plugins
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#what-installjs-does-to-files-it-does-not-own" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What install.js does to files it does not own
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="What install.js does to files it does not own">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#path-confinement-is-centralised-and-fails-closed" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Path confinement is centralised and fails closed
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#per-runtime-differences-are-a-table-where-absence-means-identity" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Per-runtime differences are a table where absence means identity
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#the-update-path-treats-user-edits-as-data" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The update path treats user edits as data
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#both-big-entrypoints-are-built-to-be-imported" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Both big entrypoints are built to be imported
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#two-declared-dependencies-neither-of-them-required" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Two declared dependencies, neither of them required
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#what-i-would-do-differently" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What I would do differently
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7" >
+        
+          
+          <label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Capabilities
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_7">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Capabilities
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../capabilities/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../capabilities/harnesses/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Multi-harness portability
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_8" >
+        
+          
+          <label class="md-nav__link" for="__nav_8" id="__nav_8_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_8_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_8">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Architecture
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_9" >
+        
+          
+          <label class="md-nav__link" for="__nav_9" id="__nav_9_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Build Your Own
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_9_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_9">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Build Your Own
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../build-your-own/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../build-your-own/blueprint/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Minimal blueprint
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#four-bin-entries-two-directories-one-rule" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Four bin entries, two directories, one rule
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#what-actually-ships" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What actually ships
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="What actually ships">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#capabilities-does-not-ship-and-that-is-the-design" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        capabilities/ does not ship, and that is the design
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#the-install-time-layout-mapping" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The install-time layout mapping
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#the-self-healing-build-and-the-two-entrypoints-that-do-not-heal" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The self-healing build, and the two entrypoints that do not heal
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="The self-healing build, and the two entrypoints that do not heal">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#why-the-ignore-list-is-enumerated-instead-of-globbed" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Why the ignore list is enumerated instead of globbed
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#gsd_run-authoring-for-a-harness-with-no-shell-continuity" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        gsd_run: authoring for a harness with no shell continuity
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="gsd_run: authoring for a harness with no shell continuity">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#the-same-snippet-carries-two-mechanisms-and-it-is-easy-to-misread" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The same snippet carries two mechanisms, and it is easy to misread
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#the-mcp-server-one-protocol-instead-of-n-plugins" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The MCP server: one protocol instead of N plugins
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#what-installjs-does-to-files-it-does-not-own" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What install.js does to files it does not own
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="What install.js does to files it does not own">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#path-confinement-is-centralised-and-fails-closed" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Path confinement is centralised and fails closed
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#per-runtime-differences-are-a-table-where-absence-means-identity" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Per-runtime differences are a table where absence means identity
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#the-update-path-treats-user-edits-as-data" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The update path treats user edits as data
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#both-big-entrypoints-are-built-to-be-imported" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Both big entrypoints are built to be imported
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#two-declared-dependencies-neither-of-them-required" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Two declared dependencies, neither of them required
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#what-i-would-do-differently" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What I would do differently
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<h1 id="bootstrap-distribution">Bootstrap &amp; distribution<a class="headerlink" href="#bootstrap-distribution" title="Permanent link">&para;</a></h1>
+<p>A framework that only exists in one repository is a script. A framework that has to arrive
+on someone else's disk, next to eighteen different host runtimes' config directories (the
+installer's <code>runtimeMap</code>, <code>bin/install.js:12746-12765</code>), and keep working after the user
+edits the files it installed — that is a distribution problem, and it is where most of
+GSD Core's genuinely hard engineering ended up.</p>
+<p>This page is about the seam between "the repo" and "an install". Four questions organise
+it: what the published package contains, how it gets from a tarball into a host's config
+directory, what happens when the artifacts a bin entry needs are not there, and how a
+20-line shell script encodes one of the deepest constraints in agent-harness authoring.</p>
+<div class="admonition info">
+<p class="admonition-title">Read <code>runtime/index.md</code> first for the build regime</p>
+<p>The build-at-publish rule (ADR-457: <code>src/*.cts</code> is truth, <code>gsd-core/bin/lib/*.cjs</code> is
+gitignored <code>tsc</code> output) is established in <a href="../">the runtime overview</a>, along
+with the nine files that <em>are</em> committed under <code>gsd-core/bin/lib/</code>. This page assumes
+it and goes after the <em>distribution</em> consequences instead — which turn out to be more
+interesting than the build itself.</p>
+</div>
+<h2 id="four-bin-entries-two-directories-one-rule">Four bin entries, two directories, one rule<a class="headerlink" href="#four-bin-entries-two-directories-one-rule" title="Permanent link">&para;</a></h2>
+<p><code>package.json:6-11</code> declares four executables:</p>
+<table>
+<thead>
+<tr>
+<th><code>bin</code> name</th>
+<th>Path</th>
+<th>Size</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>gsd-core</code></td>
+<td><code>bin/install.js</code></td>
+<td>13,756 lines / 642,054 bytes</td>
+</tr>
+<tr>
+<td><code>gsd-tools</code></td>
+<td><code>gsd-core/bin/gsd-tools.cjs</code></td>
+<td>4,423 lines / 217,227 bytes</td>
+</tr>
+<tr>
+<td><code>gsd_run</code></td>
+<td><code>gsd-core/bin/gsd_run</code></td>
+<td>20 lines / 849 bytes</td>
+</tr>
+<tr>
+<td><code>gsd-mcp-server</code></td>
+<td><code>bin/gsd-mcp-server.js</code></td>
+<td>31 lines / 1,369 bytes</td>
+</tr>
+</tbody>
+</table>
+<p>(Sizes from <code>wc -lc</code> on each path.)</p>
+<p>Two of them live in top-level <code>bin/</code> and two in <code>gsd-core/bin/</code>. That split looks like
+historical sediment. It is not — it is a stated rule, and <code>bin/gsd-mcp-server.js:5-9</code>
+writes it down at the exact place a future contributor would get it wrong:</p>
+<blockquote>
+<p>Lives at top-level <code>bin/</code> (alongside <code>install.js</code>) — it is a PACKAGE bin the host spawns
+via <code>npx gsd-mcp-server</code> (or the global bin), NOT a per-runtime artifact copied into a
+host's config dir. (Placing it under <code>gsd-core/bin/</code> would leak it into every runtime
+install + break golden parity.)</p>
+</blockquote>
+<p>The rule, generalised: <strong><code>gsd-core/</code> is payload, everything else is packaging.</strong> The whole
+<code>gsd-core/</code> tree gets recursively copied into each host's config directory by
+<code>copyWithPathReplacement</code> (<code>bin/install.js:10991</code>). So anything you put there ships to
+every user of every runtime, appears in the install-tree golden fixtures, and has to
+survive a per-runtime content rewrite. Anything in top-level <code>bin/</code> is invoked from the
+npm bin shim and never copied at all.</p>
+<p>This is worth stealing. If your framework both <em>installs itself somewhere</em> and <em>exposes
+CLIs</em>, the two sets of executables have completely different lifecycles, and putting them
+in one directory means every new file silently joins whichever set the copy loop happens
+to cover. Encoding the boundary as a directory — and asserting the reason in the header of
+the file most likely to be misplaced — costs nothing and is self-enforcing.</p>
+<h2 id="what-actually-ships">What actually ships<a class="headerlink" href="#what-actually-ships" title="Permanent link">&para;</a></h2>
+<p><code>package.json:12-33</code> is a <code>files[]</code> whitelist: 21 entries, 8 of which are negations
+(<code>node -e "const f=require('./package.json').files; console.log(f.length, f.filter(x=&gt;x[0]==='!').length)"</code>).
+There is no <code>.npmignore</code>, so the whitelist is the whole story.</p>
+<p>The positives are <code>bin</code>, <code>commands</code>, <code>skills</code>, <code>gsd-core</code>, <code>assets</code>, <code>agents</code>,
+<code>.claude-plugin</code>, <code>.opencode</code>, <code>GEMINI.md</code>, <code>hooks</code>, <code>scripts</code>, <code>pi</code>, <code>vscode</code>. The
+negations are all under <code>scripts/</code> — eight named test/QA/codegen helpers
+(<code>gen-emitted-baseline.cjs</code>, <code>qa-smell-ratchet.cjs</code>, <code>live-config-guard.cjs</code>,
+<code>run-tests.cjs</code>, <code>affected-tests-lib.cjs</code>, <code>run-affected-tests.cjs</code>,
+<code>lint-no-adhoc-regex-escape.cjs</code>, <code>lint-allow-test-rule-refs.cjs</code>) carved back out of a
+directory that is otherwise shipped wholesale.</p>
+<h3 id="capabilities-does-not-ship-and-that-is-the-design"><code>capabilities/</code> does not ship, and that is the design<a class="headerlink" href="#capabilities-does-not-ship-and-that-is-the-design" title="Permanent link">&para;</a></h3>
+<p>Notice what is <em>absent</em> from that list: <code>capabilities/</code>. The repo has 46 capability packs
+(<code>ls capabilities | wc -l</code>), and not one of them reaches the tarball.</p>
+<p>They do not need to. <code>scripts/gen-capability-registry.cjs:25</code> reads <code>capabilities/</code> at
+build time and emits a single flattened CommonJS module,
+<code>gsd-core/bin/lib/capability-registry.cjs</code> — 7,638 lines, 315,501 bytes, and one of the
+nine <code>.cjs</code> files git-tracked under <code>bin/lib/</code>. It is <em>larger than <code>gsd-tools.cjs</code>
+itself.</em></p>
+<p>The flattening is total, not just metadata. Each pack may carry prompt fragments alongside
+its <code>capability.json</code> — <code>find capabilities -type f</code> returns 46 <code>capability.json</code> and
+<code>find capabilities -name '*.md'</code> returns 12 fragment files.
+<code>materializeHookFragments</code> (<code>scripts/gen-capability-registry.cjs:470</code>) reads each fragment
+off disk and inlines its text into the registry, so an entry ends up carrying <em>both</em> keys:</p>
+<div class="highlight"><pre><span></span><code><span class="s2">"fragment"</span><span class="o">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="s2">"path"</span><span class="o">:</span><span class="w"> </span><span class="s2">"fragments/execute-wave-pre.md"</span><span class="p">,</span>
+<span class="w">  </span><span class="s2">"inline"</span><span class="o">:</span><span class="w"> </span><span class="s2">"# Claude orchestration — Workflow execution backend (BETA)\n\n&gt; Injected at …"</span>
+<span class="p">}</span>
+</code></pre></div>
+<p><code>grep -c '"inline":'</code> on the generated registry returns 28 — more than the 12 fragment
+files, because inlining happens once per <em>contribution point</em> that references a fragment,
+and a pack can reference the same file from several points. The <code>path</code> survives as
+provenance; the <code>inline</code> is what actually gets injected at runtime.</p>
+<p>Who reads the repo's <code>capabilities/</code> directory? Scanning every script for a real disk read
+rather than a doc-comment mention —
+<code>for f in scripts/*.cjs; do grep -qE "join\([^)]*'capabilities'\)|readdirSync\([^)]*capabilities" "$f" &amp;&amp; echo $f; done</code>
+— returns exactly two: <code>gen-capability-registry.cjs</code> (line 25, the flattener) and
+<code>sync-manifest-versions.cjs</code> (<code>:130-147</code>, which stamps each pack's <code>version</code> field at
+release). Even <code>scripts/gen-capability-matrix.cjs</code>, which writes the human-facing
+capability table, reads the <em>generated registry</em> rather than the source packs
+(<code>:31</code>) — the flattened artifact has become the interface for the repo's own tooling too.</p>
+<p>Nothing in an <strong>installed</strong> tree reads it. Grepping <code>src/</code> for a <code>'capabilities'</code> path
+segment returns only <em>installed</em> roots — <code>~/.gsd/capabilities</code>
+(<code>src/capability-loader.cts:342</code>), <code>&lt;projectRoot&gt;/.gsd/capabilities</code> (<code>:352</code>),
+<code>&lt;runtimeDir&gt;/.gsd/capabilities</code> (<code>src/capability-lifecycle.cts:236</code>),
+<code>&lt;gsdHome&gt;/.gsd/capabilities</code> (<code>src/capability-source.cts:764</code>). Those are the
+<strong>third-party overlay</strong> roots, a different mechanism entirely.</p>
+<p>So first-party capability packs are a <strong>source format, not a distribution format</strong>. The
+directory is developer ergonomics — one folder per capability, schema-validated, diffable
+— and the shipped artifact is one machine-written file with cross-capability invariants
+already resolved. If you are designing an extension system, this is the cleaner half of
+the tradeoff: authors get files, the runtime gets a single validated table, and there is
+no filesystem walk on the hot path of every install.</p>
+<h2 id="the-install-time-layout-mapping">The install-time layout mapping<a class="headerlink" href="#the-install-time-layout-mapping" title="Permanent link">&para;</a></h2>
+<p><img alt="Kroki" src="https://kroki.io/plantuml/svg/eNp9Vc1uG0cMvuspCOdiK17JSVy1btEiQpzYARJXsFT0YBnBaIa7mmr-MDNrWSha9Nhz0WfoK_TeR8mTlNxdOVJc9CLtcjgfyY8fuS9TFjHX1vTSSrsgorAgvQ3eocvTvDEIEWUWrjK445KWQvm1dhWUwqTdE4WlqE2e4X0eG105Szgg6QfjjpfzChMGePZ8xxiFW7HxxWmvF4RciQrh4BqDB-_MBj7-9ic4vMNI0XUIqA7g5x58yhYOpAhioY3OGtNw7k5HwDAJnlIcKKOoOJl0ACIBuab9yynKYX8gc5q7Z2enYL2qDbbOdHTf-2UnqUm9MDotUQGxtxDGABx2h4OfkndQarp7c3v0KMWFdpSZdkS7MeQ7d1VShZWhSBipNjI1IcOqItf9u-wpfUQCYBj4529Y-7gqjV9zudITyfc5NQcZbTAiNzxELDGik_SyxWaYz7jz1gqn2tvUE2P4KhXkOsSl96vGlBJ2piSjDvx8-PH3P7462oK3HnuEXfpEKvCu1BUoHYmuX4cDaUSt8Bj4kfRwf0wt_usxZTtlH66XnhQZxMZ4oY65tHXUOaODQLqItcvaYpsIc_w_ZRIqAXaFcjFdqRTEiI2vc6GiviNgJyymHUir0uP8uN8FAesSU24k0DY2RJ2ydpw7vxovhSmCyHK5bQZj1kHtsfWG1QMX03NQnh6cz-DX7hExW96GLbGD7K1hGQRtfC4YONYya-_SwKq5I_euxvHF66vZlIxNBiWRRIPKGfBUQHHzZDQa3RbfbYUCXwPdKx6ma1NErKiuuBlIVnC_X5LUqAkJMs8qAtv7faKSSl3y_GlniAX1aQiPejxU_xkrJwkiQ4jIhAyb_4gcpqLJrhx5KQKkJIInCdD5otYmk2k7jf0-kdnhUYQT8SVH2AqCQhBHmx91Xk4oPVowRkjkrJoZKilRfrn2RDtLOWZUHH2BzFS_D3lJS9FON072HtT-eRxSCcWJmLy5w-tWl-OYdSlkftfoa-6ewvUPV7O3719_ePX91Yxa8uH87XQynr265HBikXhm4VvQitIh2qmsdi3A4ObJ2dnZ7WCvqHY3cvuJH1qWc-eCBXanfWmbHdrrPfhTvnJ0ss2XFNh2GSMtjfedkOFwejkunn8xOiKafah5oUw6RZ_rSOMj7vAda3rSSnoPXpw0je3kRfBWxBXGQqHRVhOpsKB5WBFKMFo2Pf1m3hSxAZ5qKmZJ8hRzFrIOF0m9id72yY1c6JvzEp3iD9e_t8po2w==?"></p>
+<p>Four arrow kinds, four different mechanisms. The green arrows are the copy; the grey are
+the build; the orange is the update system's write side; the purple is the one place GSD
+writes into a file it did not create. The dotted arrow is the rule from the previous
+section — <code>bin/</code> deliberately does not participate.</p>
+<h2 id="the-self-healing-build-and-the-two-entrypoints-that-do-not-heal">The self-healing build, and the two entrypoints that do not heal<a class="headerlink" href="#the-self-healing-build-and-the-two-entrypoints-that-do-not-heal" title="Permanent link">&para;</a></h2>
+<p>Build-at-publish creates an obvious hazard: the repository ships a tree that cannot run
+until <code>tsc</code> has run over it. On the npm path that is fine — <code>build:lib</code> is wired into
+<code>prepare</code>, <code>prepack</code>, <code>prepublishOnly</code> and <code>pretest</code> (<code>package.json:111-115</code>). But
+<code>gsd-core/bin/ensure-runtime-build.cjs:12-17</code> names a channel where none of those fire:</p>
+<blockquote>
+<p>The Claude Code plugin-marketplace channel does NOT go through <code>npm publish</code> or
+<code>bin/install.js</code>. Claude Code materializes the git tag tree into its plugin cache and at
+most runs <code>npm install --ignore-scripts</code>, so neither <code>prepare</code> nor <code>build:lib</code> ever
+fires.</p>
+</blockquote>
+<p>The response is a 246-line module that compiles the runtime's own dependencies on first
+use. Four decisions in it are worth copying:</p>
+<p><strong>It depends on nothing it might be missing.</strong> Its own docstring: <em>"Deliberately depends on
+nothing under <code>./lib</code> (that tree is precisely what may be missing) — only on Node
+built-ins."</em> A bootstrap check that imports from the thing it is checking is not a check.</p>
+<p><strong>One sentinel stands for the whole tree.</strong> <code>SENTINEL = 'cli-exit.cjs'</code>
+(<code>ensure-runtime-build.cjs:37</code>), justified by a compiler setting rather than by hope:
+<code>tsconfig.build.json</code> sets <code>noEmitOnError: true</code>, so <code>tsc</code> is all-or-nothing and one file's
+existence implies all of them. That reasoning is written into the constant's comment,
+which is what makes the shortcut auditable instead of superstitious.</p>
+<p><strong>The lock is an <code>mkdir</code>, and it expires.</strong> <code>acquireLock</code> on
+<code>gsd-core/bin/lib/.build.lock</code>; a loser polls for the sentinel with a 120 s deadline, then
+<em>takes over the stale lock</em> rather than failing (<code>:140-165</code>). The motivating load is
+stated: a workflow shells out to <code>gsd-tools</code> many times in parallel, so the very first
+GSD-driven session on a marketplace install is exactly when N processes race.</p>
+<p><strong>It distrusts its own incremental cache.</strong> <code>forceFullEmit</code> (<code>:196-215</code>) deletes the
+<code>tsbuildinfo</code> before invoking <code>tsc</code>, because heal only runs when the output is already
+broken, and a stale incremental cache from a partial build would let <code>tsc</code> exit 0 without
+re-emitting the missing sentinel. A build tool reporting success while producing nothing
+is the failure mode this exists to prevent.</p>
+<p><code>gsd-core/bin/gsd-tools.cjs:245-256</code> wires it in correctly: <code>ensureRuntimeBuild()</code> runs
+<em>before</em> the first <code>./lib</code> require, and its catch prints only <code>bootErr.message</code> — the
+actionable <code>RuntimeBuildError</code> text — then exits 1, with a comment explaining that the
+normal <code>ExitError</code>/<code>runMain</code> machinery cannot be used because it lives in <code>./lib</code>.</p>
+<div class="admonition danger">
+<p class="admonition-title">Defect: <code>bin/install.js</code> and <code>bin/gsd-mcp-server.js</code> have the seam and not the guard</p>
+<p>Both top-level bins require gitignored <code>gsd-core/bin/lib/*.cjs</code> modules directly.
+<code>grep -c "require('\.\./gsd-core/bin/lib/" bin/install.js</code> returns <strong>15</strong>
+(lines 22, 31, 38, 43, 51, 55, 56, 57, 60, 63, 64, 65, 69, 74, 90). Neither file calls
+<code>ensureRuntimeBuild</code> first.</p>
+<p>This checkout is unbuilt — <code>ls gsd-core/bin/lib/*.cjs | wc -l</code> returns 8, i.e. only the
+committed files. On it:</p>
+<div class="highlight"><pre><span></span><code>$ GSD_TEST_MODE=1 node bin/install.js --help
+node:internal/modules/cjs/loader:1252
+  throw err;
+Error: Cannot find module '../gsd-core/bin/lib/shell-command-projection.cjs'
+
+$ echo '' | node bin/gsd-mcp-server.js
+node:internal/modules/cjs/loader:1252
+  throw err;
+</code></pre></div>
+<p>A raw V8 stack, where the seam has a written, actionable message ready to print.</p>
+<p><strong>Reachability matters for how you rank this.</strong> npm installs build via
+<code>prepare</code>/<code>prepack</code>; the marketplace channel, per <code>ensure-runtime-build.cjs</code>'s own
+docstring, never invokes <code>install.js</code> at all. So the live path is a developer cloning
+the repo and running a bin before <code>npm install</code> — a DX defect, not user breakage. The
+interesting part is not severity.</p>
+</div>
+<div class="admonition warning">
+<p class="admonition-title">The interesting part: the guard for this seam excludes these files by one constant</p>
+<p><code>scripts/lint-hooks-runtime-build-seam.cjs</code> (wired into <code>lint:ci</code>) enforces <em>exactly</em>
+this rule — call <code>ensureRuntimeBuild</code> before requiring a compiled <code>lib</code> module. Its
+scope is one line: <code>SCAN_ROOT = 'hooks'</code> (<code>:101</code>). Its own docstring says so under a
+bolded limitation heading — <em>"</em><em><code>hooks/</code> only.</em><em> <code>scanRepo</code>'s <code>walk()</code> only descends
+<code>SCAN_ROOT</code>"</em> (<code>:80</code>).</p>
+<p>So the rule and the violation coexist in the same repository, separated by a directory
+constant. This is the recurring shape of structural guards: <strong>a lint's blast radius is
+a design decision, and it silently ages.</strong> <code>hooks/</code> was where the incident happened, so
+<code>hooks/</code> is what got scanned. Nothing revisits that when a second directory grows the
+same seam. If you write guards like this, the scope constant deserves the same review
+scrutiny as the rule — and ideally a comment naming what is <em>deliberately</em> excluded, so
+the exclusion is a decision rather than an oversight.</p>
+</div>
+<h3 id="why-the-ignore-list-is-enumerated-instead-of-globbed">Why the ignore list is enumerated instead of globbed<a class="headerlink" href="#why-the-ignore-list-is-enumerated-instead-of-globbed" title="Permanent link">&para;</a></h3>
+<p><code>grep -c '^/gsd-core/bin/lib/' .gitignore</code> returns <strong>218</strong> — one line per emitted <code>.cjs</code>,
+not a <code>*.cjs</code> glob. That is deliberate, and it inverts the default: anything under
+<code>gsd-core/bin/lib/</code> that is <em>not</em> on the list is presumed hand-authored and gets committed.
+Adding a <code>src/*.cts</code> module means hand-adding its emitted path. The cost is a chore; the
+benefit is that the nine tracked <code>.cjs</code> files under <code>gsd-core/bin/lib/</code> — eight at the top level plus the vendored <code>vendor/re2js.cjs</code> — are tracked <em>on purpose</em> rather than by
+accidental non-matching.</p>
+<p>Two negations carve out vendored code (<code>.gitignore:300-308</code>), and the comment gives the
+constraint that forces vendoring at all:</p>
+<blockquote>
+<p><code>bin/**</code> must have zero external requires (installed trees ship with no <code>node_modules</code>),
+so this one directory is a deliberate, tracked exception to the blanket <code>vendor/</code> ignore
+above.</p>
+</blockquote>
+<p>Hold on to that sentence — it explains the dependency findings at the bottom of this page.</p>
+<h2 id="gsd_run-authoring-for-a-harness-with-no-shell-continuity"><code>gsd_run</code>: authoring for a harness with no shell continuity<a class="headerlink" href="#gsd_run-authoring-for-a-harness-with-no-shell-continuity" title="Permanent link">&para;</a></h2>
+<p>The whole file is 20 lines: a shebang, seven lines of comment justifying it (lines 2-8), and twelve lines of code
+(<code>gsd-core/bin/gsd_run:2-8</code>):</p>
+<blockquote>
+<p><code>gsd_run</code> — standalone launcher so workflow bash blocks can invoke the GSD tools in a
+fresh shell. Claude Code (and similar runtimes) runs each fenced bash block in a separate
+process, so an inline <code>gsd_run()</code> function defined in an earlier block is undefined in
+later ones (issue #381).</p>
+</blockquote>
+<p>That is a deep constraint and it generalises past this repo. When your framework's
+"program" is a markdown document full of fenced bash blocks executed by a host, <strong>you do
+not have a shell session.</strong> You have N unrelated processes that happen to share a working
+directory. Every abstraction shell programmers reach for by reflex — a function, an
+exported variable, a <code>cd</code>, an activated virtualenv, a trap — has a lifetime of exactly one
+block. The only things that persist are the filesystem, the environment the host chooses
+to rebuild, and executables on <code>PATH</code>.</p>
+<p>GSD's answer is to make the abstraction a <em>file</em>: 20 lines of POSIX <code>sh</code> with <code>set -e</code>,
+resolving its own real location through symlinks before <code>exec node "$dir/gsd-tools.cjs"
+"$@"</code>. A file survives process boundaries; a function does not.</p>
+<h3 id="the-same-snippet-carries-two-mechanisms-and-it-is-easy-to-misread">The same snippet carries two mechanisms, and it is easy to misread<a class="headerlink" href="#the-same-snippet-carries-two-mechanisms-and-it-is-easy-to-misread" title="Permanent link">&para;</a></h3>
+<p><code>gsd-core/workflows/_runtime-launcher.snippet.sh</code> is the single source of truth,
+propagated into every workflow and agent file by <code>scripts/sync-runtime-launcher.cjs</code>. It is
+4,514 bytes on <strong>one line</strong> — a long <code>if</code>/<code>elif</code> chain probing runtime homes in order:
+<code>$RUNTIME_DIR</code> or the git toplevel, then <code>.claude/</code>, <code>.codex/</code>, then <code>command -v
+gsd-tools</code>, then <code>$CLAUDE_CONFIG_DIR</code>, <code>$HERMES_HOME</code>, <code>$CURSOR_CONFIG_DIR</code>,
+<code>$CODEX_HOME</code>, <code>$GEMINI_CONFIG_DIR</code>, <code>$COPILOT_CONFIG_DIR</code>, <code>$WINDSURF_CONFIG_DIR</code>,
+<code>$AUGMENT_CONFIG_DIR</code>, <code>$TRAE_CONFIG_DIR</code>, <code>$QWEN_CONFIG_DIR</code>, <code>$CODEBUDDY_CONFIG_DIR</code>,
+<code>$CLINE_CONFIG_DIR</code>, <code>$GROK_AGENTS_HOME</code>, <code>$ANTIGRAVITY_CONFIG_DIR</code>,
+<code>$OPENCODE_CONFIG_DIR</code>, <code>$KILO_CONFIG_DIR</code>, else an error telling the user to reinstall.
+Counting <code>grep -o 'gsd_run() {'</code> gives <strong>20</strong> definitions — one per resolution branch,
+nineteen of them file probes plus the <code>command -v</code> PATH branch.</p>
+<p>Now the apparent contradiction. <code>scripts/sync-runtime-launcher.cjs:9-22</code> inserts that
+preamble into <strong>only the first</strong> bash block in a file that calls <code>gsd_run</code>, with the
+rationale <em>"Define once per file, use across blocks."</em> But <code>gsd_run</code>'s own header says a
+definition in block 1 is gone by block 2. Both cannot be true of the same mechanism.</p>
+<p>They are not the same mechanism. The resolution is the <strong>last statement of the snippet</strong>:</p>
+<div class="highlight"><pre><span></span><code><span class="k">if</span><span class="w"> </span><span class="o">[</span><span class="w"> </span>-n<span class="w"> </span><span class="s2">"</span><span class="si">${</span><span class="nv">CLAUDE_ENV_FILE</span><span class="k">:-</span><span class="si">}</span><span class="s2">"</span><span class="w"> </span><span class="o">]</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="o">[</span><span class="w"> </span>-n<span class="w"> </span><span class="s2">"</span><span class="si">${</span><span class="nv">GSD_TOOLS</span><span class="k">:-</span><span class="si">}</span><span class="s2">"</span><span class="w"> </span><span class="o">]</span><span class="p">;</span><span class="w"> </span><span class="k">then</span>
+<span class="w">  </span><span class="nb">printf</span><span class="w"> </span><span class="s2">"export PATH='%s':\"\$PATH\"\n"</span><span class="w"> </span><span class="s2">"</span><span class="si">${</span><span class="nv">GSD_TOOLS</span><span class="p">%/*</span><span class="si">}</span><span class="s2">"</span><span class="w"> </span>&gt;&gt;<span class="w"> </span><span class="s2">"</span><span class="nv">$CLAUDE_ENV_FILE</span><span class="s2">"</span><span class="w"> </span><span class="m">2</span>&gt;/dev/null<span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="nb">true</span>
+<span class="k">fi</span>
+</code></pre></div>
+<p>The first block defines a shell function <em>and</em> appends a <code>PATH</code> export to a file the host
+re-sources for later blocks. <code>CONTEXT.md:95</code> states the split explicitly: on runtimes that
+run each block in a fresh shell, the <code>CLAUDE_ENV_FILE</code> export is what makes <code>gsd_run</code>
+resolve later, <em>"the inline function definition remains the fallback for all other
+runtimes."</em></p>
+<p>So: <strong>function for hosts with session continuity, real executable on <code>PATH</code> for hosts
+without.</strong> One snippet, two audiences, and the difference is invisible unless you read the
+tail.</p>
+<p>That is elegant, but it is also a chain, and it is worth naming each link rather than
+assuming it holds. On a fresh-shell host, <code>gsd_run</code> resolves in block 2 only if
+<code>$CLAUDE_ENV_FILE</code> was set by the host, <em>and</em> the append succeeded — <code>|| true</code> swallows a
+read-only or missing path silently — <em>and</em> the host actually sources that file before the
+next block. If any link fails, the fallback is the npm <code>bin</code> entry: <code>gsd_run</code> on the global
+<code>PATH</code> from <code>npm i -g @opengsd/gsd-core</code>. A local-scope install with no <code>CLAUDE_ENV_FILE</code>
+has neither. I have not run that configuration, so I state the chain rather than claiming
+it breaks — but a design whose correctness depends on a silently-swallowed append is worth
+an explicit probe in the workflow's first block.</p>
+<p>The generalisable lesson, though, is the one in the header comment. <strong>Find out what your
+harness resets between steps, and write it down in the artifact that exists because of
+it.</strong> <code>gsd_run</code>'s comment is eight lines for twelve lines of code, and it is the highest
+comment-to-code ratio in the repository for good reason: nothing about the file explains
+itself, and the constraint it encodes is invisible from the code.</p>
+<h2 id="the-mcp-server-one-protocol-instead-of-n-plugins">The MCP server: one protocol instead of N plugins<a class="headerlink" href="#the-mcp-server-one-protocol-instead-of-n-plugins" title="Permanent link">&para;</a></h2>
+<p><code>src/mcp-server.cts:1-27</code> states the goal plainly — expose GSD over stdio JSON-RPC 2.0 so
+<em>"any MCP-consuming host (Claude/Codex/OpenCode/VS Code/Gemini/Cursor/Cline/Hermes) can
+drive GSD with NO bespoke plugin."</em></p>
+<p>The surface is deliberately narrow: three tools (<code>src/mcp-server.cts:115-149</code>), covering
+two of GSD's six declared interface points.</p>
+<table>
+<thead>
+<tr>
+<th>Tool</th>
+<th>Interface point</th>
+<th>Backing seam</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>gsd_invoke_command</code></td>
+<td>1 — command</td>
+<td><code>dispatchGsdCommand</code> (<code>src/shell-command-projection.cts</code>)</td>
+</tr>
+<tr>
+<td><code>gsd_read_state</code></td>
+<td>5 — state IO</td>
+<td><code>stateIO</code> (<code>src/state-io.cts</code>)</td>
+</tr>
+<tr>
+<td><code>gsd_write_state</code></td>
+<td>5 — state IO</td>
+<td><code>stateIO</code></td>
+</tr>
+</tbody>
+</table>
+<p>Three packaging decisions are visible here.</p>
+<p><strong>The protocol loop is hand-rolled to avoid a dependency.</strong> From the same docstring: <em>"No
+new runtime dependency — the JSON-RPC stdio loop is hand-rolled (the repo ships only
+claude-agent-sdk + ws; adding an MCP SDK is a separate packaging decision)."</em> Given the
+<code>.gitignore</code> rule that installed trees have no <code>node_modules</code>, an SDK dependency would not
+merely be weight — it would be unresolvable in the shipped tree. The constraint at the
+bottom of the packaging stack propagates all the way up into protocol implementation
+choices.</p>
+<p><strong>Protocol logic is split from process lifecycle.</strong> <code>handleMessage</code> is a pure function over
+a request object; <code>runServer</code> is a thin line-delimited-JSON loop over <em>injectable</em> streams.
+<code>bin/gsd-mcp-server.js</code> is then 31 lines that pass <code>process.stdin</code>/<code>process.stdout</code> in. The
+payoff is stated in the shim's own header: <code>tests/gsd-mcp-server.test.cjs</code> covers the
+protocol, <code>tests/gsd-mcp-server-bin.test.cjs</code> covers spawn → JSON-RPC → clean exit. The
+same testability pattern shows up in both large entrypoints (see below) — this repo
+consistently treats "can this be tested without a subprocess?" as a design input.</p>
+<p><strong><code>initialize</code> refuses to advertise what it does not implement.</strong> <code>src/mcp-server.cts:255</code>
+returns <code>capabilities: { tools: {}, resources: {}, prompts: {} }</code>, with the comment:</p>
+<blockquote>
+<p>Deliberately NO <code>subscribe</code>/<code>listChanged</code> — nothing ever sends those notifications
+(design row 2 / Hyrum's Law: advertising an unimplemented notification is a lie a host
+would act on).</p>
+</blockquote>
+<p>In a protocol whose entire point is that unknown clients integrate without coordination,
+the capability handshake is the only contract you have. Declaring an unimplemented
+capability is not optimism, it is a bug you cannot observe locally.</p>
+<h2 id="what-installjs-does-to-files-it-does-not-own">What <code>install.js</code> does to files it does not own<a class="headerlink" href="#what-installjs-does-to-files-it-does-not-own" title="Permanent link">&para;</a></h2>
+<p><code>install()</code> spans <code>bin/install.js:10089-12538</code> (~2,450 lines) and <code>uninstall()</code> spans
+<code>8024-9024</code> (~1,000). Earlier in the same file, at <code>bin/install.js:4440-6260</code>, sits the hand-written TOML layer — roughly 1,130 lines across the <code>*Toml*</code> functions: value
+and object parsers (<code>5527</code>, <code>5696</code>), multiline-basic-string state tracking (<code>4552</code>,
+<code>4569</code>), line records (<code>4851</code>), assignment-block-end detection (<code>6082</code>), key-line rewriting
+(<code>6186</code>), schema validation (<code>5926</code>) and the merge itself (<code>6260</code>).</p>
+<p>Nobody writes a TOML lexer for fun. The reason is a requirement: GSD merges its block into
+a user's existing <code>~/.codex/config.toml</code> <strong>by splicing line ranges</strong>, not by parsing to an
+object and re-serialising. A round-trip through any generic TOML serialiser would silently
+destroy the user's comments, key ordering and whitespace. Choosing not to do that is what
+costs about 1,130 lines — 8% of <code>bin/install.js</code>, rising to roughly 20% if every Codex-specific function is counted alongside the TOML ones.</p>
+<p>The same principle generalises into a uniform ownership model. Every third-party file GSD
+touches gets a marker-delimited block, and <strong>every writer has a named inverse</strong>:</p>
+<table>
+<thead>
+<tr>
+<th>Writer</th>
+<th>Inverse</th>
+<th>Marker</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>mergeCodexConfig</code> (<code>6260</code>)</td>
+<td><code>stripGsdFromCodexConfig</code> (<code>4377</code>)</td>
+<td><code>GSD_CODEX_MARKER</code> (<code>130</code>)</td>
+</tr>
+<tr>
+<td><code>mergeCopilotInstructions</code> (<code>6560</code>)</td>
+<td><code>stripGsdFromCopilotInstructions</code> (<code>6599</code>)</td>
+<td><code>GSD_COPILOT_INSTRUCTIONS_MARKER</code> (<code>275</code>)</td>
+</tr>
+<tr>
+<td>AGENTS.md writer</td>
+<td><code>stripGsdFromAgentsMd</code> (<code>6640</code>)</td>
+<td><code>GSD_AGENTS_MD_MARKER</code> (<code>6624</code>)</td>
+</tr>
+</tbody>
+</table>
+<p>Codex goes further with <code>GSD_CODEX_HOOKS_OWNERSHIP_PREFIX</code> (<code>131</code>), which records <em>who</em>
+owns a hooks block so a foreign-owned one is not clobbered — plus targeted strippers for
+sections that leaked in past versions (<code>stripCodexGsdAgentSections</code> <code>4337</code>,
+<code>stripLeakedGsdCodexSections</code> <code>5086</code>, <code>stripStaleGsdHookBlocks</code> <code>5154</code>). The existence of
+those three is its own lesson: <strong>once you write into someone else's file, your uninstaller
+inherits every bug your installer ever shipped.</strong></p>
+<div class="admonition warning">
+<p class="admonition-title">Latent: two marker constants are byte-identical with different close markers</p>
+<p><code>GSD_COPILOT_INSTRUCTIONS_MARKER</code> (<code>bin/install.js:275</code>) and <code>GSD_AGENTS_MD_MARKER</code>
+(<code>:6624</code>) are the <strong>same 58-character string</strong>, written two different ways in source:</p>
+<div class="highlight"><pre><span></span><code><span class="c1">// :275 — em dash written as a JS escape</span>
+<span class="kd">const</span><span class="w"> </span><span class="nx">GSD_COPILOT_INSTRUCTIONS_MARKER</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">'&lt;!-- GSD Configuration \u2014 managed by gsd-core installer --&gt;'</span><span class="p">;</span>
+<span class="c1">// :6624 — identical value, written with a literal em dash character</span>
+<span class="kd">const</span><span class="w"> </span><span class="nx">GSD_AGENTS_MD_MARKER</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">'&lt;!-- GSD Configuration — managed by gsd-core installer --&gt;'</span><span class="p">;</span>
+</code></pre></div>
+<p>Confirmed by evaluating both literals and comparing (<code>a === b</code> → <code>true</code>, length 58),
+not by reading. Their close markers differ:
+<code>&lt;!-- /GSD Configuration --&gt;</code> versus <code>&lt;!-- End GSD Configuration --&gt;</code>. Both strippers
+do a bare <code>content.indexOf(OPEN)</code> followed by <code>indexOf(CLOSE)</code>.</p>
+<p>I am calling this latent, not live: today the two target different files
+(<code>copilot-instructions.md</code> versus <code>~/.agents/AGENTS.md</code>), and I did not enumerate every
+call site. It also degrades safely — a lone open marker leaves the other stripper's
+close <code>indexOf</code> at <code>-1</code> and the content returns unchanged.</p>
+<p>The transferable point is about <em>review</em>, not about this bug. Two constants written in
+visibly different styles, on lines 6,349 apart, are equal strings. No side-by-side
+reading catches that. If marker identity is load-bearing for a destructive operation,
+the invariant "all open markers are distinct" wants to be a test, because it is not
+something a human can check by looking.</p>
+</div>
+<h3 id="path-confinement-is-centralised-and-fails-closed">Path confinement is centralised and fails closed<a class="headerlink" href="#path-confinement-is-centralised-and-fails-closed" title="Permanent link">&para;</a></h3>
+<p><code>normalizeInstallRelativePath</code> (<code>:9513</code>) rejects absolute paths in both posix and win32
+form, any empty / <code>.</code> / <code>..</code> segment, and NUL bytes. <code>resolveInstallRelativePath</code> (<code>:9528</code>)
+re-resolves against the base and rejects anything landing outside the root, including any
+symlink crossing. And <code>copyWithPathReplacement</code> (<code>:7563</code>) <strong>throws if <code>confinementRoot</code> is
+undefined</strong> — with the check running before its <code>rmSync</code>, so a crafted <code>destDir</code> cannot
+delete outside the declared install root.</p>
+<p>The ordering is the whole point. A confinement check after a destructive call is
+decoration. Making the parameter mandatory-by-throw rather than defaulted also means a new
+call site cannot opt out by omission — the same "absence is an error, not a default" stance
+that shows up in the enumerated gitignore.</p>
+<h3 id="per-runtime-differences-are-a-table-where-absence-means-identity">Per-runtime differences are a table where absence means identity<a class="headerlink" href="#per-runtime-differences-are-a-table-where-absence-means-identity" title="Permanent link">&para;</a></h3>
+<p><code>RUNTIME_CONTENT_DISPATCH</code> (<code>bin/install.js:7428-7562</code>) is keyed by runtime id, and each
+entry declares <strong>only its delta</strong> — <code>md</code>/<code>js</code> transforms, <code>mdSkipGenericRewrite</code>,
+<code>mdReattributeAfter</code>, <code>mdTomlRenameOnCommand</code>. No entry means identity after the uniform
+steps, which is how <code>claude</code>, <code>augment</code>, <code>codebuddy</code> and <code>kimi</code> are handled: by not being
+mentioned.</p>
+<p>Two details make this better than the usual switch-to-table refactor. First, <code>qwen</code> and
+<code>hermes</code> take their brand <em>values</em> from <code>_hostBehaviors(runtime).brandingRewrites</code> —
+descriptor-driven (ADR-1239/#2092) — and degrade closed to a no-op if the registry fails to
+load, so a missing descriptor produces unbranded output rather than corrupted output.
+Adding a runtime is meant to be a descriptor edit, not a new branch.</p>
+<p>Second, one key is documented as dead-but-kept: <code>mdTomlRenameOnCommand</code> is <em>"(unused since
+the gemini runtime was removed, #1928; kept as generic dispatch infra for a future
+TOML-command runtime)"</em>. That is the honest version of a pattern usually left to inference.
+A reader who greps for the key and finds no consumer would otherwise have to guess whether
+it is scaffolding or a bug; the source answers before they ask. <strong>If your converter has a
+field no input exercises, say so in the field's own comment</strong> — the alternative is that
+someone eventually documents inferred semantics as fact.</p>
+<h3 id="the-update-path-treats-user-edits-as-data">The update path treats user edits as data<a class="headerlink" href="#the-update-path-treats-user-edits-as-data" title="Permanent link">&para;</a></h3>
+<p>Because GSD copies files into a directory the user also edits, upgrade is a merge, not a
+copy. The write side lives in <code>install.js</code>:</p>
+<ul>
+<li><code>generateManifest</code> (<code>:9496</code>) — SHA-256 per installed file → <code>gsd-file-manifest.json</code> via
+  <code>writeManifest</code> (<code>:9548</code>)</li>
+<li><code>populatePristineDir</code> (<code>:9800</code>) — the transformed-but-unmodified baseline in
+  <code>gsd-pristine/</code></li>
+<li><code>saveLocalPatches</code> (<code>:9874</code>) — diffs installed files against the manifest and backs up
+  user-modified ones into <code>gsd-local-patches/</code> (<code>PATCHES_DIR_NAME</code>, <code>:9482</code>)</li>
+<li><code>reportLocalPatches</code> (<code>:10054</code>) — surfaces them to the user</li>
+</ul>
+<p>The read side is a <strong>separate executable</strong>: <code>gsd-core/bin/verify-reapply-patches.cjs</code>, a
+tracked 17 KB script implementing a deterministic "Hunk Verification Gate" that asserts
+every user-added line survived the merge, diffing against the pristine baseline. Its
+docstring names #2969 as the motivating bug — the gate used to be the model asserting
+<code>verified: yes</code> in prose.</p>
+<p>That move is the single most transferable decision on this page. <strong>A verification step
+performed by the thing being verified is not a verification step.</strong> When the merge is done
+by an LLM, the check that the merge preserved user content has to be code, run
+out-of-band, with a non-zero exit.</p>
+<div class="admonition bug">
+<p class="admonition-title">Broken usage path in a shipped script</p>
+<p><code>gsd-core/bin/verify-reapply-patches.cjs:11</code> documents its own invocation as
+<code>node scripts/verify-reapply-patches.cjs</code>. That path does not exist — <code>test -e</code> fails.
+The file was <em>deliberately moved</em> out of <code>scripts/</code> for exactly the payload/packaging
+reason at the top of this page: <code>scripts/</code> ships in the npm tarball but is not among
+the trees the installer copies into a host's config directory. The changeset says so
+(<code>.changeset/archived/jolly-newts-roam.md:5</code>, and <code>happy-jays-greet.md:5</code>, #2994):
+<em>"moved <code>scripts/verify-reapply-patches.cjs</code> to <code>get-shit-done/bin/</code> which is shipped by
+the installer."</em> The move was right; the docstring inside the moved file still names the
+old path, so a user copy-pasting the documented command gets <code>Cannot find module</code>.
+<code>scripts/gen-adr-index.cjs:64</code> carries the same error in a different shape, referring to
+<em>"the worked example in <code>bin/verify-reapply-patches.cjs</code>"</em>.</p>
+<p>It is part of a pattern. Three shipped comments point at line ranges that have drifted
+by thousands of lines: <code>gsd-core/bin/lib/stale-bake-guard.cjs:6-9</code> cites
+<code>bin/install.js ~5667-5767</code> for the codex model bake, but those lines are now TOML
+number-literal parsing and table-header validation — the real bake sites are
+<code>generateCodexAgentToml</code> (<code>:3931</code>, overrides read at <code>:3964</code>) called from
+<code>installCodexConfig</code> (<code>:6882-6891</code>), <code>convertClaudeToOpencodeFrontmatter</code> (<code>:7075-7079</code>)
+and <code>convertClaudeToKiloFrontmatter</code> (<code>:7261-7266</code>).
+<code>gsd-core/bin/lib/profile-pipeline-command-router.cjs:13-14</code> cites
+<code>gsd-tools.cjs:366-371</code>; the function is at <code>:394</code> and its fail-fast errors at <code>:473</code>
+and <code>:587</code>. <code>gsd-core/bin/gsd-tools.cjs:314</code> says a helper is <em>"invoked from <code>case
+'init'</code> below"</em> — there is no <code>case 'init'</code>; it is <code>HOST_COMMAND_ROUTERS.init</code> at
+<code>:3676-3680</code>.</p>
+<p><strong>Cross-file line-number references are write-once, wrong-forever.</strong> Nothing in <code>lint:ci</code>
+checks them, and nothing can cheaply. Name the symbol, not the line — a symbol reference
+is greppable and self-correcting; <code>~5667-5767</code> is a lie with a timestamp.</p>
+</div>
+<h3 id="both-big-entrypoints-are-built-to-be-imported">Both big entrypoints are built to be imported<a class="headerlink" href="#both-big-entrypoints-are-built-to-be-imported" title="Permanent link">&para;</a></h3>
+<p><code>bin/install.js</code> gates its entire main block on <code>require.main === module &amp;&amp;
+!process.env.GSD_TEST_MODE</code> (<code>:13679</code>, closing at <code>:13756</code> with the comment
+<code>// end of !GSD_TEST_MODE main logic block</code>) and exports <strong>127</strong> internals from a
+<code>module.exports</code> object spanning <code>:13538-13676</code> (counting bare identifier entries in that
+range: <code>awk 'NR&gt;=13539 &amp;&amp; NR&lt;=13676' bin/install.js | grep -cE '^    [A-Za-z_][A-Za-z0-9_]*,?$'</code>).
+<code>gsd-tools.cjs</code> uses <code>if (require.main === module) runMain(main)</code>
+(<code>:4401-4403</code>) and exports its dispatch seams from <code>:4410</code> so tests can inject synthetic
+registries and module loaders. Several prompt builders (<code>buildRuntimePromptText</code>,
+<code>buildUpdateBannerPromptText</code>) were made pure specifically so tests assert on rendered
+output instead of grepping source — their docstrings say exactly that.</p>
+<p>The <code>GSD_TEST_MODE</code> escape hatch is worth noting as a <em>smell with a reason</em>. An env var
+that suppresses <code>main</code> is the kind of thing that leaks into production behaviour. But it is
+the pragmatic answer when the alternative is splitting a 642 KB file. The honest reading:
+this is the cost of a file that grew past the point where it could be restructured cheaply,
+and the env gate is the repair, not the design.</p>
+<div class="admonition note">
+<p class="admonition-title">Comment drift in the interactive prompt</p>
+<p><code>bin/install.js:12811</code> reads: <em>"Tokenize first so the all-runtimes shortcut also fires
+for inputs the prompt encourages — <code>\"16,\"</code>, <code>\"16 1\"</code>, etc. — not just the bare
+<code>\"16\"</code>."</em> <code>ALL_RUNTIMES_OPTION</code> is <code>'19'</code> (<code>:12767</code>); option 16 is <code>trae</code>
+(<code>runtimeMap</code>, <code>:12762</code>). The code is correct — it uses the constant — and only the
+comment drifted.</p>
+<p>The underlying fragility is three hand-maintained parallel lists that must stay in
+sync: <code>runtimeMap</code> keys 1..18 (<code>:12746-12765</code>), the <code>allRuntimes</code> array of 18 ids
+(<code>:12766</code>), and hand-written menu text in <code>buildRuntimePromptText</code> (<code>:12774+</code>). Adding a
+runtime means editing three places and a magic number. Given that this repo already
+derives per-runtime <em>behaviour</em> from descriptors, the prompt is the one place the
+data-driven approach stopped at the UI boundary.</p>
+</div>
+<h2 id="two-declared-dependencies-neither-of-them-required">Two declared dependencies, neither of them <code>require</code>d<a class="headerlink" href="#two-declared-dependencies-neither-of-them-required" title="Permanent link">&para;</a></h2>
+<p><code>package.json:63-64</code> declares exactly two runtime dependencies. Both are unusual.</p>
+<p><strong><code>ws@^8.21.0</code> has no code references in the shipped tree.</strong> (It is named in prose in <code>docs/adr/3625-vetted-spawn-library-evaluation.md</code> and in the changelog, but never imported.) A repo-wide grep for
+<code>require('ws')</code> / <code>require("ws")</code> and for <code>'ws'|"ws"|WebSocket</code> — excluding
+<code>node_modules</code>, <code>.git</code>, <code>.venv</code> — finds no source hit in <code>src/</code>, <code>gsd-core/</code>, <code>hooks/</code>,
+<code>scripts/</code>, <code>bin/</code> or <code>.opencode/</code>. The only matches are test fixtures using <code>ws</code> as a
+<em>workstream</em> abbreviation, plus <code>package.json</code> and the lockfile themselves. And yet
+<code>src/mcp-server.cts:22</code> names it in prose — <em>"the repo ships only claude-agent-sdk + ws"</em> —
+inside the paragraph explaining why a third dependency was not added. A dependency cited by
+name as a reason not to take on more, which nothing imports.</p>
+<p><strong><code>@anthropic-ai/claude-agent-sdk@^0.2.84</code> is present to be <em>read</em>, not imported.</strong> There is
+no <code>require</code>/<code>import</code> of it outside <code>node_modules</code>. It appears once, as a path string:
+<code>src/claude-orchestration-command-router.cts:122</code> builds
+<code>AGENT_SDK_PKG = path.join('@anthropic-ai','claude-agent-sdk','package.json')</code>, and
+<code>resolveInstalledAgentSdkVersion</code> (<code>:124-146</code>) walks <code>node_modules</code> upward reading that
+file. The comment explains why not <code>require.resolve</code>: the SDK's <code>exports</code> map does not
+expose <code>./package.json</code>, so resolution throws <code>ERR_PACKAGE_PATH_NOT_EXPORTED</code>. Reading the
+file directly is exports-map independent and <em>cannot execute package code</em>.</p>
+<p>That is entirely consistent with the packaging rule — <code>bin/**</code> must have zero external
+requires — and it is a genuinely nice trick: declare a dependency so the <em>file</em> is on disk,
+then read it as data.</p>
+<div class="admonition danger">
+<p class="admonition-title">Defect: the declared range cannot satisfy the repo's own floor</p>
+<p>The walk is <code>for (const start of [cwd, __dirname])</code>
+(<code>src/claude-orchestration-command-router.cts:128</code>). When the user's project tree has no
+SDK, it falls through to <code>__dirname</code> — <strong>GSD's own <code>node_modules</code></strong>.</p>
+<p><code>package.json:63</code> pins <code>^0.2.84</code>. Caret on a <code>0.x</code> version pins the <em>minor</em>: npm treats
+<code>0.y.z</code> as having a breaking change at every minor bump, so <code>^0.2.84</code> resolves only
+within <code>0.2.x</code> and can never reach <code>0.3.0</code>.</p>
+<p>The claude-orchestration floor is <code>0.3.149</code> —
+<code>src/claude-orchestration.cts:53</code> (<code>WORKFLOW_TOOL_FLOOR_VERSION = '0.3.149'</code>), with the
+same default in <code>capabilities/claude-orchestration/capability.json:50-53</code>.</p>
+<p>So on the <code>__dirname</code> fallback path, gate 5 (<code>src/claude-orchestration.cts:243-247</code>)
+always returns <code>agent_sdk_version_below_floor</code>, and the Workflow backend can never
+activate from GSD's own dependency tree. The fallback that exists to make the feature
+work in more places is the one that guarantees it cannot.</p>
+<p>The general form: <strong>a version floor and a dependency range are the same fact expressed
+twice, in files that no check compares.</strong> This repo has generators and <code>--check</code> lints
+for exactly this class of duplication — <code>sync-manifest-versions.cjs</code>, the <code>gen-*.cjs</code>
+<code>--check</code> family. This pair just never got one.</p>
+</div>
+<h2 id="what-i-would-do-differently">What I would do differently<a class="headerlink" href="#what-i-would-do-differently" title="Permanent link">&para;</a></h2>
+<p>Five things, in rough order of how cheaply they transfer.</p>
+<p><strong>Put the payload/packaging boundary in a directory, and say why in the file most likely to
+be misfiled.</strong> <code>bin/</code> versus <code>gsd-core/bin/</code> costs nothing and is self-enforcing, and
+<code>bin/gsd-mcp-server.js:5-9</code> is a model of how to document a rule <em>at the point of
+temptation</em> rather than in an ADR nobody rereads.</p>
+<p><strong>Make the source format and the distribution format different on purpose.</strong> 46 pack
+directories in, one 315 KB validated table out. Authors get files; the runtime gets a
+single artifact with invariants already resolved and no filesystem walk.</p>
+<p><strong>Give the lint's scope the same review as the lint's rule.</strong> <code>SCAN_ROOT = 'hooks'</code> is the
+whole defect here — the rule was right, the blast radius aged. A scope constant with a
+comment naming what is <em>deliberately</em> out of scope turns an oversight into a decision.</p>
+<p><strong>Name symbols, never line numbers, across files.</strong> Four stale pointers in shipped code,
+one of them off by ~5,000 lines and pointing at unrelated TOML parsing. A symbol name is
+greppable and repairs itself under refactoring.</p>
+<p><strong>Assert cross-file duplicated facts, or expect them to drift.</strong> The <code>^0.2.84</code> versus
+<code>0.3.149</code> mismatch, the two byte-identical marker constants, and <code>ws</code> being cited in prose
+while imported nowhere are three instances of the same failure: a fact recorded in two
+places with nothing comparing them. This repo already has the machinery — a <code>--check</code> mode
+on a generator, a parity test — it just was not pointed at these pairs.</p>
+<p>And one that is less a recommendation than an observation. <code>bin/install.js</code> is 642 KB in a
+single file, roughly a quarter of it a bespoke TOML implementation for one runtime, and the
+repair for its untestability is an environment variable that suppresses <code>main</code>. Every
+individual decision inside it is defensible — splice-don't-reserialise, marker-delimited
+ownership, mandatory confinement roots, SHA-256 manifests. The file is still what happens
+when a hundred defensible decisions accumulate in one place with no forcing function to
+split it. The runtime next door is 194 modules with lint-enforced seams. The difference is
+not skill; it is that <code>src/*.cts</code> had a build step and a set of guards that made the module
+boundary the path of least resistance, and <code>install.js</code> never did.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.tabs", "navigation.sections", "navigation.top", "content.code.copy", "toc.follow"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"provider": "mike"}}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.d7400e89.min.js"></script>
+      
+    
+  </body>
+</html>

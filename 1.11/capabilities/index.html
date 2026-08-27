@@ -1,0 +1,2458 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="How GSD Core is built internally — and how to build a framework like it yourself.">
+      
+      
+      
+      
+        <link rel="prev" href="../runtime/bootstrap/">
+      
+      
+        <link rel="next" href="harnesses/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
+    
+    
+      
+        <title>Overview - Understanding GSD Core</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.ec1eaa64.min.css">
+      
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#capabilities" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+      <div data-md-color-scheme="default" data-md-component="outdated" hidden>
+        
+      </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="Understanding GSD Core" class="md-header__button md-logo" aria-label="Understanding GSD Core" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Understanding GSD Core
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Overview
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href=".." class="md-tabs__link">
+        
+  
+  
+    
+  
+  Home
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../loop/" class="md-tabs__link">
+          
+  
+  
+  The Loop
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../files/" class="md-tabs__link">
+          
+  
+  
+  Files & State
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../skills/" class="md-tabs__link">
+          
+  
+  
+  Skills
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../agents/" class="md-tabs__link">
+          
+  
+  
+  Agents
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../runtime/" class="md-tabs__link">
+          
+  
+  
+  Runtime
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+    
+  
+  
+    
+    
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="./" class="md-tabs__link">
+          
+  
+  
+  Capabilities
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../architecture/" class="md-tabs__link">
+          
+  
+  
+  Architecture
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../build-your-own/" class="md-tabs__link">
+          
+  
+  
+  Build Your Own
+
+        </a>
+      </li>
+    
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="Understanding GSD Core" class="md-nav__button md-logo" aria-label="Understanding GSD Core" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    Understanding GSD Core
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    The Loop
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    The Loop
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../loop/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../loop/stages/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Stage internals
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Files & State
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Files & State
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../files/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../files/dataflow/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    State machinery
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Skills
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Skills
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../skills/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../skills/catalogue/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Catalogue
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Agents
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Agents
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../agents/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../agents/orchestration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Orchestration patterns
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" >
+        
+          
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Runtime
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Runtime
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../runtime/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../runtime/hooks/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    The hook system
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../runtime/bootstrap/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Bootstrap & distribution
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Capabilities
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_7">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Capabilities
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#what-is-actually-in-capabilities" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What is actually in capabilities/
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#the-role-is-a-shape-contract-verified-by-set-equality" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The role is a shape contract, verified by set equality
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="The role is a shape contract, verified by set equality">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#role-dispatch-is-enforced-in-source-not-by-convention" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Role dispatch is enforced in source, not by convention
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#two-lifecycles-not-one" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Two lifecycles, not one
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Two lifecycles, not one">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#install-intent-before-mutation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Install: intent before mutation
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#consent-binds-content-not-provenance" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Consent binds content, not provenance
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#load-never-crash-is-the-top-level-contract" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Load: never crash is the top-level contract
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#activation-is-a-third-dimension-orthogonal-by-construction" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Activation is a third dimension, orthogonal by construction
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#the-committed-cjs-constraint-and-its-three-consequences" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The committed-.cjs constraint and its three consequences
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="The committed-.cjs constraint and its three consequences">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#defect-the-centralpatterns-check-cannot-fire-at-runtime" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        DEFECT — the centralPatterns check cannot fire at runtime
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#defect-the-install-time-cross-capability-pass-is-doubly-vacuous" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        DEFECT — the install-time cross-capability pass is doubly vacuous
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#a-cluster-of-stale-comments-around-the-trust-model" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        A cluster of stale comments around the trust model
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#smaller-defects-and-one-with-a-reachability-chain" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Smaller defects, and one with a reachability chain
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#the-parts-worth-stealing" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The parts worth stealing
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#two-things-i-would-do-differently" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Two things I would do differently
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="harnesses/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Multi-harness portability
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_8" >
+        
+          
+          <label class="md-nav__link" for="__nav_8" id="__nav_8_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_8_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_8">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Architecture
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_9" >
+        
+          
+          <label class="md-nav__link" for="__nav_9" id="__nav_9_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Build Your Own
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_9_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_9">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Build Your Own
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../build-your-own/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../build-your-own/blueprint/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Minimal blueprint
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#what-is-actually-in-capabilities" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What is actually in capabilities/
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#the-role-is-a-shape-contract-verified-by-set-equality" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The role is a shape contract, verified by set equality
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="The role is a shape contract, verified by set equality">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#role-dispatch-is-enforced-in-source-not-by-convention" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Role dispatch is enforced in source, not by convention
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#two-lifecycles-not-one" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Two lifecycles, not one
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Two lifecycles, not one">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#install-intent-before-mutation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Install: intent before mutation
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#consent-binds-content-not-provenance" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Consent binds content, not provenance
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#load-never-crash-is-the-top-level-contract" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Load: never crash is the top-level contract
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#activation-is-a-third-dimension-orthogonal-by-construction" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Activation is a third dimension, orthogonal by construction
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#the-committed-cjs-constraint-and-its-three-consequences" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The committed-.cjs constraint and its three consequences
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="The committed-.cjs constraint and its three consequences">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#defect-the-centralpatterns-check-cannot-fire-at-runtime" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        DEFECT — the centralPatterns check cannot fire at runtime
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#defect-the-install-time-cross-capability-pass-is-doubly-vacuous" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        DEFECT — the install-time cross-capability pass is doubly vacuous
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#a-cluster-of-stale-comments-around-the-trust-model" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        A cluster of stale comments around the trust model
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#smaller-defects-and-one-with-a-reachability-chain" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Smaller defects, and one with a reachability chain
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#the-parts-worth-stealing" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The parts worth stealing
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#two-things-i-would-do-differently" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Two things I would do differently
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<h1 id="capabilities">Capabilities<a class="headerlink" href="#capabilities" title="Permanent link">&para;</a></h1>
+<p>GSD Core ships 46 capability packs. Each one is a directory under <code>capabilities/</code> containing
+a single <code>capability.json</code> and, for nine of them, a <code>fragments/</code> subdirectory of markdown.
+That is the whole on-disk surface: <code>find capabilities -type f | wc -l</code> returns <strong>58</strong> — 46
+manifests plus 12 fragment files.</p>
+<p>Which sounds like a configuration format, and is not. The interesting property of this
+subsystem is that the <em>same</em> manifest schema is read on two completely different trust
+footings. First-party packs are compiled at build time into a committed registry by a script
+that can afford to trust its input. Third-party packs arrive from npm, git, or a local path
+at install time, and everything after that point — bounded reads, disclosure, consent,
+locking, ledgers, rollback — exists because the framework has decided to execute somebody
+else's hook scripts on your machine.</p>
+<p>This page is about the shape of a capability and the two lifecycles it moves through. The
+transferable question underneath is the one every plugin system eventually answers badly:
+how do you let a third party extend your framework without handing them the keys?</p>
+<h2 id="what-is-actually-in-capabilities">What is actually in <code>capabilities/</code><a class="headerlink" href="#what-is-actually-in-capabilities" title="Permanent link">&para;</a></h2>
+<p>Tallying <code>(role, tier)</code> across all 46 manifests:</p>
+<table>
+<thead>
+<tr>
+<th>role / tier</th>
+<th>count</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>feature</code> / <code>full</code></td>
+<td>20</td>
+</tr>
+<tr>
+<td><code>runtime</code> / <code>core</code></td>
+<td>19</td>
+</tr>
+<tr>
+<td><code>reviewer</code> / <code>full</code></td>
+<td>5</td>
+</tr>
+<tr>
+<td><code>feature</code> / <code>standard</code></td>
+<td>2</td>
+</tr>
+</tbody>
+</table>
+<p>Twelve fragment files spread over <strong>nine</strong> packs — <code>ai-integration</code>, <code>assumption-delta</code>,
+<code>claude-orchestration</code> (2), <code>external-job</code> (2), <code>live-dom-uat</code>, <code>mempalace</code> (2),
+<code>pattern-mapper</code>, <code>research</code>, <code>schema-gate</code> — counted by
+<code>find capabilities -path '*/fragments/*.md' | cut -d/ -f2 | sort | uniq -c</code>.</p>
+<div class="admonition warning">
+<p class="admonition-title">These files never reach a user's machine</p>
+<p><code>capabilities</code> is absent from <code>package.json</code>'s <code>files[]</code> array. The packs are build-time
+<em>inputs</em>. <code>scripts/gen-capability-registry.cjs</code> compiles them into the committed
+<code>gsd-core/bin/lib/capability-registry.cjs</code>, and that generated file is what ships. Cite
+<code>capabilities/&lt;id&gt;/capability.json</code> when you mean the source of a first-party capability,
+and never cite it as something the runtime reads — for first-party packs, it does not.</p>
+</div>
+<p>A whole feature manifest, <code>capabilities/schema-gate/capability.json</code>, fits on one screen:</p>
+<div class="highlight"><pre><span></span><code><span class="p">{</span>
+<span class="w">  </span><span class="nt">"id"</span><span class="p">:</span><span class="w"> </span><span class="s2">"schema-gate"</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">"role"</span><span class="p">:</span><span class="w"> </span><span class="s2">"feature"</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">"version"</span><span class="p">:</span><span class="w"> </span><span class="s2">"1.11.0"</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">"title"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Schema push detection gate"</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">"description"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Detects ORM schema-relevant files in the phase scope during planning…"</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">"tier"</span><span class="p">:</span><span class="w"> </span><span class="s2">"full"</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">"requires"</span><span class="p">:</span><span class="w"> </span><span class="p">[],</span>
+<span class="w">  </span><span class="nt">"engines"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nt">"gsd"</span><span class="p">:</span><span class="w"> </span><span class="s2">"&gt;=1.6.0"</span><span class="w"> </span><span class="p">},</span>
+<span class="w">  </span><span class="nt">"runtimeCompat"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nt">"supported"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">"*"</span><span class="p">],</span><span class="w"> </span><span class="nt">"unsupported"</span><span class="p">:</span><span class="w"> </span><span class="p">[]</span><span class="w"> </span><span class="p">},</span>
+<span class="w">  </span><span class="nt">"skills"</span><span class="p">:</span><span class="w"> </span><span class="p">[],</span><span class="w"> </span><span class="nt">"agents"</span><span class="p">:</span><span class="w"> </span><span class="p">[],</span><span class="w"> </span><span class="nt">"hooks"</span><span class="p">:</span><span class="w"> </span><span class="p">[],</span>
+<span class="w">  </span><span class="nt">"config"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nt">"workflow.schema_push_detection"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nt">"type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"boolean"</span><span class="p">,</span><span class="w"> </span><span class="nt">"default"</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span><span class="w"> </span><span class="nt">"description"</span><span class="p">:</span><span class="w"> </span><span class="s2">"…"</span><span class="w"> </span><span class="p">}</span>
+<span class="w">  </span><span class="p">},</span>
+<span class="w">  </span><span class="nt">"steps"</span><span class="p">:</span><span class="w"> </span><span class="p">[],</span>
+<span class="w">  </span><span class="nt">"contributions"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<span class="w">    </span><span class="p">{</span><span class="w"> </span><span class="nt">"point"</span><span class="p">:</span><span class="w"> </span><span class="s2">"plan:pre"</span><span class="p">,</span><span class="w"> </span><span class="nt">"into"</span><span class="p">:</span><span class="w"> </span><span class="s2">"planner"</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">"fragment"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nt">"path"</span><span class="p">:</span><span class="w"> </span><span class="s2">"fragments/plan-pre.md"</span><span class="w"> </span><span class="p">},</span>
+<span class="w">      </span><span class="nt">"produces"</span><span class="p">:</span><span class="w"> </span><span class="p">[],</span><span class="w"> </span><span class="nt">"consumes"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">"CONTEXT.md"</span><span class="p">],</span>
+<span class="w">      </span><span class="nt">"when"</span><span class="p">:</span><span class="w"> </span><span class="s2">"workflow.schema_push_detection"</span><span class="p">,</span><span class="w"> </span><span class="nt">"onError"</span><span class="p">:</span><span class="w"> </span><span class="s2">"skip"</span><span class="w"> </span><span class="p">}</span>
+<span class="w">  </span><span class="p">],</span>
+<span class="w">  </span><span class="nt">"gates"</span><span class="p">:</span><span class="w"> </span><span class="p">[]</span>
+<span class="p">}</span>
+</code></pre></div>
+<p>Note how much of it is empty. Seven arrays are declared, one carries anything. That is not
+laziness; it is the schema doing its job, and it is provable.</p>
+<h2 id="the-role-is-a-shape-contract-verified-by-set-equality">The role is a shape contract, verified by set equality<a class="headerlink" href="#the-role-is-a-shape-contract-verified-by-set-equality" title="Permanent link">&para;</a></h2>
+<p>The obvious way to check a manifest schema is to count fields. Counting is weak evidence —
+two sets of size 22 need not be the same 22. So the check worth running compares <em>sets</em>:
+for each key, collect the ids of packs declaring it, and test that collection against the set
+of packs with a given role.</p>
+<p>Running that over all 46 manifests:</p>
+<ul>
+<li>The <strong>22 packs with <code>role: "feature"</code></strong> are <em>exactly</em> the 22 declaring every one of
+  <code>runtimeCompat</code>, <code>skills</code>, <code>agents</code>, <code>hooks</code>, <code>steps</code>, <code>contributions</code>, <code>gates</code>.
+  Set-identical, all seven times.</li>
+<li>The <strong>19 packs with <code>role: "runtime"</code></strong> are <em>exactly</em> the 19 declaring a <code>runtime</code> block.</li>
+</ul>
+<p>There is no near-miss, no pack that declares six of the seven. The role is not a label
+attached to a bag of optional fields — it selects a fixed shape.</p>
+<p>The optional keys sit outside that contract: <code>config</code> on 31 packs, <code>commands</code> on 6,
+<code>activationKey</code> on exactly 5 (<code>claude-orchestration</code>, <code>graphify</code>, <code>intel</code>, <code>live-dom-uat</code>,
+<code>refactor-trigger</code>).</p>
+<p>And one field is on all 46 for a reason that is easy to misread. <code>requires</code> appears
+universally because <code>validateCapability</code> <em>mandates</em> it — <code>gsd-core/bin/lib/capability-validator.cjs:371</code>
+pushes <code>'requires must be an array of capability ids'</code> when it is not an array. It is a
+required field that is universally empty, with exactly <strong>one</strong> non-empty edge in the entire
+first-party set: <code>pattern-mapper</code> → <code>research</code>. The dependency graph is not sparse because
+nobody bothered to declare edges. It is sparse because there is one.</p>
+<h3 id="role-dispatch-is-enforced-in-source-not-by-convention">Role dispatch is enforced in source, not by convention<a class="headerlink" href="#role-dispatch-is-enforced-in-source-not-by-convention" title="Permanent link">&para;</a></h3>
+<p><code>validateCapability</code> branches on <code>cap.role</code> at <code>gsd-core/bin/lib/capability-validator.cjs:385-414</code>:</p>
+<ul>
+<li><code>feature</code> → <code>validateFeatureBody</code>, plus an explicit error if a <code>reviewer</code> body is present.</li>
+<li><code>runtime</code> → <code>validateRuntimeBody</code> <strong>and</strong> <code>validateReviewerBody</code>.</li>
+<li><code>reviewer</code> → requires a <code>reviewer</code> body, forbids <code>runtime</code>, and rejects every member of
+  <code>FEATURE_FIELDS_FORBIDDEN_ON_REVIEWER</code>.</li>
+</ul>
+<p>That middle branch explains the one asymmetry in the shipped set. A <code>reviewer</code> block appears
+on <strong>12</strong> packs but only <strong>5</strong> have <code>role: "reviewer"</code>. The other seven — <code>antigravity</code>,
+<code>claude</code>, <code>codex</code>, <code>cursor</code>, <code>kimi-code</code>, <code>opencode</code>, <code>qwen</code> — are host runtimes that double
+as review lanes. The comment at <code>capability-validator.cjs:397</code> states the rule directly: <em>"A
+host that is ALSO a reviewer keeps exactly one manifest (ADR-2782 D1)."</em></p>
+<p>Worth noticing what that choice avoids. The alternative — a separate <code>claude-reviewer</code> pack
+alongside <code>claude</code> — would have produced a second manifest whose identity, version envelope,
+and consent binding all have to be kept in lockstep with the first by hand. One manifest with
+a conditionally-admitted body pushes that consistency into the validator, where it is
+checkable.</p>
+<p>Rejecting a <code>reviewer</code> body on a feature pack as an <strong>error</strong> rather than ignoring the field
+is the other half of the same posture. The comment gives the reasoning: declaring a body is
+<em>"an ASSERTION of lane-ness"</em>. Silently dropping an unrecognised field is the usual liberal
+move, and it is exactly how a manifest that believes it configured an egress destination ends
+up configuring nothing.</p>
+<h2 id="two-lifecycles-not-one">Two lifecycles, not one<a class="headerlink" href="#two-lifecycles-not-one" title="Permanent link">&para;</a></h2>
+<p>The stages are usually named <em>load → activate → consent → trust → lock</em>. That is a useful
+topic ordering and a misleading execution order. In the code there are two distinct paths,
+and they do not agree on the sequence:</p>
+<ul>
+<li><strong>Install-time</strong> is a mutating path: stage and validate, then <strong>trust</strong> (disclose the
+  executable surfaces), then <strong>consent</strong> (prompt and record), then commit. The <strong>lock</strong> wraps
+  the mutation, not the tail. Trust <em>precedes</em> consent, because the disclosure is the thing
+  the user is consenting to.</li>
+<li><strong>Load-time</strong> is read-only and lock-free. Consent is <em>checked</em>, never recorded. And
+  <strong>activation</strong> is not in the loader at all — it is a separate later resolution in
+  <code>src/capability-state.cts</code> and <code>src/capability-activation.cts</code>.</li>
+</ul>
+<p><img alt="Kroki" src="https://kroki.io/plantuml/svg/eNp9Vd1u4kYUvvdTHGWl3aDgNMRAACnVZsFoo5IQgVOpElI1jI9hmvEMnRmTJVe9qnpZVX2KPlaepGcMxLAXuQKPz-_3M_5sHTOuyGVgn4RaMcNySDFjhXRDrdxUvCA0Lg9eWvy9QMXxDq1lC7yRYqFAYuaCYK6_wcnt_TS5GY3g9Y9_IS8cc0It6iA1f8L0BD4MB8N2HAVUywkuVkw5OOFsxeZCCrcJZ8rqwnA8586eALMwnfTfCXamsO4tNnknUooM-YbLqvLonWiulUVVVe4HqFKg_XZLjsY3g3JDgywNtZKbOihcowG3NPqZkj7E8bA9_PLeRJqlaKpxBu-BQjgeYJJU41xfg_CvpewB_SywDmsmRUrxcH0dEHwQ_uhRhB5QfYvTFXI428bOVBMGekqVCpVaOO01WlHY6DZrx3ll7M-7qimFXTU7YadzWQuUpjZGLJYOdFZyRWPfsRUsaczxfQwEotnUA-5_mfwJNxaEhfjuIfnF4xdc-rwIuNHWhpRLy6yZEYSApVKK6kMmDFLPTtQOO81GrVzd9z3evVRCHZKv8T3s2DvYP6EtUmG51Bbjb8hJl3OJ08JkjKMNkn2MLfKc2r_gYBtcGMLo9c9_wLBngoH4Mj6YokcU7ZYIk_FjEk9gZXS-chYYDUfHM6VXaJjTZj8MoWt04Ughvegiqh0PX_oEgUig994qfvQR7NpITBd0_uuKNiczwZd4OJ7EM8XUBjK7M5lWnr7GZbdWJfqhCKgp0Ud5iR4KxeRMLbV-sn6uTKiSzma3GbaiZm2m7voPQCqeU8Hc83zRDq-i1q6kl4JBrk36YPRvyF1_h_Npr9tq14L-Pqj0AEFGQHhDMDVTz0aUC27vAU_nVYsk1DyYlrzJqi097H8TnbdTLxiPNNd5Ltx3khsFNyQeZpfA5nqNhBVbo62wsujOAz-04kJSnpbSQqbNMzNpHYgeg5ZYIg2sBSvbDB4nYRtyKhYyK1IvvUa72a2dHwvPu7cHjFSVZWg8CoQLreuJG5QrDWgnqmIk20y09gLoRY1OGHUbBDTdp6tqytNeq9um09KHBI-_VeiwfdGpHVZ7M_aZZ48Mxd1Mlf9Jt7T1WeWjXZpng6x4zNcpNaI-EunZ0fNXgq_m2Y6iksR9u5w5voQfaOft3--hHwT7N-AtQl-ItPep2N-dmH6qB_3xfXJ7_xiXd-UcCXiEzLBFXjrCY1iherDovBAyneBCWLo9ShBnJFZjXeivyA28_vUfMM5xRV0O87wjtuLzA2VGv6A6zjT7ol6B7a0NCUaxLi3kCXVLYVLiPy0kVmxOk1L82-RgmrydlckUuDczsffxI90j5c2SzhQ9lE5b3Lx1CT7Tzv6L-z9uA30O?"></p>
+<h3 id="install-intent-before-mutation">Install: intent before mutation<a class="headerlink" href="#install-intent-before-mutation" title="Permanent link">&para;</a></h3>
+<p>The commit signal is not a version comparison. <code>capability-lifecycle.cts:1108-1136</code> writes a
+ledger entry carrying <code>_pending</code> <strong>before</strong> touching the filesystem, and the commit is the
+<em>clearing</em> of that field. The stated reason (<code>capability-lifecycle.cts:139-141</code>) is that a
+same-version malicious bundle must not be mistakable for a committed one — a version check
+would call a half-written reinstall "already at 1.11.0" and stop.</p>
+<p>The rollback is written to never have zero copies on disk. The DUR-6 block
+(<code>src/capability-lifecycle.cts:1649-1661</code>) sits in <code>reconcileCapabilities</code>' rollback branch,
+not in <code>promoteStagingToFinal</code> (which is <code>src/capability-lifecycle.cts:547-577</code>). It moves
+the uncommitted directory aside, renames the backup back, then drops the aside copy, and
+its comment states the rule directly: never <code>rmSync</code> the final directory before restoring. At every instant at
+least one intact copy exists.</p>
+<p>Consent writing is deliberately <em>not</em> fatal. <code>bindProjectConsent</code>
+(<code>capability-lifecycle.cts:941-977</code>) catches a consent-store write failure and warns rather
+than failing the install, because the bundle is already committed — the capability simply
+stays inactive until consent can be recorded. That is the right split: the mutation that
+already happened is not rolled back to punish a read-only <code>$HOME</code>.</p>
+<h3 id="consent-binds-content-not-provenance">Consent binds content, not provenance<a class="headerlink" href="#consent-binds-content-not-provenance" title="Permanent link">&para;</a></h3>
+<p><code>bundleContentHash</code> (<code>capability-consent.cts:487-588</code>) is a length-framed, injective, raw-byte
+serialization: a uint64 entry count, then per entry a 1-byte type tag, a uint32 path length
+plus raw path bytes from an <code>{encoding:'buffer'}</code> walk, and for files a uint64 content length
+plus raw bytes.</p>
+<p>Every element of that is load-bearing. Length framing kills delimiter ambiguity. Raw bytes
+kill the U+FFFD collision on invalid-UTF-8 filenames <em>and</em> contents. Typed directory markers
+bind empty directories, which a file-only walk would let an attacker create or remove for
+free.</p>
+<p>The module header (<code>capability-consent.cts:12-23</code>) is unusually direct about what the binding
+is <strong>not</strong>:</p>
+<blockquote>
+<p>…bound to a RECOMPUTED full-bundle content hash (<code>bundleContentHash</code>), NOT to the ledger
+<code>integrity</code> (which is <code>''</code> for path/git/dir installs and taken verbatim from the
+repo-plantable project ledger — <code>'' === ''</code> is no binding) NOR to the <code>disclosureSignature</code>
+alone (which covers only executable surfaces, so a declarative-only cap has a constant
+signature and a repo-write attacker could swap <code>capability.json</code> for a malicious
+gate/contribution while consent still matched).</p>
+</blockquote>
+<p>The implementation matches: <code>hasProjectConsent</code> (<code>capability-consent.cts:669-683</code>) compares
+<code>rec.contentHash === contentHash</code> and nothing else. <code>integrity</code> and <code>disclosureSignature</code> stay
+on the record purely for the human disclosure UX.</p>
+<p>Two refusals in that hash are argued in source rather than waved off. It deliberately does
+<em>not</em> exclude <code>.DS_Store</code>, <code>node_modules</code>, <code>dist</code> or <code>build</code>
+(<code>capability-consent.cts:329-332</code>, <code>:496-498</code>): excluding an executed directory would stop
+consent from binding executable content, converting a usability complaint into a supply-chain
+hole. The two <code>__pycache__</code> carve-outs added by #3631 are narrow, and the residual risk they
+create is written down at <code>capability-consent.cts:500-520</code>.</p>
+<h3 id="load-never-crash-is-the-top-level-contract">Load: never crash is the top-level contract<a class="headerlink" href="#load-never-crash-is-the-top-level-contract" title="Permanent link">&para;</a></h3>
+<p>The loader's job is to compose a registry from first-party packs plus whatever overlays are
+present, and its hardest requirement is that a hostile overlay must not be able to stop the
+framework from starting. That is implemented at three nesting depths:</p>
+<ol>
+<li><strong>Per candidate</strong> — the entire body is wrapped (<code>src/capability-loader.cts:645-855</code>) so any
+   throw from any validator becomes a structured skip.</li>
+<li><strong>Per validator</strong> — an extra guard around the cross-capability trio (<code>:780-790</code>).</li>
+<li><strong>Whole compose</strong> — a <code>buildRegistry</code> throw falls back to the frozen first-party registry,
+   clears <code>commandRoots</code>, and re-records dropped gates (<code>:876-901</code>).</li>
+</ol>
+<p>Supporting that, <code>gatePointsOf</code> (<code>:482-493</code>) is deliberately <em>total</em> over <code>null</code>, non-object
+and non-array <code>gates</code>, and over malformed entries. A helper that can throw would defeat the
+fallback path that calls it.</p>
+<p>Scope escalation is the one place the loader is stricter than it needs to be, and the comment
+says why. <code>overlayRoots</code> (<code>:318-391</code>) demotes the trusted-global slot to consent-required
+<code>project</code> unless <code>realpath(global)</code> <strong>and</strong> <code>realpath(project)</code> both succeed <strong>and</strong> differ —
+and only when a genuine project marker (<code>.planning/</code> or <code>.git</code>) exists. The earlier one-sided
+rule left a symlinked-<code>GSD_HOME</code> bypass open. It is a rule that got stricter after the weaker
+version was shown insufficient, which is worth more than a rule that was right first time.</p>
+<p>Ordering matters in one non-obvious place. The unconsented <code>continue</code> at <code>:726-748</code> happens
+<strong>before</strong> <code>materializeHookFragments</code>, and the comment says so: a forged FIFO or oversized
+fragment in an unconsented overlay is never read, so it cannot hang or OOM the loop.</p>
+<div class="admonition note">
+<p class="admonition-title">One builder, two entry points</p>
+<p><code>scripts/gen-capability-registry.cjs</code> compiles the 46 first-party packs into
+<code>gsd-core/bin/lib/capability-registry.cjs</code>. Requiring that module gives an object with
+twelve top-level keys: <code>capabilities</code> (46 entries), <code>version</code>, and ten derived views —
+<code>bySkill</code>, <code>byAgent</code>, <code>byLoopPoint</code>, <code>configKeys</code>, <code>configSchema</code>, <code>runtimes</code>,
+<code>commandFamilies</code>, <code>capabilityClusters</code>, <code>profileMembership</code>, <code>requiresClosure</code>.
+At runtime <code>capability-loader.cts:877</code> calls the <strong>same</strong> <code>buildRegistry</code> over
+<code>first-party ∪ accepted overlays</code>. No derived view can drift between the build path and
+the load path, because there is only one implementation of each.</p>
+</div>
+<h3 id="activation-is-a-third-dimension-orthogonal-by-construction">Activation is a third dimension, orthogonal by construction<a class="headerlink" href="#activation-is-a-third-dimension-orthogonal-by-construction" title="Permanent link">&para;</a></h3>
+<p><code>CapabilityStateEntry</code> (<code>src/capability-state.cts:75-107</code>) composes install profile × runtime
+surface × config activation, and the composition is written to keep the old two-dimension
+answer intact:</p>
+<div class="highlight"><pre><span></span><code>enabled = installed &amp;&amp; surfaced          // unchanged
+active  = enabled &amp;&amp; configActivation    // configActivation defaults true when no activationKey
+</code></pre></div>
+<p><code>_resolveActivationValue</code> walks four precedence levels
+(<code>src/capability-activation.cts:78-115</code>): the <code>loadConfig</code> result, then the raw workspace
+<code>config.json</code>, then the raw root <code>config.json</code> when it differs, then the registry
+<code>configSchema</code> default — absent at all four means not found.</p>
+<p>The containment rule is the good part. The validator forces <code>activationKey</code> to name a key in
+the capability's <strong>own</strong> config slice (<code>capability-validator.cjs:695-718</code>), so a third-party
+pack's activation gate can never point at somebody else's key. Without that, an overlay could
+make its own activation depend on a first-party key it does not own, and toggling an unrelated
+setting would silently light up third-party code.</p>
+<h2 id="the-committed-cjs-constraint-and-its-three-consequences">The committed-<code>.cjs</code> constraint and its three consequences<a class="headerlink" href="#the-committed-cjs-constraint-and-its-three-consequences" title="Permanent link">&para;</a></h2>
+<p><code>gsd-core/bin/lib/</code> is mostly gitignored build output compiled from <code>src/*.cts</code> at publish
+time (ADR-457). <code>git ls-files gsd-core/bin/lib/</code> returns 11 tracked entries: eight <code>.cjs</code> in
+the directory itself, plus a vendored <code>re2js.cjs</code> / <code>re2js.d.cts</code> pair and a README under
+<code>vendor/</code>. <code>capability-validator.cjs</code> is one of the eight, and its header explains why
+(<code>capability-validator.cjs:4-14</code>):</p>
+<blockquote>
+<p>Extracted from <code>scripts/gen-capability-registry.cjs</code> per ADR-1244 D2 so that both the
+build-time generator and the runtime overlay loader can require the validator WITHOUT
+pulling in the generator's build-time-only machinery… This is a COMMITTED plain <code>.cjs</code> (not
+built from <code>.cts</code>) so it is available on a fresh worktree before <code>npm run build:lib</code> has run.</p>
+</blockquote>
+<p>There is no <code>src/capability-validator.cts</code>. The reasoning is sound — a validator that only
+exists after a build cannot validate anything on a fresh clone. But a <code>.cjs</code> that <code>src/*.cts</code>
+must consume across a build boundary has costs, and this repo pays three distinct ones.</p>
+<p><strong>One: a duplicated grammar, held by a test.</strong> <code>LANE_SLUG_RE</code>
+(<code>capability-validator.cjs:864</code>) carries a <code>⚠ DEFECT.GENERATIVE-FIX</code> note above it at
+<code>:851-858</code> explaining that it <em>"cannot be imported"</em> from <code>src/review-lane-descriptor.cts</code>,
+because that module compiles to gitignored build output while this file must load on a fresh
+worktree. The note names its own compensating control: the parity assertion
+<code>laneSlugGrammarMatchesPhase1Descriptor</code> in <code>tests/reviewer-manifest-body.test.cjs</code>.</p>
+<p><strong>Two: a lazy, fail-closed dependency stub.</strong> The bounded reader the validator needs lives in
+<code>capability-ledger.cjs</code>, which <em>is</em> build output. So it is required lazily
+(<code>capability-validator.cjs:2565-2573</code>), and if unavailable <code>readSmallRegularFile</code> becomes
+<code>() =&gt; null</code> — turning every path fragment into a read error rather than silently reverting to
+an unbounded <code>readFileSync</code>. The failure mode was chosen deliberately.</p>
+<p><strong>Three: a hand-mirrored module type that dropped a security parameter.</strong> This one shipped.</p>
+<h3 id="defect-the-centralpatterns-check-cannot-fire-at-runtime">DEFECT — the <code>centralPatterns</code> check cannot fire at runtime<a class="headerlink" href="#defect-the-centralpatterns-check-cannot-fire-at-runtime" title="Permanent link">&para;</a></h3>
+<p><code>validateCrossCapability</code> is declared with three parameters
+(<code>capability-validator.cjs:3063</code>):</p>
+<div class="highlight"><pre><span></span><code><span class="kd">function</span><span class="w"> </span><span class="nx">validateCrossCapability</span><span class="p">(</span><span class="nx">capMap</span><span class="p">,</span><span class="w"> </span><span class="nx">centralKeys</span><span class="p">,</span><span class="w"> </span><span class="nx">centralPatterns</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[])</span><span class="w"> </span><span class="p">{</span>
+</code></pre></div>
+<p>Its third parameter drives a check at <code>capability-validator.cjs:3146-3154</code> whose own comment
+(<code>:3138-3145</code>) states precisely what it exists to prevent:</p>
+<blockquote>
+<p>…<code>isCentralConfigKey</code> DOES consult the patterns, and <code>mergeFederatedConfig</code> skips every key
+for which it returns true. So a federated slice overlapping a central pattern is INERT — it
+carries no traffic — while the build stays green.</p>
+</blockquote>
+<p>Grepping every non-test call site: only <code>scripts/gen-capability-registry.cjs:480</code> passes the
+third argument. Both <strong>runtime</strong> callers pass two:</p>
+<ul>
+<li><code>src/capability-loader.cts:784</code> — <code>validator.validateCrossCapability(acceptedMap, getCentralKeys())</code></li>
+<li><code>src/capability-source.cts:841</code> — <code>capValidator.validateCrossCapability(capMap, centralKeys)</code></li>
+</ul>
+<p>And this is not a forgotten argument at the call site. Both <code>.cts</code> files hand-mirror the
+validator's module type, because the real <code>.cjs</code> has no types to import — and both mirrors
+declare only two parameters:</p>
+<div class="highlight"><pre><span></span><code><span class="c1">// src/capability-loader.cts:62 — identical text at src/capability-source.cts:73</span>
+<span class="nx">validateCrossCapability</span><span class="o">:</span><span class="w"> </span><span class="p">(</span><span class="nx">capMap</span><span class="o">:</span><span class="w"> </span><span class="kt">Map</span><span class="o">&lt;</span><span class="kt">string</span><span class="p">,</span><span class="w"> </span><span class="nx">unknown</span><span class="o">&gt;</span><span class="p">,</span><span class="w"> </span><span class="nx">centralKeys</span><span class="o">:</span><span class="w"> </span><span class="kt">Set</span><span class="o">&lt;</span><span class="kt">string</span><span class="o">&gt;</span><span class="p">)</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="kt">string</span><span class="p">[];</span>
+</code></pre></div>
+<p>So <code>centralPatterns</code> defaults to <code>[]</code>, <code>centralPatterns.find(...)</code> iterates nothing, and the
+check is inert on both runtime paths. TypeScript would reject a fix at the call site until
+the mirror is widened.</p>
+<p>It is worth ruling out the charitable reading, which is that <code>getCentralKeys()</code> already folds
+pattern-matched keys into the <code>Set</code> it passes as the second argument. It does not.
+<code>loadCentralConfigKeys</code> (<code>scripts/gen-capability-registry.cjs:106-130</code>) ends with
+<code>return new Set(Array.isArray(manifest.validKeys) ? manifest.validKeys : [])</code> — exact keys
+only. The patterns live in a <em>separate</em> exported function, <code>loadCentralConfigPatterns</code>
+(<code>:163</code>), whose own doc comment states the gap in the plainest possible terms:</p>
+<blockquote>
+<p><code>loadCentralConfigKeys</code> above reads <code>validKeys</code> only, so a federated key claimed by a
+central <em>pattern</em> was invisible to the exclusivity check.</p>
+</blockquote>
+<p>And the loader cannot reach that function either, because the <em>second</em> hand-written mirror
+closes the gap from the other end. <code>GeneratorModule</code> at <code>src/capability-loader.cts:80-83</code>
+declares exactly two members:</p>
+<div class="highlight"><pre><span></span><code><span class="kd">interface</span><span class="w"> </span><span class="nx">GeneratorModule</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="nx">buildRegistry</span><span class="o">:</span><span class="w"> </span><span class="p">(</span><span class="nx">capMap</span><span class="o">:</span><span class="w"> </span><span class="kt">Map</span><span class="o">&lt;</span><span class="kt">string</span><span class="p">,</span><span class="w"> </span><span class="nx">unknown</span><span class="o">&gt;</span><span class="p">)</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="nx">Registry</span><span class="p">;</span>
+<span class="w">  </span><span class="nx">loadCentralConfigKeys</span><span class="o">:</span><span class="w"> </span><span class="p">()</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="nb">Set</span><span class="o">&lt;</span><span class="kt">string</span><span class="o">&gt;</span><span class="p">;</span>
+<span class="p">}</span>
+</code></pre></div>
+<p><code>loadCentralConfigPatterns</code> is exported by the generator at <code>:918</code> and has no caller outside
+the generator itself. So two independently hand-maintained module interfaces — one dropping a
+parameter, one dropping a member — combine to make the check unreachable from the runtime,
+and neither omission is visible to the compiler or to any test.</p>
+<p>I verified the consequence end to end rather than trusting the comment:</p>
+<ul>
+<li><code>src/config-schema.cts:63</code> — <code>isCentralConfigKey</code> returns true via
+  <code>DYNAMIC_KEY_PATTERNS.some((p) =&gt; p.test(keyPath))</code>.</li>
+<li><code>src/federated-config.cts:14</code> — <code>mergeFederatedConfig</code> skips any key where <code>isCentralKey(key)</code>.</li>
+</ul>
+<p>A third-party overlay declaring a config key matched by a central dynamic pattern — the
+<code>review.models.&lt;slug&gt;</code> family, for instance — passes the loader's validation, is composed into
+the registry, and its federated slice then carries no traffic. Silently inert, exactly as the
+comment predicts, on exactly the path the comment was written for.</p>
+<p>The parity harness that ought to catch this cannot. <code>tests/capability-registry.test.cjs:5648</code>
+checks that the validator module <em>exports</em> each name (<code>assert.ok(sym in capValidatorModule)</code>)
+and that the generator re-exports the same object references. It is a name-and-identity check.
+Nothing anywhere asserts that the hand-written <code>.cts</code> interfaces match the real function
+arities, so a mirror can lose a parameter without a single test going red.</p>
+<div class="admonition note">
+<p class="admonition-title">If you are building this yourself</p>
+<p>The moment you have a module that cannot be typed by its own source, you have accepted a
+hand-maintained interface, and a hand-maintained interface is a place where a security
+parameter can go missing without a compile error or a test failure. If you must have a
+pre-build-available validator, generate its <code>.d.cts</code> from the <code>.cjs</code> and check the
+generated file in — or assert arity in the parity test. Either one turns this defect into
+a red build.</p>
+</div>
+<h3 id="defect-the-install-time-cross-capability-pass-is-doubly-vacuous">DEFECT — the install-time cross-capability pass is doubly vacuous<a class="headerlink" href="#defect-the-install-time-cross-capability-pass-is-doubly-vacuous" title="Permanent link">&para;</a></h3>
+<p><code>src/capability-source.cts:836-841</code> builds a one-entry map and an empty key set, then runs the
+full cross-capability suite over them:</p>
+<div class="highlight"><pre><span></span><code><span class="kd">const</span><span class="w"> </span><span class="nx">capMap</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="nb">Map</span><span class="o">&lt;</span><span class="kt">string</span><span class="p">,</span><span class="w"> </span><span class="nx">unknown</span><span class="o">&gt;</span><span class="p">([[</span><span class="nx">id</span><span class="p">,</span><span class="w"> </span><span class="nx">cap</span><span class="p">]]);</span>
+<span class="kd">const</span><span class="w"> </span><span class="nx">centralKeys</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="nb">Set</span><span class="o">&lt;</span><span class="kt">string</span><span class="o">&gt;</span><span class="p">();</span>
+</code></pre></div>
+<p>With one entry, no owner-uniqueness collision against first-party can fire. With an empty
+<code>centralKeys</code>, the central-schema exclusivity check at <code>capability-validator.cjs:3127</code> is a
+no-op. Both are defensible — the loader re-runs the suite over the merged set, so the
+invariants are enforced <em>somewhere</em>. The defect is that the comment at
+<code>capability-source.cts:835</code> says only <em>"Cross-capability validations (contract, consumes,
+cross-capability)"</em> and never notes that two of the three invariants cannot trigger there. The
+next person to read it will believe install-time validation is stronger than it is.</p>
+<h2 id="a-cluster-of-stale-comments-around-the-trust-model">A cluster of stale comments around the trust model<a class="headerlink" href="#a-cluster-of-stale-comments-around-the-trust-model" title="Permanent link">&para;</a></h2>
+<p>Three separate places in this subsystem document a design that the shipped code abandoned.
+They are worth listing together because the pattern is the same each time: the <em>prose</em> was
+updated at one altitude and missed at another.</p>
+<p><strong>Gate policy — fail-closed JSDoc over fail-open code.</strong> <code>src/capability-loader.cts:158</code> reads
+<em>"Skipped capabilities that declared a gate — the loop must fail CLOSED for these."</em> Lines
+<code>:160-165</code> say the loop resolver <em>"must inject a blocking gate at that point rather than
+proceeding as if the gate had passed."</em> The actual consumer,
+<code>src/loop-resolver.cts:543-591</code>, injects no gate. It emits a stderr warning:</p>
+<div class="highlight"><pre><span></span><code>its gate at ${point} is SKIPPED and NOT enforced (failing open)
+</code></pre></div>
+<p>Two precision points. The <code>blockedGates</code> field is <strong>not</strong> dead — <code>loop-resolver.cts</code> says
+outright that <em>"blockedGates is still recorded by the loader; only the consequence changes
+from block to warn."</em> The field is load-bearing for the warning. What is stale is the field's
+JSDoc, which asserts an enforcement policy its only consumer abandoned. And this is localized
+staleness, not systemic rot: the loader's own module header at <code>:18-25</code> is already correct
+post-#2009, as are <code>CONTEXT.md:323</code>, <code>docs/INVENTORY.md:461</code> and
+<code>docs/explanation/capability-overlay-model.md:205-215</code>. Only the JSDoc on the <code>OverlayMeta</code>
+fields and one inline comment were missed when the policy flipped.</p>
+<p>The #2009 rationale for dropping the injection rather than making it non-blocking is
+unusually candid (<code>loop-resolver.cts:559-564</code>): no host workflow generically surfaces an
+arbitrary gate's message, and generic gate consumers expect an object-shaped <code>check</code>, not a
+prose string — so an injected advisory gate would be silently dropped or mis-dispatched. The
+fix chosen was the channel that is actually surfaced.</p>
+<p><strong><code>signatureForManifest</code> — a shared binding that is not shared.</strong>
+<code>src/capability-trust.cts:1362-1367</code> claims:</p>
+<blockquote>
+<p>Both the loader (which checks whether a previously-consented project cap still matches) and
+the lifecycle (which records the consent) compute the binding through THIS helper so they
+can never drift.</p>
+</blockquote>
+<p>The loader does not consume it and has not since #1459. Grepping every <code>require(</code> in
+<code>src/capability-loader.cts</code>, it pulls <code>project-root</code>, <code>capability-registry</code>,
+<code>capability-validator</code>, <code>semver-compare</code>, <code>capability-ledger</code>, <code>capability-consent</code>,
+<code>external-descriptor-trust</code> and lazily the generator — never <code>capability-trust</code>, and not
+transitively either (<code>grep -n "capability-trust" scripts/gen-capability-registry.cjs</code> is
+empty). Its actual
+binding is <code>consentMod.bundleContentHash(capDir)</code> at <code>src/capability-loader.cts:733</code>. The only
+production caller of <code>signatureForManifest</code> is <code>src/capability-lifecycle.cts:956</code>.</p>
+<p>The same stale claim is repeated at <code>capability-trust.cts:187-191</code>, <code>capability-trust.cts:930</code>,
+<code>CONTEXT.md:350</code>, and <code>docs/adr/2782-reviewer-lane-capability-surface.md:343</code> — and
+<code>CONTEXT.md</code> contradicts itself, because <code>CONTEXT.md:344</code> describes the <code>contentHash</code> binding
+correctly.</p>
+<p><strong>The trust-model doc describes the pre-CB-1/CB-2 model.</strong>
+<code>docs/explanation/capability-trust-model.md</code> states the consent binding as the two things
+<code>capability-consent.cts:12-23</code> explicitly says it is <em>not</em>. Doc lines 411-413 say consent
+<em>"binds the bundle's <code>integrity</code> and its disclosure signature"</em>; lines 425-427 say <em>"because
+the consent binds the integrity and the disclosure signature, tampering with the bundle …
+deactivates it"</em>; lines 206-210 repeat it. The conclusion happens to be right and the
+mechanism is wrong, which is the worst combination — a reader who trusts it will reason about
+<code>integrity</code> on a path where <code>integrity</code> is <code>''</code>.</p>
+<p>That document has two further inaccuracies worth naming, because they are the ones a builder
+would copy:</p>
+<ul>
+<li><strong>It contradicts itself on integrity pinning.</strong> Line 66-67 asserts <em>"GSD requires an
+  <code>integrity</code> SHA-512 pin in the ledger, verified before extraction"</em>, while lines 291-300 of
+  the <em>same</em> document accurately describe the unpinned case (the <code>content: NO PINNED HASH —
+  staged unverified</code> prompt line added by #3514). The source resolves it against line 66:
+  <code>src/capability-source.cts:966</code> throws <em>"integrity pinning is not supported for local
+  sources"</em> and <code>:999</code> throws <em>"integrity pinning is not supported for git sources; pin the
+  commit with <code>#sha:&lt;commit&gt;</code>"</em>. <code>verifyIntegrity</code> is called only at
+  <code>capability-source.cts:1078</code> (npm) and <code>:1126</code> (tarball) — two of five spec kinds. The
+  document's accurate half was never propagated to its summary.</li>
+<li><strong>It describes a richer consent prompt than ships.</strong> Lines 197-199 claim the pre-install
+  summary names each executable surface <em>"their kinds (<code>step</code>, <code>contribution</code>, <code>gate</code>), and
+  the loop extension points they register into."</em> The <code>Disclosure</code> object carries no such
+  data. <code>HookSurface</code> (<code>src/capability-trust.cts:115-118</code>) is <code>{ event, script }</code>, and
+  <code>summarizeDisclosure</code> (<code>capability-trust.cts:1533-1539</code>) renders <code>- ${event} -&gt; ${script}</code>.
+  A capability's <code>steps</code> / <code>gates</code> / <code>contributions</code> arrays are never collected into a
+  disclosure at all. I checked for a second renderer that might supply the difference:
+  <code>gsd-core/bin/lib/capability-command-router.cjs</code> calls <code>trust.summarizeDisclosure</code> at lines
+  303, 309 and 392 and adds no supplementary section.</li>
+</ul>
+<p><strong>And one comment in the wrong place.</strong> <code>gsd-core/bin/gsd-tools.cjs:512</code> documents the
+third-party dispatch gate as <em>"CONSENT: <code>loadRegistry({ includeInstalled })</code> excludes
+<code>_pending</code> (unconsented) capabilities"</em>. Those are two distinct gates with opposite semantics:
+the <code>_pending</code> skip (<code>capability-loader.cts:596-599</code>) means <em>install did not commit</em>, while
+the consent gate (<code>:726-748</code>) emits <code>kind: 'unconsented'</code>. Conflating them in a comment on the
+code path where third-party code actually executes is the wrong place to be imprecise.</p>
+<h2 id="smaller-defects-and-one-with-a-reachability-chain">Smaller defects, and one with a reachability chain<a class="headerlink" href="#smaller-defects-and-one-with-a-reachability-chain" title="Permanent link">&para;</a></h2>
+<p><strong>An unbounded read on a reconcile path.</strong> <code>readManifest</code>
+(<code>src/capability-lifecycle.cts:326-335</code>) uses a raw
+<code>fs.readFileSync(path.join(dir, 'capability.json'), 'utf8')</code>. The chain into
+project-controlled bytes: <code>capability-command-router.cjs:74</code> resolves <code>--scope project</code> to
+<code>runtimeDir: cwd</code>; <code>capRunReconcile</code> is invoked from router lines 284, 354 and 447 on
+install/update/remove; it calls <code>reconcileCapabilities</code>, whose rollback branch calls
+<code>resyncCapabilitySharedEdits</code> (<code>capability-lifecycle.cts:604-617</code>) →
+<code>readManifest(capDir(runtimeDir, capId))</code> on
+<code>&lt;projectRoot&gt;/.gsd/capabilities/&lt;id&gt;/capability.json</code>. The per-scope ledger read that gates
+this <em>is</em> bounded; the manifest read is not, so a planted FIFO at that path blocks the
+reconcile. This is exactly the file the loader hardened at <code>src/capability-loader.cts:608</code>
+with <code>readSmallRegularFile(manifestPath, MANIFEST_MAX_BYTES)</code>, for exactly this reason
+(#1459 finding 2). Stated honestly: reaching it requires the user to run a project-scoped
+capability command, and the planted ledger must survive <code>isValidLedgerEntry</code> — so this is
+plausible-and-reachable, not demonstrated.</p>
+<p><strong>A comment that claims an enforcement the module does not perform.</strong>
+<code>src/capability-lifecycle.cts:53</code> declares <code>readSmallRegularFile</code> on its <code>ledgerMod</code> type with
+a load-bearing comment — <em>"the shared fd-based bounded reader … THROWS for a non-regular
+(FIFO/device/dir) / oversized / IO-error file (fail closed)"</em>. <code>rg readSmallRegularFile
+src/capability-lifecycle.cts</code> returns only that declaration. The module never calls it. Read
+alongside the raw <code>readManifest</code> above, the comment actively misleads.</p>
+<p><strong>Type-mirror drift with no runtime consequence.</strong> <code>src/capability-lifecycle.cts:101-120</code>
+keeps a local mirror of the <code>Disclosure</code> interface listing only <code>hooks</code>, <code>commandModules</code>,
+<code>mcpServers</code>, <code>hasExecutable</code>, <code>missingArtifacts</code>. It is missing <code>reviewerLanes</code> (ADR-2782)
+and <code>instructionSurfaces</code> (ADR-2363). This is explicitly <strong>not</strong> a functional defect:
+<code>discloseExecutableSurfaces</code> returns the full five-class object regardless of how the consumer
+types it, and <code>executableSetChanged</code> computes the signature inside <code>capability-trust</code>. It is
+the same failure mode as the <code>centralPatterns</code> mirror, caught before it cost anything.</p>
+<h2 id="the-parts-worth-stealing">The parts worth stealing<a class="headerlink" href="#the-parts-worth-stealing" title="Permanent link">&para;</a></h2>
+<p>Several decisions here are better than the defects above suggest, and they generalise.</p>
+<p><strong>Signature stability is treated as a security property.</strong> The highest-consequence line in
+<code>disclosureSignature</code> (<code>src/capability-trust.cts:1350</code>) appends the reviewer-lane element
+<em>only</em> when a lane is declared, so a lane-free manifest's signature stays byte-identical to
+its pre-ADR-2782 encoding. The same discipline excludes instruction surfaces, <code>resolvedHost</code>,
+<code>integrityStatus</code>, and the cosmetic <code>reviewsSection</code> / <code>timeoutFloorMs</code>. The stated reason
+each time: a re-consent prompt that carries no new security information trains click-through.
+That is the correct model of the human in the loop, and it is rare to see it written into an
+encoding function.</p>
+<p><strong>Closed enums get residual backstops rather than more names.</strong> Where a whitelist proved
+unsafe, the fix was a residual: <code>McpServerSurface.rawConfig</code>
+(<code>capability-trust.cts:173-181</code>) and the lane's <code>residualInvoke</code> / <code>residualLane</code>
+(<code>capability-trust.cts:253-276</code>). The comment at <code>capability-trust.cts:1310-1320</code> counts the
+failure precisely — <code>resolveLanePlan</code> reads thirteen distinct <code>inv.*</code> fields and the
+pre-#2483 tuple bound four. Correspondingly, <code>VALID_LANE_HANDLERS</code>
+(<code>capability-validator.cjs:879-902</code>) carries an explicit admission rule (two or more lanes
+sharing the behaviour, or a documented upstream defect data cannot express) on the grounds
+that an enum growing one member per lane <em>"is a plugin system wearing a manifest"</em>.</p>
+<p><strong>Non-determinism is structurally forbidden from blocking.</strong>
+<code>gates[].check.agentVerdict</code> forces <code>blocking: false</code> (<code>capability-validator.cjs:2803-2807</code>)
+— <em>"non-deterministic checks may not halt the loop."</em> An LLM verdict can advise; it cannot
+stop you. In a framework whose whole premise is model-driven workflow, drawing that line in
+the validator rather than in guidance is the single most defensible decision on this page.</p>
+<p><strong>Error text is made order-independent on purpose.</strong> Reviewer-lane collision errors are
+accumulated and sorted rather than reported pairwise
+(<code>capability-validator.cjs:3178-3184</code>). The reason is one I would not have anticipated: with
+three lanes colliding on one key, pairwise reporting names whichever pair arrived first, so
+the message text depends on Map insertion order — <code>readdir</code> order at build time, candidate
+order at load time — and a cross-platform CI lane would then disagree with a local run about
+the text of the same failure.</p>
+<p><strong>Known limits are recorded where someone would break them.</strong> <code>stableJson</code>
+(<code>capability-trust.cts:1221-1233</code>) documents a signature-collision limit rather than hiding
+it: <code>NaN</code>, <code>Infinity</code> and <code>undefined</code> all render as <code>null</code>. The comment notes that
+reachability rests entirely on the ingest path staying <code>JSON.parse</code>-only, and says it is
+recorded <em>"here rather than only in the PR that found it"</em> so anyone adding a non-JSON
+manifest loader sees it at the point they would break it.</p>
+<p><strong>Availability is traded for DoS resistance, wholesale — and you should notice the price.</strong>
+<code>readConsentStore</code> refuses the <em>entire</em> store when <code>keys.length &gt; MAX_RECORDS</code>
+(<code>capability-consent.cts:645</code>, 4096), returning <code>{records:{}}</code>. A single oversized store
+therefore silently deactivates every project-scope capability on the machine at once. The
+same all-or-nothing posture appears in <code>readLedgerRaw</code> (<code>capability-ledger.cts:272</code>). This is
+a coherent choice for a security boundary — partial parsing of a hostile store is worse — but
+it is a choice, and the failure it produces is confusing rather than loud.</p>
+<p><strong>One asymmetry is disclosed instead of closed.</strong> Hook scripts are resolved through
+<code>confinedBundleScript</code> (<code>capability-lifecycle.cts:494-534</code>) to an absolute realpath-confined
+path and POSIX single-quoted. MCP <code>command</code> / <code>args</code> / <code>env</code> / <code>cwd</code> are written <strong>verbatim</strong>
+(<code>capability-lifecycle.cts:706-735</code>), because confining them would break every global or
+<code>npx</code> server. The compensating control is an explicit <em>"intentionally NOT confined to the
+bundle"</em> prompt line rendered only for <strong>spawned</strong> servers
+(<code>capability-trust.cts:1563-1568</code>), using one shared <code>isRemoteMcpServer</code> predicate so the
+notice and the per-server rendering cannot drift into an inexact claim. Naming a hole you
+cannot close, in the prompt where the decision is made, beats closing it badly.</p>
+<p><strong>And one surface is deliberately left undisclosed, with the reason stated.</strong> <code>agents</code> are
+formally an instruction surface under ADR-2363 but are not disclosed:
+<code>INSTRUCTION_SURFACE_FIELDS</code> (<code>capability-trust.cts:861-863</code>) is a one-row table because
+<code>stageAgentsForRuntimeWithConverter</code> has no registry-aware third-party path, so <em>"disclosing
+them would name a surface that does not exist."</em> Disclosing a capability the framework does
+not actually grant would be worse than disclosing nothing.</p>
+<h2 id="two-things-i-would-do-differently">Two things I would do differently<a class="headerlink" href="#two-things-i-would-do-differently" title="Permanent link">&para;</a></h2>
+<p><strong>Make the prompt-injection defence a first-class concern earlier.</strong> <code>UNSAFE_PROMPT_CHARS</code>
+(<code>capability-trust.cts:1410</code>) escapes C0/C1/DEL, bidi overrides and isolates, and
+U+2028/2029 — because summary lines are joined with <code>\n</code> and written raw to stderr, so an
+unescaped manifest value could forge a disclosure line or clear output already printed. The
+threat is <em>the consent prompt itself</em>, not the shell. It is modelled in at least one other place — <code>src/loop-resolver.cts:468-474</code> strips C0 control characters, DEL and backticks from a third-party-supplied failure reason before it reaches stderr, with the call site (<code>:570-573</code>) naming the same threat. Two independent sites, no shared helper, which is itself the point in the repo
+I found it modelled. Any framework that renders untrusted metadata into a security decision
+has this problem on day one.</p>
+<p>Related, and instructive: the environment-variable denylist exists in two deliberately
+separate copies with <em>identical</em> membership — 20 names each, and the set difference is
+empty in both directions. <code>DENIED_LANE_ENV_KEYS</code>
+(<code>capability-validator.cjs:930-937</code>) refuses the manifest; <code>EXECUTION_PRIMITIVE_ENV</code>
+(<code>capability-trust.cts:1389-1394</code>) only warns in the prompt. The reason is stated at
+<code>capability-validator.cjs:917-919</code>: disclosure runs <em>before</em> validation, on manifests
+validation would reject — so a hand-placed capability still gets a loud line. The validator
+set is matched case-insensitively because Windows env lookup is. The duplication is not
+justified by divergent membership — the lists agree exactly. It is justified by <em>layering</em>,
+stated at <code>src/capability-trust.cts:1667-1677</code>: one copy refuses, the other warns, and the
+warning must survive on manifests the refusing layer would have rejected. That is a
+genuine reason to duplicate a constant, and a different one from the usual "these lists
+drifted apart" story. It is also fragile in the ordinary way: nothing tests that the two
+lists stay in sync.</p>
+<p><strong>Do not require a first-party module to reach into the build directory.</strong> The validator was
+extracted from the generator specifically so the loader could validate <em>without</em> the
+generator's build-time machinery. But <code>src/capability-loader.cts:562</code> then requires
+<code>../../../scripts/gen-capability-registry.cjs</code> for <code>buildRegistry</code> and
+<code>loadCentralConfigKeys</code> — and that module pulls in <code>ExitError</code>,
+<code>config-schema.manifest.json</code>, <code>install-profiles.cjs</code>, <code>clusters.cjs</code> and
+<code>gen-loop-host-contract.cjs</code>, the exact list the extraction's header names as what it was
+avoiding.</p>
+<p>Two mitigations make it work rather than break. The require is <strong>lazy</strong> (<code>getGenerator</code>,
+<code>capability-loader.cts:558-565</code>, reached only when at least one overlay candidate exists), so
+the no-overlay fast path really is isolated. And everything resolves in a published install
+because <code>files[]</code> includes <code>"scripts"</code> with only eight named exclusions, none of them the
+generator. It functions. But "the extraction achieved isolation" and "the loader requires the
+generator" cannot both be the whole truth, and the header still tells the first story.</p>
+<hr />
+<p>The through-line, if you are building something like this: the manifest schema is the easy
+part, and this repo got it right — a role that selects a fixed shape, verifiable by set
+equality, with required-but-empty fields that make the shape explicit. The hard part is
+everything the schema cannot express. Consent must bind content rather than provenance,
+because provenance is empty on three of five install kinds. The loader must be total, because
+a hostile pack that prevents startup is a denial of service on the framework itself.
+Non-deterministic checks must be structurally barred from blocking. And every module type you
+write by hand — because a build boundary stopped you importing the real one — is a place
+where a parameter can quietly go missing, which is precisely how the one cross-capability
+security check that this subsystem's own comments call load-bearing came to never run.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.tabs", "navigation.sections", "navigation.top", "content.code.copy", "toc.follow"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"provider": "mike"}}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.d7400e89.min.js"></script>
+      
+    
+  </body>
+</html>

@@ -1,0 +1,2226 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="How GSD Core is built internally — and how to build a framework like it yourself.">
+      
+      
+      
+      
+        <link rel="prev" href="../">
+      
+      
+        <link rel="next" href="../bootstrap/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
+    
+    
+      
+        <title>The hook system - Understanding GSD Core</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.ec1eaa64.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#the-hook-system" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+      <div data-md-color-scheme="default" data-md-component="outdated" hidden>
+        
+      </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="Understanding GSD Core" class="md-header__button md-logo" aria-label="Understanding GSD Core" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Understanding GSD Core
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              The hook system
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../.." class="md-tabs__link">
+        
+  
+  
+    
+  
+  Home
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../loop/" class="md-tabs__link">
+          
+  
+  
+  The Loop
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../files/" class="md-tabs__link">
+          
+  
+  
+  Files & State
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../skills/" class="md-tabs__link">
+          
+  
+  
+  Skills
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../agents/" class="md-tabs__link">
+          
+  
+  
+  Agents
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+    
+  
+  
+    
+    
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="../" class="md-tabs__link">
+          
+  
+  
+  Runtime
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../capabilities/" class="md-tabs__link">
+          
+  
+  
+  Capabilities
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../architecture/" class="md-tabs__link">
+          
+  
+  
+  Architecture
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../build-your-own/" class="md-tabs__link">
+          
+  
+  
+  Build Your Own
+
+        </a>
+      </li>
+    
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="Understanding GSD Core" class="md-nav__button md-logo" aria-label="Understanding GSD Core" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    Understanding GSD Core
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    The Loop
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    The Loop
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../loop/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../loop/stages/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Stage internals
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Files & State
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Files & State
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../files/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../files/dataflow/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    State machinery
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Skills
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Skills
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../skills/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../skills/catalogue/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Catalogue
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Agents
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Agents
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../agents/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../agents/orchestration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Orchestration patterns
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Runtime
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Runtime
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    The hook system
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    The hook system
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#what-is-actually-in-hooks" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What is actually in hooks/
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#registration-the-part-that-makes-the-system-incomprehensible-if-you-miss-it" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Registration: the part that makes the system incomprehensible if you miss it
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Registration: the part that makes the system incomprehensible if you miss it">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#the-two-surfaces-do-not-nest" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The two surfaces do not nest
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#where-hooks-sit-in-a-session" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Where hooks sit in a session
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#the-26-grouped-by-purpose" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The 26, grouped by purpose
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#the-guards-what-each-prevents-and-why-a-sentence-would-not-have" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The guards: what each prevents, and why a sentence would not have
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="The guards: what each prevents, and why a sentence would not have">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#hooksgsd-worktree-path-guardjs-writes-escaping-an-isolated-worktree" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        hooks/gsd-worktree-path-guard.js — writes escaping an isolated worktree
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#hooksgsd-agent-isolation-guardjs-dispatching-an-executor-with-isolation-silently-dropped" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        hooks/gsd-agent-isolation-guard.js — dispatching an executor with isolation silently dropped
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#hooksgsd-write-guardjs-a-whole-file-write-that-destroys-curated-history" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        hooks/gsd-write-guard.js — a whole-file Write that destroys curated history
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#the-rest" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The rest
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#the-invocation-contract" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The invocation contract
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#state-channels" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        State channels
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#where-it-breaks" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Where it breaks
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#the-transferable-lesson" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The transferable lesson
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../bootstrap/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Bootstrap & distribution
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7" >
+        
+          
+          <label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Capabilities
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_7">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Capabilities
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../capabilities/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../capabilities/harnesses/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Multi-harness portability
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_8" >
+        
+          
+          <label class="md-nav__link" for="__nav_8" id="__nav_8_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_8_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_8">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Architecture
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_9" >
+        
+          
+          <label class="md-nav__link" for="__nav_9" id="__nav_9_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Build Your Own
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_9_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_9">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Build Your Own
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../build-your-own/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../build-your-own/blueprint/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Minimal blueprint
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#what-is-actually-in-hooks" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What is actually in hooks/
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#registration-the-part-that-makes-the-system-incomprehensible-if-you-miss-it" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Registration: the part that makes the system incomprehensible if you miss it
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Registration: the part that makes the system incomprehensible if you miss it">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#the-two-surfaces-do-not-nest" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The two surfaces do not nest
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#where-hooks-sit-in-a-session" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Where hooks sit in a session
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#the-26-grouped-by-purpose" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The 26, grouped by purpose
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#the-guards-what-each-prevents-and-why-a-sentence-would-not-have" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The guards: what each prevents, and why a sentence would not have
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="The guards: what each prevents, and why a sentence would not have">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#hooksgsd-worktree-path-guardjs-writes-escaping-an-isolated-worktree" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        hooks/gsd-worktree-path-guard.js — writes escaping an isolated worktree
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#hooksgsd-agent-isolation-guardjs-dispatching-an-executor-with-isolation-silently-dropped" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        hooks/gsd-agent-isolation-guard.js — dispatching an executor with isolation silently dropped
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#hooksgsd-write-guardjs-a-whole-file-write-that-destroys-curated-history" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        hooks/gsd-write-guard.js — a whole-file Write that destroys curated history
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#the-rest" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The rest
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#the-invocation-contract" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The invocation contract
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#state-channels" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        State channels
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#where-it-breaks" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Where it breaks
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#the-transferable-lesson" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The transferable lesson
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<h1 id="the-hook-system">The hook system<a class="headerlink" href="#the-hook-system" title="Permanent link">&para;</a></h1>
+<p>Every framework built on top of a language model eventually discovers the same thing: an
+instruction is a request, not a constraint. GSD Core's <code>hooks/</code> directory is where that
+discovery got written down as code. It holds 26 hook scripts — 22 <code>.js</code> and 4 <code>.sh</code> — that
+sit between the model and the host runtime and, in a handful of cases, refuse to let a tool
+call through.</p>
+<p>This page is about how that enforcement layer is constructed: where hooks are registered
+(there is more than one answer, and that is the single most important fact here), what
+contract every script obeys, and — the argument that justifies the whole layer — which
+rules cannot survive as prose.</p>
+<h2 id="what-is-actually-in-hooks">What is actually in <code>hooks/</code><a class="headerlink" href="#what-is-actually-in-hooks" title="Permanent link">&para;</a></h2>
+<div class="highlight"><pre><span></span><code>26 hook scripts        gsd-*.js (22) + gsd-*.sh (4)
+ 1 plugin manifest     hooks/hooks.json
+ 1 registry module     hooks/managed-hooks-registry.cjs
+ 6 shared helpers      hooks/lib/
+──
+34 files, all committed
+</code></pre></div>
+<p><code>git ls-files hooks/</code> returns exactly those 34 paths. This matters more than it sounds,
+because it is the opposite of the situation in <code>gsd-core/bin/lib/</code>, where most <code>.cjs</code> files
+are ADR-457 build output — compiled from <code>src/*.cts</code> at publish time and gitignored. Nothing
+in <code>hooks/</code> is generated. <code>hooks/gsd-workflow-guard.js</code> is source of truth, quotable as-is.</p>
+<div class="admonition warning">
+<p class="admonition-title">The hooks that run on a user's machine are never these files</p>
+<p><code>.gitignore</code> excludes <code>hooks/dist/</code>, and <code>bin/install.js</code> stages from exactly there:
+<code>const hooksSrc = path.join(src, 'hooks', 'dist')</code> (<code>bin/install.js:11218</code>).
+<code>scripts/build-hooks.js</code> produces that tree. So <code>hooks/</code> is the committed <em>input</em> and
+<code>hooks/dist/</code> is the gitignored <em>output</em> — the same build-at-publish seam as
+<code>gsd-core/bin/lib/*.cjs</code>, applied a second time. Cite <code>hooks/*.js</code>; never cite a staged
+path as though it were source.</p>
+</div>
+<h2 id="registration-the-part-that-makes-the-system-incomprehensible-if-you-miss-it">Registration: the part that makes the system incomprehensible if you miss it<a class="headerlink" href="#registration-the-part-that-makes-the-system-incomprehensible-if-you-miss-it" title="Permanent link">&para;</a></h2>
+<p>Read <code>hooks/hooks.json</code> and you will form a materially wrong picture of this framework.</p>
+<p>That file is the Claude Code plugin manifest. It is auto-discovered — <code>.claude-plugin/plugin.json</code>
+declares <code>commands</code> and <code>skills</code> but <strong>no</strong> <code>hooks</code> field, so the host finds <code>hooks/hooks.json</code>
+by convention. It uses <code>${CLAUDE_PLUGIN_ROOT}</code> interpolation, and it registers:</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>count</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>lifecycle events</td>
+<td>7 (<code>SessionStart</code>, <code>PreToolUse</code>, <code>PostToolUse</code>, <code>SubagentStop</code>, <code>Stop</code>, <code>PreCompact</code>, <code>FileChanged</code>)</td>
+</tr>
+<tr>
+<td>command invocations</td>
+<td>13</td>
+</tr>
+<tr>
+<td>distinct scripts referenced</td>
+<td><strong>10 of 26</strong></td>
+</tr>
+</tbody>
+</table>
+<p>The other sixteen are registered somewhere else entirely — by <code>src/runtime-hooks-surface.cts</code>
+and <code>bin/install.js</code>, which write each host's own settings file with absolute paths projected
+through <code>src/shell-command-projection.cts</code>. That module is where the framework's most
+security-relevant guard actually lives.</p>
+<h3 id="the-two-surfaces-do-not-nest">The two surfaces do not nest<a class="headerlink" href="#the-two-surfaces-do-not-nest" title="Permanent link">&para;</a></h3>
+<p>The obvious reading is that the installer surface is a superset of the manifest. It is not.
+Enumerating both gives a genuine Venn diagram:</p>
+<ul>
+<li><strong>9 scripts</strong> are on both surfaces.</li>
+<li><strong>1 script is manifest-only</strong>: <code>hooks/gsd-ensure-canonical-path.js</code>. The repo's own test
+  says why, at <code>tests/workflow-guard-registration.test.cjs:56-60</code> — <em>"registered ONLY in the
+  marketplace-plugin manifest … the plugin install mode never runs <code>bin/install.js</code> at all."</em></li>
+<li><strong>14 scripts are installer-only</strong>, including all four <code>.sh</code> hooks, both Windsurf adapters,
+  all six Cursor adapters, and <code>gsd-workflow-guard.js</code>.</li>
+<li><strong>2 scripts are on no hook-event surface at all</strong>: <code>hooks/gsd-statusline.js</code>, wired as
+  <code>settings.statusLine</code> (<code>bin/install.js:12564</code>), and <code>hooks/gsd-check-update-worker.js</code>,
+  which <code>gsd-check-update.js</code> spawns internally.</li>
+</ul>
+<p>And "the installer surface" is itself plural. <code>src/runtime-hooks-surface.cts</code> contains at
+least three distinct emitters: the settings.json path, a Kimi TOML block
+(<code>buildKimiHooksTomlBlock</code>, line 2429), and descriptor-driven adapters for Cursor and
+Windsurf/Cascade that go through <code>CURSOR_EVENT_SCRIPT_MAP</code>
+(<code>src/host-integration-adapters/imperative-hook-bus.cts:54</code>) and <code>WINDSURF_EVENT_SCRIPT_MAP</code>
+(<code>src/runtime-hooks-surface.cts:1451</code>) rather than any literal call a source scan could find.</p>
+<div class="admonition note">
+<p class="admonition-title">If you are building this yourself</p>
+<p>One hook, one registration. GSD Core has a plugin manifest and an installer that evolved
+independently, and the cost is visible below in three separate defects — a flag with no
+effect, a matcher that silently narrowed, and a hook that spawns a process to do nothing.
+None of those are logic bugs in a hook. All three are drift between registration surfaces
+that no single file reconciles.</p>
+</div>
+<h2 id="where-hooks-sit-in-a-session">Where hooks sit in a session<a class="headerlink" href="#where-hooks-sit-in-a-session" title="Permanent link">&para;</a></h2>
+<p><img alt="Kroki" src="https://kroki.io/plantuml/svg/eNqFVc1uGjEQvvMUI05Jm4Uk6ikClAQ1ipSiRiVVLrl47YF1MOOt7c1PS6U-RJ-wT9KxFwgLiXJi5Zn55u-bj1MfhAvV3LT8TFMpnJiDwomoTLiwFMb6J8LR8YbR448KSeIIvRdTPDN6SmBwEjZ8rhlSS10KCtdCKU1TOPrUapUvz9AeWYWmDcLDqGm4tD7c0d7QiEohDNltP7ldNt0Ka2e--6Fz7-9o9e2L5HnVUiKIXHiEdqc0gogr6EpLEz1lf0t31Jl61VXalyLIItPeGhG0pcwjBU1oklsCG7da_T6MuVu2j-OwoN9vXUI2gCs4AcbJkHzlMJOCLGkpTMaoBSNATw_mgvQEfQBL5rnX1YNmqCxQzrKq5IKRI5rG-jnLuQF0SzxNvDBj0CXAA7BlyDTtAvu64Iy9GdkXr8WmsXWknc8r0qGuLjZ77fDGWvOd5_fvz9_kDKFAmMdhxWX6KvcYYKId-jiNUcx8yZktIQQOBZ6CaRZUOjvnWqeVcGrZy63TAReflQ4xdcol1AMvwz03Yx0K9V4kPung4ZBLgA3qNHEeY9gu0Bqjlw_Ov3wdXvW6-QB84TTNwE5AVo6HqOCFS1uw1s2CQ0x7f6POxYgvSjcqbmRLpYGtgtdc-gqxmYfPjcIGWTcznUXb4kb42ev4vOEUx22saL_bxMTYxwbqufBFXX7dybqJlKDJp10OPgijE4MjxXRYsjBivhV-FcPHHB43DnsT5ldxAIQP7CQFH4vajz5LtsWVw-EdWVd_HsNH-NVWKHWkfvuknRsrZ-3fkRM-KB4uOzAyn_byCZ2LJTPeiPESc11Fns_KJcYngFUId8F0z4Wc1VfCOrU6k21FSITVdI-yVhW5ecLf2Li4xfwCeQnxY4zCySLtbS0X3ZVnel6Paks9WKHxKWRz1p1g3XtLWzRJsnWfBetlltuKlHDPy1298PetjcVJXGiDw0LQlMm1PYladXkgxooVqzaUeI0xrvJE73GwJTe__GElGrJsCBleA36l94qSSGEaW-sUScW_tv9hClev?"></p>
+<p>Read the matchers, not the column. A single <code>PreToolUse</code> fires only the hooks whose
+matcher accepts that tool — an <code>Agent</code>/<code>Task</code> dispatch reaches <code>gsd-agent-isolation-guard.js</code>
+and nothing else in that block; a <code>Bash</code> call reaches the workflow guard and the commit
+validator and none of the write guards. And every arrow marked <em>installer only</em> is simply
+absent on a plugin-marketplace install, because that mode never runs <code>bin/install.js</code>.</p>
+<p>The <code>FileChanged</code> event with matcher <code>config.json</code> looks malformed next to the tool-name
+regexes around it. It is not — it is a real, Claude-Code-only event, and it is what makes
+<code>.planning/config.json</code> hot-reloadable mid-session.</p>
+<h2 id="the-26-grouped-by-purpose">The 26, grouped by purpose<a class="headerlink" href="#the-26-grouped-by-purpose" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Purpose</th>
+<th>Scripts</th>
+<th>n</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Guarding</strong> — inspect a pending call, advise or block</td>
+<td><code>hooks/gsd-prompt-guard.js</code>, <code>hooks/gsd-read-guard.js</code>, <code>hooks/gsd-write-guard.js</code>, <code>hooks/gsd-worktree-path-guard.js</code>, <code>hooks/gsd-agent-isolation-guard.js</code>, <code>hooks/gsd-workflow-guard.js</code>, <code>hooks/gsd-read-injection-scanner.js</code>, <code>hooks/gsd-validate-commit.sh</code></td>
+<td>8</td>
+</tr>
+<tr>
+<td><strong>State</strong> — write, read or re-inject project state</td>
+<td><code>hooks/gsd-ensure-canonical-path.js</code>, <code>hooks/gsd-config-reload.js</code>, <code>hooks/gsd-session-state.sh</code>, <code>hooks/gsd-phase-boundary.sh</code>, <code>hooks/gsd-graphify-update.sh</code></td>
+<td>5</td>
+</tr>
+<tr>
+<td><strong>UX / telemetry</strong> — tell the human or the model something</td>
+<td><code>hooks/gsd-statusline.js</code>, <code>hooks/gsd-context-monitor.js</code>, <code>hooks/gsd-check-update.js</code>, <code>hooks/gsd-check-update-worker.js</code>, <code>hooks/gsd-update-banner.js</code></td>
+<td>5</td>
+</tr>
+<tr>
+<td><strong>Host adapters</strong> — translate a non-Claude host's hook bus</td>
+<td><code>hooks/gsd-cursor-{session-start,pre-tool,post-tool,stop,subagent-start,subagent-stop}.js</code>, <code>hooks/gsd-windsurf-{pre-write,pre-command}.js</code></td>
+<td>8</td>
+</tr>
+</tbody>
+</table>
+<p>A third of the directory is host-adapter code. That is the real cost of being runtime-agnostic,
+and it is worth seeing before you commit to supporting more than one host.</p>
+<h2 id="the-guards-what-each-prevents-and-why-a-sentence-would-not-have">The guards: what each prevents, and why a sentence would not have<a class="headerlink" href="#the-guards-what-each-prevents-and-why-a-sentence-would-not-have" title="Permanent link">&para;</a></h2>
+<p>This is the argument the layer exists to make, and the most persuasive evidence is the
+authors indicting their own prose. Three headers, quoted verbatim.</p>
+<h3 id="hooksgsd-worktree-path-guardjs-writes-escaping-an-isolated-worktree"><code>hooks/gsd-worktree-path-guard.js</code> — writes escaping an isolated worktree<a class="headerlink" href="#hooksgsd-worktree-path-guardjs-writes-escaping-an-isolated-worktree" title="Permanent link">&para;</a></h3>
+<blockquote>
+<p><em>"The prose guard in <code>agents/gsd-executor.md</code> step 0b is never enforced because the model
+under load skips it."</em> — <code>hooks/gsd-worktree-path-guard.js:8-9</code></p>
+</blockquote>
+<p><strong>Prevents:</strong> an <code>Edit</code>/<code>Write</code>/<code>MultiEdit</code> with an absolute path resolving outside the
+current worktree root — an executor running in <code>isolation="worktree"</code> writing into the user's
+primary checkout.</p>
+<p><strong>Why prose fails:</strong> the instruction existed first, in the agent definition, and was observed
+being skipped. Note also the implementation restraint: the guard does not reimplement path
+comparison. It compares two raw <code>git rev-parse --show-toplevel</code> outputs, on the reasoning that
+both values come from the same git binary in the same format by definition — which sidesteps
+Windows 8.3 short names, case-insensitive volumes and slash direction for free.</p>
+<h3 id="hooksgsd-agent-isolation-guardjs-dispatching-an-executor-with-isolation-silently-dropped"><code>hooks/gsd-agent-isolation-guard.js</code> — dispatching an executor with isolation silently dropped<a class="headerlink" href="#hooksgsd-agent-isolation-guardjs-dispatching-an-executor-with-isolation-silently-dropped" title="Permanent link">&para;</a></h3>
+<blockquote>
+<p><em>"A prose backstop cannot fix a prose defect — it is the same class of artifact the model
+may equally skip. This hook enforces the invariant at the tooling layer instead:
+HARD-BLOCKING."</em></p>
+</blockquote>
+<p><strong>Prevents:</strong> an <code>Agent(subagent_type="gsd-executor", …)</code> call in a project configured for
+<code>harness-worktree</code> isolation where the model did not copy the isolation flag through. The
+failure mode is not a crash — it is the executor committing directly into the user's primary
+checkout, with no consent and no warning.</p>
+<p><strong>Why prose fails:</strong> the <em>delivery mechanism</em> was prose. <code>executor-isolation-dispatch.md</code>
+resolved the correct value in shell and then asked the model, in English, to substitute it
+into a tool call. Nothing verified it did. Writing a second English instruction to check the
+first is the defect, recursively.</p>
+<h3 id="hooksgsd-write-guardjs-a-whole-file-write-that-destroys-curated-history"><code>hooks/gsd-write-guard.js</code> — a whole-file <code>Write</code> that destroys curated history<a class="headerlink" href="#hooksgsd-write-guardjs-a-whole-file-write-that-destroys-curated-history" title="Permanent link">&para;</a></h3>
+<p>The most honest header in the repository, and worth reading twice:</p>
+<blockquote>
+<p><em>"Fixes 1 and 2 (PR #989) are instructions to a model: they lower the probability of a
+clobber but cannot prevent one, and they protect only the agents that were audited. This
+hook is enforced by code rather than by instruction … An advisory will not do — #973 records
+an agent reading the advisory, classifying it as non-binding, and reasoning past it while
+holding a false model of what <code>Write</code> does."</em></p>
+</blockquote>
+<p><strong>Prevents:</strong> a <code>Write</code> that catastrophically shrinks an existing curated <code>.planning/</code> artifact
+— the incident was a planner reading a ~16-line window of <code>ROADMAP.md</code> and overwriting all 292
+lines with it.</p>
+<p>Then the same header states its own bound, which is the part most frameworks omit:</p>
+<blockquote>
+<p><em>"this stops accidental and single-shot collapse, not a determined agent. The sentinel hatch
+below is a plain file, so an agent that would reason past an advisory can arm one with a
+single Bash call it is already permitted to make. What ships is the conversion of 'ignore a
+sentence' into 'take one deliberate, path-bound, single-use, auditable action'."</em></p>
+</blockquote>
+<p>That is the correct claim for a hook layer to make. Hooks do not make a model safe. They
+change the cost of non-compliance from <em>zero</em> to <em>one deliberate auditable act</em> — and they
+convert an instruction the model is free to reinterpret into a state transition you can log.</p>
+<h3 id="the-rest">The rest<a class="headerlink" href="#the-rest" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong><code>hooks/gsd-workflow-guard.js</code></strong> — advisory when a file edit happens outside a GSD workflow
+  context; one hard block, <code>WORKTREE_AGENT_FORCE_ADD_FORBIDDEN</code>, on <code>git add -f</code> over
+  <code>agent-*</code> / <code>worktree-agent-*</code> branches. Its header advertises itself as a SOFT guard and
+  then carries a block with the opposite failure direction from everything else in the file.
+  Two contradictory postures in one script, deliberately.</li>
+<li><strong><code>hooks/gsd-prompt-guard.js</code> / <code>hooks/gsd-read-injection-scanner.js</code></strong> — prompt-injection screening on
+  the way in (content written to <code>.planning/</code>) and on the way back (content returned by tool
+  calls). Both share <code>hooks/lib/injection-patterns.js</code> specifically so the two copies cannot
+  drift. The scanner's own header is explicit about what it is not: <em>"a static pattern match —
+  NOT a semantic guard … It does NOT understand context, intent, or novel phrasing."</em></li>
+<li><strong><code>hooks/gsd-read-guard.js</code></strong> — the thesis and its failure mode in a single file. See below.</li>
+</ul>
+<h2 id="the-invocation-contract">The invocation contract<a class="headerlink" href="#the-invocation-contract" title="Permanent link">&para;</a></h2>
+<p>Every one of the 26 obeys the same conventions. They are worth copying wholesale.</p>
+<p><strong>A version token on line 2.</strong> Every script carries <code>gsd-hook-version: {{GSD_VERSION}}</code>,
+stamped with <code>pkg.version</code> at install time. <code>grep -L</code> across <code>hooks/*.js hooks/*.sh</code> returns
+empty; no file in <code>hooks/lib/</code> carries it. That one token is what lets an installed tree
+detect staleness, and it is also what distinguishes a hook from a helper.</p>
+<p><strong>A self-imposed stdin budget.</strong> Every stdin-consuming hook opens with the same shape — a self-timeout that exits clean rather than hanging the host. The <em>shape</em> is universal; the value is not. Seven of the 22 <code>.js</code> hooks use 3000 ms; others range up to 10000 ms (<code>gsd-context-monitor.js:36</code>, <code>gsd-windsurf-pre-write.js:66</code>), with <code>gsd-read-injection-scanner.js:216</code> at 5000 and <code>gsd-config-reload.js:27</code> at 8000. The 3-second guards open:</p>
+<div class="highlight"><pre><span></span><code><span class="kd">let</span><span class="w"> </span><span class="nx">input</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">''</span><span class="p">;</span>
+<span class="kd">const</span><span class="w"> </span><span class="nx">stdinTimeout</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">setTimeout</span><span class="p">(()</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="nx">process</span><span class="p">.</span><span class="nx">exit</span><span class="p">(</span><span class="mf">0</span><span class="p">),</span><span class="w"> </span><span class="mf">3000</span><span class="p">);</span>
+</code></pre></div>
+<p>cleared on <code>'end'</code>. That is nested <em>inside</em> the host's own timeout (5s for guards, 10s for
+<code>gsd-context-monitor.js</code>). The hook would rather kill itself than be killed — because a hook
+killed by the host has undefined verdict semantics, whereas <code>exit(0)</code> means "allow".</p>
+<p><strong>Two verdict channels, strictly separated.</strong> Advisory hooks write
+<code>{hookSpecificOutput: {hookEventName, additionalContext}}</code> to stdout and never block. Blocking
+hooks write <code>{decision: 'block', reason, …}</code> to stdout, then write <em>the same reason again</em> to
+stderr, then <code>exit 2</code>. The duplication is commented identically in three files — <code>gsd-agent-isolation-guard.js:490</code>, <code>gsd-worktree-path-guard.js:275</code> and <code>:303</code>, and <code>gsd-write-guard.js:169</code>. (<code>gsd-workflow-guard.js:118</code> makes the same point in different words, citing #2304.) The identical set is:</p>
+<blockquote>
+<p><em>"Kimi feeds stderr (not stdout) back to the model on exit 2."</em>
+— <code>hooks/gsd-agent-isolation-guard.js:490</code>, and the same note in <code>gsd-worktree-path-guard.js</code>
+and <code>gsd-workflow-guard.js</code></p>
+</blockquote>
+<p>One script, two incompatible host protocols, no abstraction layer. That is the pragmatic
+answer, and it is paired with matcher translation at registration time: the same guard is
+registered as <code>Bash|Edit|Write|MultiEdit</code> for Claude Code
+(<code>src/runtime-hooks-surface.cts:1969</code>) and <code>Shell|WriteFile|StrReplaceFile</code> for Kimi
+(<code>src/runtime-hooks-surface.cts:2446</code>). Both layers are required — a translated matcher that
+fires into an untranslated guard just reaches a script that exits immediately.</p>
+<p><strong>Fail open, with two named exceptions.</strong> Every guard terminates in <code>catch { process.exit(0) }</code>,
+on the principle that a broken guard must never wedge a session. Exactly two legs invert it:</p>
+<ol>
+<li><code>gsd-workflow-guard.js</code>'s force-add block <em>re-derives its blocking context inside the catch</em>
+   and exits 2 rather than allowing (#3504). It tags the verdict <code>origin: 'fail-closed'</code> so the
+   model is never told a violation was detected when the call was merely unanalysed, and there
+   is a <code>GSD_TEST_MODE</code>-gated fault-injection seam so the posture is testable.</li>
+<li><code>gsd-agent-isolation-guard.js</code> denies when it cannot resolve isolation, explicitly refusing
+   to reuse <code>routeDispatchIsolation</code>'s fail-open default — <em>"that existing query is fail-OPEN
+   by design (sequential execution is always safe for the SCHEDULER); this guard's job is the
+   opposite invariant."</em></li>
+</ol>
+<p>Two different fail-open defaults in one codebase, each correct for its own invariant, with the
+reasoning written where the divergence lives. That is the pattern to copy.</p>
+<p><strong>Shared logic deliberately not shared.</strong> Six guards each inline an identical ~90-line
+<code>normalizeKimiPayload()</code>. The comment explains the choice:</p>
+<blockquote>
+<p><em>"Inlined per guard (not <code>hooks/lib/</code>): hook scripts are staged as standalone files, and a
+sibling require is a staging dependency that can fail silently."</em>
+— <code>hooks/gsd-prompt-guard.js:33-35</code></p>
+</blockquote>
+<p>The function maps Kimi's tool names (<code>WriteFile</code>→<code>Write</code>, <code>StrReplaceFile</code>→<code>Edit</code>,
+<code>ReadFile</code>→<code>Read</code>, <code>Shell</code>→<code>Bash</code>) through a <code>Map</code> rather than an object literal, because bare
+bracket lookup on an object resolves <code>constructor</code> / <code>__proto__</code> / <code>toString</code> to truthy values
+and the fall-through for unknown names would never fire. The exceptions that <em>are</em> shared —
+<code>hooks/lib/injection-patterns.js</code>, <code>git-cmd.js</code>, <code>cursor-workspace.js</code> — are precisely the files on the
+installer's <code>GSD_HOOK_LIB_FILES</code> allowlist. The allowlist is what licenses a sibling require.</p>
+<p><strong>Shell hooks use Node as a JSON codec, never <code>jq</code>.</strong> Stated as a dependency decision:
+<em>"Uses Node.js for JSON parsing (always available in GSD projects, no jq dependency)"</em>
+(<code>hooks/gsd-phase-boundary.sh:5</code>). They emit the same <code>hookSpecificOutput</code> envelope as the JS
+hooks, with extra typed fields (<code>planning_modified</code>, <code>file_path</code>, <code>state_present</code>,
+<code>config_mode</code>) added so tests assert on a contract instead of substring-matching prose.</p>
+<p><strong>Comment density is inverted.</strong> <code>hooks/gsd-prompt-guard.js</code> is 197 lines, roughly 120 of them
+commentary, with individual comments running 20+ lines to explain why a <code>??</code> became a <code>?.</code> —
+because each such change closed a crash-to-allow bypass where a malformed payload threw into
+the fail-open catch and silently downgraded a block into an allow. The comments are an embedded
+incident log. In an enforcement layer that is the right ratio: the reason a line exists <em>is</em>
+the specification.</p>
+<h2 id="state-channels">State channels<a class="headerlink" href="#state-channels" title="Permanent link">&para;</a></h2>
+<p>Hooks are stateless subprocesses, so shared state has to go through the filesystem.</p>
+<p>The main one is <code>.gsd/dispatch-isolation-sentinel.json</code>, defined as <code>SENTINEL_RELATIVE_PATH</code>
+in <code>hooks/lib/isolation-sentinel.js</code> with a 10-minute staleness window (<code>SENTINEL_STALE_MS</code>).
+A workflow step writes the resolved isolation decision after
+<code>gsd-core/workflows/execute-phase/steps/executor-isolation-dispatch.md</code> computes it in shell;
+<code>gsd-agent-isolation-guard.js</code> and <code>gsd-cursor-subagent-start.js</code> then read it. A fresh
+sentinel is authoritative; an absent or stale one degrades to a conservative registry + config
+check rather than guessing. This is the enforcement thesis made concrete — a workflow computes
+a value in shell, persists it, and a hook enforces it, with the model never in the delivery path.</p>
+<p>Secondary channels: <code>gsd-context-monitor.js</code> dedupes headroom warnings through
+<code>os.tmpdir()/claude-ctx-&lt;sessionId&gt;-warned.json</code>, which is what lets one script be registered
+on four different events without repeating itself. And <code>.planning/config.json</code> is the opt-in
+gate, re-read fresh on every invocation rather than cached — hot-reloaded mid-session by
+<code>gsd-config-reload.js</code> on <code>FileChanged</code>.</p>
+<p>Note the deliberate trade: guards default to <strong>off</strong> in config but are <strong>registered
+unconditionally</strong> at install time. The gate lives in the script, not the registration. That
+costs a wasted subprocess per matched event and buys the ability to toggle behaviour without
+reinstalling. Reasonable — but it is what makes the next defect possible.</p>
+<h2 id="where-it-breaks">Where it breaks<a class="headerlink" href="#where-it-breaks" title="Permanent link">&para;</a></h2>
+<p>These are the passages worth studying hardest, because each is a consequence of a structural
+decision rather than a typo.</p>
+<p><strong>A config flag with no effect on plugin installs.</strong> <code>hooks/gsd-workflow-guard.js</code> is opt-in via
+<code>hooks.workflow_guard: true</code> in <code>.planning/config.json</code>, and it is registered <em>only</em> by
+<code>src/runtime-hooks-surface.cts</code>. It is absent from <code>hooks/hooks.json</code> entirely. Per the repo's
+own test, plugin installs never run <code>bin/install.js</code>. So a user on a plugin-marketplace install
+who sets that flag gets silence: neither the advisory nor the <code>git add -f</code> hard block can ever
+fire, and nothing diagnoses the mismatch. A flag the user can set that does nothing is worse
+than no flag.</p>
+<p><strong>A matcher that narrowed on one surface only.</strong> <code>hooks/gsd-read-injection-scanner.js</code> is registered
+on <code>Read|WebFetch|WebSearch</code> in <code>hooks/hooks.json</code> but on <code>'Read'</code> alone at
+<code>src/runtime-hooks-surface.cts:1943</code>. The script's own header says it <em>"scans content returned
+by Read, WebFetch, and WebSearch."</em> Injection scanning of fetched web content therefore exists
+on the Claude plugin surface and nowhere else — including on classic Claude Code installs.</p>
+<p><strong>A guaranteed no-op that still costs a subprocess.</strong> <code>hooks/hooks.json</code> registers
+<code>hooks/gsd-read-guard.js</code> on <code>PreToolUse</code> / <code>Write|Edit</code>. The script exits 0 the moment it detects
+Claude Code (<code>hooks/gsd-read-guard.js:147-155</code>, via <code>data.session_id</code> or <code>CLAUDE_CODE_*</code>).
+Its header states plainly that it exists for non-Claude models — <em>"MiniMax M2.5 on OpenCode"</em>
+looping forever on read-before-edit. Since <code>hooks/hooks.json</code> is consumed exclusively by Claude
+Code, that registration spawns a Node process on every Write and Edit purely to exit. It is
+also a small irony worth naming: the one guard written because a model <em>will not comply</em> is
+registered on the surface where it cannot run.</p>
+<p><strong>Two load-bearing helpers escape lifecycle management.</strong> <code>GSD_HOOK_LIB_FILES</code>
+(<code>bin/install.js:383</code>) lists four files. <code>hooks/lib/isolation-sentinel.js</code> and <code>hooks/lib/isolation-deny-reason.js</code>
+are not among them, yet both are hard top-level <code>require</code>s of <code>hooks/gsd-agent-isolation-guard.js</code>
+(lines 66-67) and <code>hooks/gsd-cursor-subagent-start.js</code> (lines 64-65). They reach the target anyway —
+via an unfiltered one-level recursion into <code>hooks/dist</code> subdirectories added by #3579 for an
+unrelated graphify helper. But <code>GSD_HOOK_LIB_FILES</code> governs two <em>other</em> things: manifest
+tracking (<code>bin/install.js:9723</code>) and uninstall removal (<code>bin/install.js:8609</code>). So both files
+are invisible to drift detection, and are left behind on uninstall — which then makes the
+following <code>fs.rmdirSync(hooksLibDir)</code> fail, so the directory is never pruned either. An
+allowlist used for three different purposes will eventually be right for one of them.</p>
+<p><strong>A registry that conflates "files we ship" with "hooks".</strong> <code>hooks/managed-hooks-registry.cjs</code>
+exports a 26-entry <code>MANAGED_HOOKS</code> array matching disk 1:1 — including <code>hooks/gsd-statusline.js</code>,
+which is not a hook-event handler at all. At 1065 lines it is the largest file in <code>hooks/</code> by a
+wide margin, and it is wired as <code>settings.statusLine.command</code>. It nonetheless implements the
+full hook convention: stdin JSON, 3-second self-timeout, fail-open. The conflation is
+conventional rather than accidental — but the array's name promises something it does not
+deliver.</p>
+<p><strong>Non-uniform opt-in gates on the community hooks.</strong> The installer groups the four <code>.sh</code> files
+into a single <code>expectedShHooks</code> array under the comment <em>"Warn if expected community <code>.sh</code>
+hooks are missing"</em> (<code>bin/install.js:11287-11288</code>), implying one switch. Three gate on
+<code>hooks.community === true</code>; <code>hooks/gsd-graphify-update.sh</code> requires its own separate pair,
+<code>graphify.enabled &amp;&amp; graphify.auto_update</code>. A user who sets <code>hooks.community</code> and expects four
+hooks gets three.</p>
+<p><strong>Hooks that self-heal the build seam.</strong> Six hooks plus <code>hooks/lib/isolation-sentinel.js</code>
+<code>require</code> gitignored ADR-457 artifacts under <code>gsd-core/bin/lib/*.cjs</code>, which do not exist on a
+raw plugin-marketplace or git-clone install that never ran <code>npm run build:lib</code>. Each routes
+that require through <code>ensureRuntimeBuild()</code> from <code>gsd-core/bin/ensure-runtime-build.cjs</code>.
+<code>gsd-statusline.js</code> scopes the seam to <code>require.main === module</code> and degrades to printing
+nothing, <em>"because the statusline renders on EVERY prompt, so a build failure here must DEGRADE
+… rather than crash Claude Code's per-render statusline hook."</em> Correct handling — of a problem
+created by choosing to ship build output.</p>
+<h2 id="the-transferable-lesson">The transferable lesson<a class="headerlink" href="#the-transferable-lesson" title="Permanent link">&para;</a></h2>
+<p>The rule for deciding what belongs in a hook is not "what is important." It is:</p>
+<blockquote>
+<p><strong>Does this rule survive a model that has read it, understood it, and decided it does not
+apply?</strong></p>
+</blockquote>
+<p>If yes, prose is fine — put it in the agent definition and move on. If no, it must be code,
+and the evidence in this repository is that you will usually find out which category a rule is
+in the expensive way. All three hard-blocking guards here were written <em>after</em> the prose
+version demonstrably failed: <code>#260</code> for the worktree escape, <code>#973</code> for the ROADMAP clobber,
+<code>#3045</code> for the dropped isolation flag. Each header names the incident.</p>
+<p>Four corollaries the implementation earns:</p>
+<ol>
+<li><strong>Fail open by default; fail closed only where you can name the invariant.</strong> A broken guard
+   that wedges every tool call is a worse outcome than the violation it was preventing. But
+   when you do invert it, engineer the inversion separately — re-derive the context inside the
+   catch, tag the verdict so the model knows the difference between <em>detected</em> and
+   <em>unanalysable</em>, and build a fault-injection seam so the posture stays tested.</li>
+<li><strong>State the bound.</strong> <code>hooks/gsd-write-guard.js</code> says out loud that it does not stop a determined
+   agent, only accidental collapse. A guard whose limits are documented is a guard people use
+   correctly.</li>
+<li><strong>One registration surface.</strong> Every defect above is drift between two mechanisms that
+   describe the same thing.</li>
+<li><strong>Enforcement is a state transition, not a sentence.</strong> The value hooks add is not
+   prevention — it is converting "ignore a sentence" into a deliberate, path-bound, auditable
+   act. That is achievable. Prevention is not.</li>
+</ol>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.tabs", "navigation.sections", "navigation.top", "content.code.copy", "toc.follow"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"provider": "mike"}}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.d7400e89.min.js"></script>
+      
+    
+  </body>
+</html>

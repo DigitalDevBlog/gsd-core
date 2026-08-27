@@ -1,0 +1,3285 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="How GSD Core is built internally — and how to build a framework like it yourself.">
+      
+      
+      
+      
+        <link rel="prev" href="../loop/stages/">
+      
+      
+        <link rel="next" href="dataflow/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
+    
+    
+      
+        <title>Overview - Understanding GSD Core</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.ec1eaa64.min.css">
+      
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#files-state" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+      <div data-md-color-scheme="default" data-md-component="outdated" hidden>
+        
+      </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="Understanding GSD Core" class="md-header__button md-logo" aria-label="Understanding GSD Core" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Understanding GSD Core
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Overview
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href=".." class="md-tabs__link">
+        
+  
+  
+    
+  
+  Home
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../loop/" class="md-tabs__link">
+          
+  
+  
+  The Loop
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+    
+  
+  
+    
+    
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="./" class="md-tabs__link">
+          
+  
+  
+  Files & State
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../skills/" class="md-tabs__link">
+          
+  
+  
+  Skills
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../agents/" class="md-tabs__link">
+          
+  
+  
+  Agents
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../runtime/" class="md-tabs__link">
+          
+  
+  
+  Runtime
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../capabilities/" class="md-tabs__link">
+          
+  
+  
+  Capabilities
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../architecture/" class="md-tabs__link">
+          
+  
+  
+  Architecture
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../build-your-own/" class="md-tabs__link">
+          
+  
+  
+  Build Your Own
+
+        </a>
+      </li>
+    
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="Understanding GSD Core" class="md-nav__button md-logo" aria-label="Understanding GSD Core" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    Understanding GSD Core
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    The Loop
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    The Loop
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../loop/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../loop/stages/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Stage internals
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Files & State
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Files & State
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#why-this-page-exists-at-all" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Why this page exists at all
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#three-registries-three-different-answers-to-what-is-an-artifact" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Three registries, three different answers to "what is an artifact"
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Three registries, three different answers to &#34;what is an artifact&#34;">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#the-enforcement-path-is-inverted" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The enforcement path is inverted
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#two-ways-w019-is-weaker-than-the-prose-implies" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Two ways W019 is weaker than the prose implies
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#the-artifact-set-grouped-by-role" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The artifact set, grouped by role
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="The artifact set, grouped by role">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1-identity-and-scope-written-rarely-read-constantly" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. Identity and scope — written rarely, read constantly
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-position-and-session-high-churn-digests-some-designed-to-be-deleted" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. Position and session — high-churn digests, some designed to be deleted
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3-the-phase-chain-written-once-per-phase-then-read-forever" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. The phase chain — written once per phase, then read forever
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#4-conditional-contracts-exist-only-when-a-capability-is-active" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. Conditional contracts — exist only when a capability is active
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#5-cross-phase-ledgers-append-and-accumulate" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5. Cross-phase ledgers — append and accumulate
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#6-derived-exports-regenerated-never-hand-edited" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6. Derived exports — regenerated, never hand-edited
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#7-archive-frozen-snapshots" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7. Archive — frozen snapshots
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#lifecycle-of-the-load-bearing-artifacts" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Lifecycle of the load-bearing artifacts
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Lifecycle of the load-bearing artifacts">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#single-writer-discipline-is-stated-in-the-prompt-not-enforced-by-code" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Single-writer discipline is stated in the prompt, not enforced by code
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#statemd-prose-written-by-agents-frontmatter-derived-by-code" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        STATE.md: prose written by agents, frontmatter derived by code
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#the-finite-context-argument-assembled" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The finite-context argument, assembled
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="The finite-context argument, assembled">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#mechanism-1-a-read-depth-budget-that-forbids-reading-bodies" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Mechanism 1 — a read-depth budget that forbids reading bodies
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#mechanism-2-frontmatter-as-the-read-surface" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Mechanism 2 — frontmatter as the read surface
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#mechanism-3-size-treated-as-a-correctness-property" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Mechanism 3 — size treated as a correctness property
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#mechanism-4-the-tier-is-chosen-by-code-not-by-the-agent" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Mechanism 4 — the tier is chosen by code, not by the agent
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#mechanism-5-mutability-contracts-that-survive-a-context-reset" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Mechanism 5 — mutability contracts that survive a context reset
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#designed-to-be-deleted-state" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Designed-to-be-deleted state
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#copy-forward-for-constraints-reference-for-background" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Copy-forward for constraints, @-reference for background
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#where-the-map-disagrees-with-the-territory" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Where the map disagrees with the territory
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Where the map disagrees with the territory">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#the-same-artifact-has-two-homes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The same artifact has two homes
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#the-registry-omits-artifacts-that-have-templates" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The registry omits artifacts that have templates
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#one-template-is-the-odd-file-out-on-three-axes-at-once" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        One template is the odd file out on three axes at once
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#the-tiered-summaries-drift-from-their-own-canonical-template-asymmetrically" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The tiered summaries drift from their own canonical template, asymmetrically
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#three-authoritative-sounding-lists-of-required-planmd-frontmatter" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Three authoritative-sounding lists of required PLAN.md frontmatter
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#a-section-that-is-regex-matched-exists-in-no-template" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        A section that is regex-matched exists in no template
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#what-to-persist-between-stages-and-why" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What to persist between stages, and why
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#where-this-goes-next" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Where this goes next
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="dataflow/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    State machinery
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Skills
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Skills
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../skills/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../skills/catalogue/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Catalogue
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Agents
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Agents
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../agents/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../agents/orchestration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Orchestration patterns
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" >
+        
+          
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Runtime
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Runtime
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../runtime/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../runtime/hooks/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    The hook system
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../runtime/bootstrap/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Bootstrap & distribution
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7" >
+        
+          
+          <label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Capabilities
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_7">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Capabilities
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../capabilities/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../capabilities/harnesses/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Multi-harness portability
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_8" >
+        
+          
+          <label class="md-nav__link" for="__nav_8" id="__nav_8_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_8_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_8">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Architecture
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_9" >
+        
+          
+          <label class="md-nav__link" for="__nav_9" id="__nav_9_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Build Your Own
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_9_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_9">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Build Your Own
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../build-your-own/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../build-your-own/blueprint/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Minimal blueprint
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#why-this-page-exists-at-all" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Why this page exists at all
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#three-registries-three-different-answers-to-what-is-an-artifact" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Three registries, three different answers to "what is an artifact"
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Three registries, three different answers to &#34;what is an artifact&#34;">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#the-enforcement-path-is-inverted" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The enforcement path is inverted
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#two-ways-w019-is-weaker-than-the-prose-implies" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Two ways W019 is weaker than the prose implies
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#the-artifact-set-grouped-by-role" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The artifact set, grouped by role
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="The artifact set, grouped by role">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1-identity-and-scope-written-rarely-read-constantly" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. Identity and scope — written rarely, read constantly
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-position-and-session-high-churn-digests-some-designed-to-be-deleted" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. Position and session — high-churn digests, some designed to be deleted
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3-the-phase-chain-written-once-per-phase-then-read-forever" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. The phase chain — written once per phase, then read forever
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#4-conditional-contracts-exist-only-when-a-capability-is-active" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. Conditional contracts — exist only when a capability is active
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#5-cross-phase-ledgers-append-and-accumulate" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5. Cross-phase ledgers — append and accumulate
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#6-derived-exports-regenerated-never-hand-edited" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6. Derived exports — regenerated, never hand-edited
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#7-archive-frozen-snapshots" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7. Archive — frozen snapshots
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#lifecycle-of-the-load-bearing-artifacts" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Lifecycle of the load-bearing artifacts
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Lifecycle of the load-bearing artifacts">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#single-writer-discipline-is-stated-in-the-prompt-not-enforced-by-code" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Single-writer discipline is stated in the prompt, not enforced by code
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#statemd-prose-written-by-agents-frontmatter-derived-by-code" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        STATE.md: prose written by agents, frontmatter derived by code
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#the-finite-context-argument-assembled" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The finite-context argument, assembled
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="The finite-context argument, assembled">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#mechanism-1-a-read-depth-budget-that-forbids-reading-bodies" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Mechanism 1 — a read-depth budget that forbids reading bodies
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#mechanism-2-frontmatter-as-the-read-surface" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Mechanism 2 — frontmatter as the read surface
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#mechanism-3-size-treated-as-a-correctness-property" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Mechanism 3 — size treated as a correctness property
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#mechanism-4-the-tier-is-chosen-by-code-not-by-the-agent" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Mechanism 4 — the tier is chosen by code, not by the agent
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#mechanism-5-mutability-contracts-that-survive-a-context-reset" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Mechanism 5 — mutability contracts that survive a context reset
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#designed-to-be-deleted-state" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Designed-to-be-deleted state
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#copy-forward-for-constraints-reference-for-background" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Copy-forward for constraints, @-reference for background
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#where-the-map-disagrees-with-the-territory" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Where the map disagrees with the territory
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Where the map disagrees with the territory">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#the-same-artifact-has-two-homes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The same artifact has two homes
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#the-registry-omits-artifacts-that-have-templates" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The registry omits artifacts that have templates
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#one-template-is-the-odd-file-out-on-three-axes-at-once" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        One template is the odd file out on three axes at once
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#the-tiered-summaries-drift-from-their-own-canonical-template-asymmetrically" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The tiered summaries drift from their own canonical template, asymmetrically
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#three-authoritative-sounding-lists-of-required-planmd-frontmatter" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Three authoritative-sounding lists of required PLAN.md frontmatter
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#a-section-that-is-regex-matched-exists-in-no-template" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        A section that is regex-matched exists in no template
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#what-to-persist-between-stages-and-why" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What to persist between stages, and why
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#where-this-goes-next" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Where this goes next
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<h1 id="files-state">Files &amp; State<a class="headerlink" href="#files-state" title="Permanent link">&para;</a></h1>
+<p>GSD Core has no database, no server and no session object. Everything one loop stage
+knows about another is a file on disk under <code>.planning/</code>. That makes the artifact set the
+system's actual data model, and it makes "which files exist, who writes them, who reads
+them" the highest-leverage question you can ask about the design.</p>
+<p>The repo answers that question in its own words, in the opening line of
+<code>gsd-core/references/artifact-types.md</code>:</p>
+<div class="admonition quote">
+<p class="admonition-title">The repo's thesis about its own state</p>
+<p>"A well-formatted artifact that no workflow reads is inert — the consumption
+mechanism is what gives an artifact meaning."</p>
+</div>
+<p>That sentence is the test this page applies throughout. It is also, as we will see, a test
+several of GSD Core's own registry entries fail.</p>
+<h2 id="why-this-page-exists-at-all">Why this page exists at all<a class="headerlink" href="#why-this-page-exists-at-all" title="Permanent link">&para;</a></h2>
+<p><a href="../loop/">The Loop</a> established that the generated contract in
+<code>gsd-core/bin/lib/loop-host-contract.cjs</code> declares exactly one artifact per stage —
+<code>CONTEXT.md</code> → <code>PLAN.md</code> → <code>SUMMARY.md</code> → <code>UAT.md</code>, a single strand with no fan-in. That
+is the <em>minimum</em>: the artifact whose absence means the stage cannot run.</p>
+<p>The actual read-set is larger, is not declared anywhere machine-checkable, and — the part
+that makes it genuinely undeclarable — <strong>is not even fixed</strong>. When
+<code>gsd-core/workflows/execute-phase.md</code> builds an executor prompt it unconditionally reaches
+for <code>STATE.md</code> (line 41, "Read STATE.md before any operation to load project context")
+and <code>PROJECT.md</code> (line 431). Then it branches on the configured context window: at
+<code>CONTEXT_WINDOW &gt;= 500000</code>, "Executor agents receive prior wave SUMMARY.md files and the
+phase CONTEXT.md/RESEARCH.md" (line 140) — three more artifacts that a 200k-model run
+never sees. The verifier's read-set is different again: "all PLAN.md, SUMMARY.md,
+CONTEXT.md files plus REQUIREMENTS.md" (line 141).</p>
+<p>Declaring the minimum is what makes the chain checkable. Declaring the whole read-set
+would mean declaring a set whose membership depends on a config key — which is why the
+contract does not try, and why this page has to. The tiering itself is the subject of
+<a href="#mechanism-1-a-read-depth-budget-that-forbids-reading-bodies">Mechanism 1</a> below.</p>
+<p><img alt="Kroki" src="https://kroki.io/plantuml/svg/eNplU12L2zAQfPevWPLSFmq3pfSlkOOCGyiluQu2Cym9UhRpbauRJaOVkwtH_3tXuXxe8mBWmtnZ3cnqloLwYehMQitte-FFB9J1vbNoQxm2BsGjDMI2Bs8o1ArlNto2UAtD58hSyFXj3WBV7ozzELywxBDLnbEU1mIwocLHMDG6sR3DIPmDPkl6lhANwkihNJypQFswzvVp6yik0lkWlSGTf2kETwmcGobR_PvkLuvUCARBjC_R8sdsNil-Hgh8TP6d1fMoFAyWCygdtLPCmO1VhbKaVNOjQvWifHH_bZpXxw6Ka31nzRY2LdqHWCiwA3_YSHYTbsbw6X38XdXM7--q6eIomy8u4WJaTidF_vWAF-Ul3nvtfLoRa3ywLyyYl7HD6BSkv0Kr5coi0fjj7_Qm2gOf4WA3oGo4_zWfaeiQ4B303qlBIr1JkrKCLNulJPPiGOaLY1iUJ8IpTKwLCEsXguvA1bs7gNIZrWAMoUW2C4E3VNexBb7YTbbvaL8fBHVctB2GjygHlqSA_VsQVu1FzDaCPAGfRQBN0AnZaovpWnAxEVBlzPjCnWAsvYmsvVjat4KQHWOCUIp2_x4sB21UfAGxwDPTeWawKV0fMqhajxhnCry1CLVe474FYrqm8LwJzsKHWcpzEDHcOYWGYjLCGr2uNfpXBHFxUsLADO5cgNJ1jfFJAV-CaIS2WYI8bLQzueUovuj_5KJH0A==?"></p>
+<h2 id="three-registries-three-different-answers-to-what-is-an-artifact">Three registries, three different answers to "what is an artifact"<a class="headerlink" href="#three-registries-three-different-answers-to-what-is-an-artifact" title="Permanent link">&para;</a></h2>
+<p>Before cataloguing anything, note that GSD Core maintains <strong>three</strong> independent lists of
+its own artifacts, organised by three different criteria, and none of them is the union of
+the other two.</p>
+<table>
+<thead>
+<tr>
+<th>Registry</th>
+<th>Organising principle</th>
+<th>Self-description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>gsd-core/templates/README.md</code></td>
+<td>by <strong>template</strong> — one row per file that has a skeleton</td>
+<td>"the authoritative index"</td>
+</tr>
+<tr>
+<td><code>src/artifacts.cts</code> (<code>CANONICAL_EXACT</code>, <code>CANONICAL_PATTERNS</code>)</td>
+<td>by <strong>enforcement</strong> — the set <code>gsd-health</code> will not flag</td>
+<td>"Enumerates the file names that gsd workflows officially produce at the <code>.planning/</code> root level"</td>
+</tr>
+<tr>
+<td><code>gsd-core/references/artifact-types.md</code></td>
+<td>by <strong>consumption</strong> — shape, lifecycle, location, "Consumed by"</td>
+<td>"Each type has a defined shape, lifecycle, location, and consumption mechanism"</td>
+</tr>
+</tbody>
+</table>
+<p>The membership differences are not cosmetic:</p>
+<ul>
+<li><code>src/artifacts.cts</code> carries <code>WINDOWS.md</code>, <code>STATE-ARCHIVE.md</code> and <code>milestone.lock</code>.
+  None of the three appears in <code>gsd-core/templates/README.md</code>.</li>
+<li><code>gsd-core/references/artifact-types.md</code> carries <code>HANDOFF.json</code>, <code>METHODOLOGY.md</code>,
+  <code>SPIKE.md</code> / <code>DESIGN.md</code>, spike and sketch <code>README.md</code> / <code>MANIFEST.md</code>,
+  <code>WRAP-UP-SUMMARY.md</code>, <code>DISCUSSION-LOG.md</code> and <code>USER-PROFILE.md</code>. None of those appears
+  in either of the other two lists.</li>
+<li><code>gsd-core/templates/README.md</code> carries <code>BACKLOG.md</code>, <code>THREADS.md</code> and <code>LEARNINGS.md</code> as
+  <code>*(inline)*</code> — canonical artifacts with no template file at all. (It marks
+  <code>RETROSPECTIVE.md</code> the same way, but that one is a registry error; see
+  <a href="#the-registry-omits-artifacts-that-have-templates">below</a>.)</li>
+</ul>
+<h3 id="the-enforcement-path-is-inverted">The enforcement path is inverted<a class="headerlink" href="#the-enforcement-path-is-inverted" title="Permanent link">&para;</a></h3>
+<p><code>gsd-core/templates/README.md</code> states its own enforcement claim plainly: "if a
+<code>.planning/</code> root file is not listed here, <code>gsd-health</code> will flag it as W019
+(unrecognized artifact)", and it instructs "Agents should query this file before treating
+a <code>.planning/</code> file as authoritative."</p>
+<p>The rule itself is <code>checkW019</code> in
+<code>src/health-diagnostic-rules/milestone-archive-hygiene.cts</code>. It never reads the README.
+It lists <code>.planning/</code> root files (via <code>buildPlanningRootFilesField</code> in
+<code>src/planning-snapshot.cts</code>) and calls <code>isCanonicalPlanningFile</code> from <code>src/artifacts.cts</code>.
+Its remedy string then sends the user <em>back</em> to the doc it did not consult: "See
+templates/README.md for the canonical artifact list."</p>
+<p>So the "authoritative index" is documentation about an enforcement set it does not
+define, and the enforcement set points at the documentation for its own explanation. Each
+is authoritative about the other.</p>
+<div class="admonition warning">
+<p class="admonition-title">The maintenance procedure points at a file that no longer exists</p>
+<p><code>gsd-core/templates/README.md</code>'s 3-step "Adding a New Canonical Artifact" opens with:
+"Add the file name to <code>CANONICAL_EXACT</code> in <code>gsd-core/bin/lib/artifacts.cjs</code>."</p>
+<p>That file is gone. <code>src/artifacts.cts</code> records why in its own header: "ADR-457
+build-at-publish: the hand-written <code>bin/lib/artifacts.cjs</code> collapsed to a TypeScript
+source of truth." The registry survived the refactor; the instructions for editing it
+did not. This is exactly the drift a generated contract prevents and a hand-written
+doc does not — and it is worth contrasting with the loop contract, where
+<code>scripts/gen-loop-host-contract.cjs --check</code> runs in CI precisely so this cannot
+happen.</p>
+</div>
+<h3 id="two-ways-w019-is-weaker-than-the-prose-implies">Two ways W019 is weaker than the prose implies<a class="headerlink" href="#two-ways-w019-is-weaker-than-the-prose-implies" title="Permanent link">&para;</a></h3>
+<p>Reading <code>src/artifacts.cts</code> and <code>checkW019</code> together turns up two gaps that a prose
+description of the same rule would hide.</p>
+<p><strong>The pattern list has a catch-all.</strong> <code>CANONICAL_PATTERNS</code> contains
+<code>/^v\d+\.\d+(?:\.\d+)?-MILESTONE-AUDIT\.md$/i</code> — precise — followed by
+<code>/^v\d+\.\d+(?:\.\d+)?-.*\.md$/i</code>, commented "other version-stamped planning docs". The
+second subsumes the first. Any file named <code>v1.2-anything-at-all.md</code> is canonical. For
+version-prefixed names, W019 is off.</p>
+<p><strong>The rule only inspects Markdown.</strong> <code>checkW019</code> opens with
+<code>if (!filename.endsWith('.md')) continue;</code>. <code>CANONICAL_EXACT</code> lists <code>config.json</code> and
+<code>milestone.lock</code>, so neither can ever be reached by W019.</p>
+<p><code>isCanonicalPlanningFile</code> does have other consumers — <code>src/planning-snapshot.cts</code>,
+<code>src/artifacts.cts</code>, <code>src/health-diagnostic-rules/milestone-archive-hygiene.cts</code>, and
+<code>scripts/lint-planning-artifact-writer-drift.cjs</code>, which runs in the <code>lint:ci</code> chain
+(<code>package.json:122</code>). That linter resolves <code>config.json</code> against the set, so <code>config.json</code>
+is reachable after all. <code>milestone.lock</code> is the one genuinely inert row: no consumer
+resolves it. The registry is <em>mostly</em> live, with a single dead entry — a narrower defect
+than a whole inert section, and a more realistic one.</p>
+<p>The transferable point is not "GSD Core has bugs here." It is that <strong>a registry is only
+as real as the code path that consults it</strong>, and a project that keeps three registries
+will keep three different truths. If you are building this, pick the enforcement set as
+the source and generate the human-readable table from it.</p>
+<h2 id="the-artifact-set-grouped-by-role">The artifact set, grouped by role<a class="headerlink" href="#the-artifact-set-grouped-by-role" title="Permanent link">&para;</a></h2>
+<p>There are 46 files under <code>gsd-core/templates/</code> — 32 Markdown templates at the top level
+plus the <code>gsd-core/templates/README.md</code> registry, 7 in <code>gsd-core/templates/codebase/</code>,
+5 in <code>gsd-core/templates/research-project/</code>, and <code>gsd-core/templates/config.json</code>. That
+number is <em>not</em> the artifact count, for three reasons worth stating before the tables:</p>
+<ol>
+<li>Some canonical artifacts have no template — <code>BACKLOG.md</code>, <code>THREADS.md</code>,
+   <code>LEARNINGS.md</code> are <code>*(inline)*</code> in the registry.</li>
+<li>Some templates are not artifacts at all. <code>gsd-core/templates/planner-subagent-prompt.md</code>
+   and <code>gsd-core/templates/debug-subagent-prompt.md</code> produce <em>prompts</em>, not files.</li>
+<li>Some templates produce files outside <code>.planning/</code> entirely —
+   <code>gsd-core/templates/claude-md.md</code> targets project-root <code>CLAUDE.md</code>,
+   <code>gsd-core/templates/copilot-instructions.md</code> targets a host-integration file, and
+   <code>gsd-core/references/artifact-types.md</code> locates <code>USER-PROFILE.md</code> at
+   <code>~/.claude/gsd-core/USER-PROFILE.md</code>.</li>
+</ol>
+<p>The useful grouping is not by directory but by <strong>write pattern</strong> — how often the file
+changes, and who is allowed to change it. That is the axis that predicts everything else
+about how the file is designed.</p>
+<h3 id="1-identity-and-scope-written-rarely-read-constantly">1. Identity and scope — written rarely, read constantly<a class="headerlink" href="#1-identity-and-scope-written-rarely-read-constantly" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Artifact</th>
+<th>Template</th>
+<th>What it pins down</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>.planning/PROJECT.md</code></td>
+<td><code>gsd-core/templates/project.md</code></td>
+<td>Project identity, core value, full decision log</td>
+</tr>
+<tr>
+<td><code>.planning/ROADMAP.md</code></td>
+<td><code>gsd-core/templates/roadmap.md</code></td>
+<td>Phase plan, milestones, progress</td>
+</tr>
+<tr>
+<td><code>.planning/REQUIREMENTS.md</code></td>
+<td><code>gsd-core/templates/requirements.md</code></td>
+<td>Numbered acceptance criteria with traceability</td>
+</tr>
+<tr>
+<td><code>.planning/config.json</code></td>
+<td><code>gsd-core/templates/config.json</code></td>
+<td>Per-project GSD configuration</td>
+</tr>
+</tbody>
+</table>
+<p>These are the files everything else <code>@</code>-references. They change at milestone boundaries,
+not at plan boundaries. <code>gsd-core/templates/config.json</code> is worth flagging as a <em>seed</em>
+rather than a schema: it ships 44 leaf keys against the 78 in
+<code>gsd-core/bin/shared/config-defaults.manifest.json</code>, and documented keys such as
+<code>workflow.context_guard_mode</code> (defaulted in the manifest, read by
+<code>gsd-core/references/execute-phase-context-guard.md</code>, documented in
+<code>gsd-core/references/planning-config.md</code> and <code>gsd-core/references/context-budget.md</code>)
+appear nowhere in the scaffold. The default arrives by absence.</p>
+<h3 id="2-position-and-session-high-churn-digests-some-designed-to-be-deleted">2. Position and session — high-churn digests, some designed to be deleted<a class="headerlink" href="#2-position-and-session-high-churn-digests-some-designed-to-be-deleted" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Artifact</th>
+<th>Template</th>
+<th>Write pattern</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>.planning/STATE.md</code></td>
+<td><code>gsd-core/templates/state.md</code></td>
+<td>Continuously rewritten; hard 100-line cap</td>
+</tr>
+<tr>
+<td><code>.planning/STATE-ARCHIVE.md</code></td>
+<td><em>(none)</em></td>
+<td>Eviction target for <code>cmdStatePrune</code> in <code>src/state.cts</code></td>
+</tr>
+<tr>
+<td><code>.planning/HANDOFF.json</code></td>
+<td><em>(none)</em></td>
+<td>One-shot; deleted after resume</td>
+</tr>
+<tr>
+<td><code>.../.continue-here.md</code></td>
+<td><code>gsd-core/templates/continue-here.md</code></td>
+<td>One-shot; "not permanent storage"</td>
+</tr>
+<tr>
+<td><code>.planning/milestone.lock</code></td>
+<td><em>(none)</em></td>
+<td>Claim file (<code>src/milestone-lock.cts</code>)</td>
+</tr>
+</tbody>
+</table>
+<p>This bucket is where the finite-context design is most visible, and it gets its own
+section below.</p>
+<h3 id="3-the-phase-chain-written-once-per-phase-then-read-forever">3. The phase chain — written once per phase, then read forever<a class="headerlink" href="#3-the-phase-chain-written-once-per-phase-then-read-forever" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Artifact</th>
+<th>Template</th>
+<th>Produced by</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>NN-CONTEXT.md</code></td>
+<td><code>gsd-core/templates/context.md</code></td>
+<td><code>/gsd:discuss-phase</code></td>
+</tr>
+<tr>
+<td><code>NN-RESEARCH.md</code></td>
+<td><code>gsd-core/templates/research.md</code></td>
+<td><code>/gsd:plan-phase</code></td>
+</tr>
+<tr>
+<td><code>NN-SPEC.md</code></td>
+<td><code>gsd-core/templates/spec.md</code></td>
+<td>phase spec authoring</td>
+</tr>
+<tr>
+<td><code>NN-MM-PLAN.md</code></td>
+<td><code>gsd-core/templates/phase-prompt.md</code></td>
+<td><code>/gsd:plan-phase</code></td>
+</tr>
+<tr>
+<td><code>NN-MM-SUMMARY.md</code></td>
+<td><code>gsd-core/templates/summary.md</code> (+ 3 tiers)</td>
+<td><code>/gsd:execute-phase</code></td>
+</tr>
+<tr>
+<td><code>NN-VERIFICATION.md</code></td>
+<td><code>gsd-core/templates/verification-report.md</code></td>
+<td>verifier</td>
+</tr>
+<tr>
+<td><code>NN-UAT.md</code></td>
+<td><code>gsd-core/templates/UAT.md</code></td>
+<td><code>/gsd:validate-phase</code></td>
+</tr>
+<tr>
+<td><code>DISCOVERY.md</code></td>
+<td><code>gsd-core/templates/discovery.md</code></td>
+<td>pre-planning discovery</td>
+</tr>
+<tr>
+<td><code>NN-DISCUSSION-LOG.md</code></td>
+<td><code>gsd-core/templates/discussion-log.md</code></td>
+<td><code>/gsd:discuss-phase</code></td>
+</tr>
+<tr>
+<td><code>{phase}-USER-SETUP.md</code></td>
+<td><code>gsd-core/templates/user-setup.md</code></td>
+<td>plans with <code>user_setup</code></td>
+</tr>
+</tbody>
+</table>
+<p>Each destination is declared in the template's own first prose line — e.g.
+<code>gsd-core/templates/summary.md</code> opens "Template for
+<code>.planning/phases/XX-name/{phase}-{plan}-SUMMARY.md</code>". That convention means the
+template file <em>is</em> the routing table; you never have to hunt for where an artifact lands.</p>
+<p><code>gsd-core/templates/verification-report.md</code> is the interesting member. It closes a
+goal-backward loop opened in <code>gsd-core/templates/phase-prompt.md</code>, which defines
+<code>must_haves: {truths, artifacts, key_links}</code> in PLAN.md frontmatter on the stated premise
+that "Task completion ≠ Goal achievement. A task 'create chat component' can complete by
+creating a placeholder." The verification report consumes exactly those three lists back
+as three tables, with a status vocabulary that distinguishes <code>✓ EXISTS + SUBSTANTIVE</code>
+from <code>✗ STUB</code> from <code>✗ NOT WIRED</code> from <code>⚠️ PRESENT_BEHAVIOR_UNVERIFIED</code> from
+<code>✓ VERIFIED (coincidental-reliance)</code>. The schema names "present but never exercised" and
+"true only by accident" as distinct outcomes — which is only possible because the
+expectation was persisted at plan time rather than re-derived at verify time.</p>
+<h3 id="4-conditional-contracts-exist-only-when-a-capability-is-active">4. Conditional contracts — exist only when a capability is active<a class="headerlink" href="#4-conditional-contracts-exist-only-when-a-capability-is-active" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Artifact</th>
+<th>Template</th>
+<th>Gate</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>NN-UI-SPEC.md</code></td>
+<td><code>gsd-core/templates/UI-SPEC.md</code></td>
+<td><code>/gsd:ui-phase</code></td>
+</tr>
+<tr>
+<td><code>NN-SECURITY.md</code></td>
+<td><code>gsd-core/templates/SECURITY.md</code></td>
+<td><code>/gsd:secure-phase</code></td>
+</tr>
+<tr>
+<td><code>NN-AI-SPEC.md</code></td>
+<td><code>gsd-core/templates/AI-SPEC.md</code></td>
+<td><code>/gsd:ai-integration-phase</code></td>
+</tr>
+<tr>
+<td><code>NN-VALIDATION.md</code></td>
+<td><code>gsd-core/templates/VALIDATION.md</code></td>
+<td><code>/gsd:plan-phase</code> (Nyquist)</td>
+</tr>
+<tr>
+<td><code>NN-PATTERNS.md</code></td>
+<td><em>(inline)</em></td>
+<td>pattern mapper</td>
+</tr>
+<tr>
+<td><code>NN-REVIEWS.md</code></td>
+<td><em>(inline)</em></td>
+<td><code>/gsd:review</code></td>
+</tr>
+</tbody>
+</table>
+<p>These are the on-disk footprint of the capability system — the artifacts a loop-point
+attachment declares in its <code>produces</code>. Their optionality is the reason the loop contract
+declares only <em>core</em> artifacts: a chain that included <code>UI-SPEC.md</code> would be unsatisfiable
+on a project with UI phases turned off.</p>
+<p>Notice also that all four templated members of this bucket are <strong>literal skeletons</strong> —
+files that are themselves valid artifacts, copyable byte-for-byte, rather than a skeleton
+wrapped in a fenced block with advisory prose around it. <code>gsd-core/templates/UI-SPEC.md</code>,
+<code>gsd-core/templates/SECURITY.md</code> and <code>gsd-core/templates/VALIDATION.md</code> open directly on
+<code>---</code> frontmatter; <code>gsd-core/templates/AI-SPEC.md</code> opens directly on the artifact's own
+H1. Compare the ~38 templates elsewhere in the tree that open <code># &lt;Name&gt; Template</code> and
+carry the artifact inside a fence. Contract artifacts get contract-shaped templates.</p>
+<h3 id="5-cross-phase-ledgers-append-and-accumulate">5. Cross-phase ledgers — append and accumulate<a class="headerlink" href="#5-cross-phase-ledgers-append-and-accumulate" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Artifact</th>
+<th>Template</th>
+<th>Accumulation model</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>.planning/WINDOWS.md</code></td>
+<td><em>(none)</em></td>
+<td>Defect register; <code>src/broken-windows.cts</code></td>
+</tr>
+<tr>
+<td><code>.planning/LEARNINGS.md</code></td>
+<td><em>(inline)</em></td>
+<td>Phase retrospective learnings</td>
+</tr>
+<tr>
+<td><code>.planning/BACKLOG.md</code></td>
+<td><em>(inline)</em></td>
+<td>Deferred work</td>
+</tr>
+<tr>
+<td><code>.planning/THREADS.md</code></td>
+<td><em>(inline)</em></td>
+<td>Persistent discussion threads</td>
+</tr>
+<tr>
+<td><code>.planning/MILESTONES.md</code></td>
+<td><code>gsd-core/templates/milestone.md</code></td>
+<td>Completed-milestone log</td>
+</tr>
+<tr>
+<td><code>.planning/RETROSPECTIVE.md</code></td>
+<td><code>gsd-core/templates/retrospective.md</code></td>
+<td>Living, updated at each close</td>
+</tr>
+<tr>
+<td><code>.planning/debug/[slug].md</code></td>
+<td><code>gsd-core/templates/DEBUG.md</code></td>
+<td>APPEND-only sections</td>
+</tr>
+</tbody>
+</table>
+<p>This is the bucket the placeholder for this page called "the ledger", and the literal
+ledger is <code>.planning/WINDOWS.md</code>. Its module docstring in <code>src/broken-windows.cts</code>
+describes it as "a cross-phase ledger of small defects (stubs, TODOs, skipped tests, lint
+warnings, unrun verifies, unmet truths, deviations)" and it is the sharpest example in
+the repo of the dual-channel design discussed below.</p>
+<p><code>.planning/LEARNINGS.md</code> has a global counterpart that is easy to miss: <code>src/learnings.cts</code>
+maintains a <em>cross-project</em> store at <code>~/.gsd/knowledge/</code>, one JSON file per learning with
+SHA-256 content-hash deduplication. Project memory and practitioner memory are separate
+stores with separate lifetimes.</p>
+<h3 id="6-derived-exports-regenerated-never-hand-edited">6. Derived exports — regenerated, never hand-edited<a class="headerlink" href="#6-derived-exports-regenerated-never-hand-edited" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Artifact</th>
+<th>Template</th>
+<th>Generator</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>project-root <code>CLAUDE.md</code></td>
+<td><code>gsd-core/templates/claude-md.md</code></td>
+<td><code>generate-claude-md</code> + <code>generate-claude-profile</code></td>
+</tr>
+<tr>
+<td>copilot instructions</td>
+<td><code>gsd-core/templates/copilot-instructions.md</code></td>
+<td>host integration</td>
+</tr>
+<tr>
+<td><code>dev-preferences</code></td>
+<td><code>gsd-core/templates/dev-preferences.md</code></td>
+<td><code>/gsd:profile-user</code></td>
+</tr>
+<tr>
+<td><code>USER-PROFILE.md</code></td>
+<td><code>gsd-core/templates/user-profile.md</code></td>
+<td><code>profile-user</code></td>
+</tr>
+<tr>
+<td><code>.planning/codebase/*.md</code></td>
+<td><code>gsd-core/templates/codebase/</code> (7 files)</td>
+<td>codebase-mapping agent</td>
+</tr>
+<tr>
+<td><code>.planning/research/*.md</code></td>
+<td><code>gsd-core/templates/research-project/</code> (5 files)</td>
+<td>research synthesis</td>
+</tr>
+</tbody>
+</table>
+<p>The <code>CLAUDE.md</code> generator is the one to study. <code>gsd-core/templates/claude-md.md</code> defines
+seven marker-bounded regions of the form
+<code>&lt;!-- GSD:{name}-start source:{file} --&gt;</code> … <code>&lt;!-- GSD:{name}-end --&gt;</code>, each with declared
+fallback text, a fixed ordering, and a <code>source:</code> attribute the template says "enables
+targeted updates when source files change." Ownership is split at the marker, not the
+file: <code>generate-claude-md</code> owns six regions, <code>generate-claude-profile</code> owns <code>profile</code>
+exclusively. That is how you get idempotent regeneration of a file that two independent
+producers and one human all write to.</p>
+<p>The two subdirectory families are otherwise uniform in shape and inconsistent in naming.
+<code>gsd-core/templates/codebase/architecture.md</code> produces <code>.planning/codebase/ARCHITECTURE.md</code>;
+<code>gsd-core/templates/research-project/ARCHITECTURE.md</code> produces
+<code>.planning/research/ARCHITECTURE.md</code>. Same destination casing, opposite source casing.</p>
+<h3 id="7-archive-frozen-snapshots">7. Archive — frozen snapshots<a class="headerlink" href="#7-archive-frozen-snapshots" title="Permanent link">&para;</a></h3>
+<p><code>/gsd:complete-milestone</code> moves <code>vX.Y-ROADMAP.md</code>, <code>vX.Y-REQUIREMENTS.md</code>,
+<code>vX.Y-MILESTONE-AUDIT.md</code> and optionally <code>vX.Y-phases/</code> into <code>.planning/milestones/</code>.
+<code>gsd-core/templates/README.md</code> encodes a state-machine expectation in prose here: finding
+a <code>vX.Y-MILESTONE-AUDIT.md</code> at the <code>.planning/</code> root after completion "indicates the
+archive step was skipped." A file's <em>location</em> is a status field.</p>
+<h2 id="lifecycle-of-the-load-bearing-artifacts">Lifecycle of the load-bearing artifacts<a class="headerlink" href="#lifecycle-of-the-load-bearing-artifacts" title="Permanent link">&para;</a></h2>
+<p><code>gsd-core/references/artifact-types.md</code> supplies shape / lifecycle / location /
+consumed-by for the core set. What it does not supply — and what turns out to be the most
+design-bearing column — is <strong>who is allowed to write</strong>.</p>
+<table>
+<thead>
+<tr>
+<th>Artifact</th>
+<th>Created when</th>
+<th>Read by</th>
+<th>Updated by</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>PROJECT.md</code></td>
+<td><code>/gsd:new-project</code></td>
+<td>Everything, via <code>@.planning/PROJECT.md</code></td>
+<td>Orchestrator, at milestone boundaries</td>
+</tr>
+<tr>
+<td><code>ROADMAP.md</code></td>
+<td><code>/gsd:new-project</code>, <code>/gsd:new-milestone</code></td>
+<td><code>plan-phase</code>, <code>discuss-phase</code>, <code>execute-phase</code>, <code>progress</code>, <code>state</code></td>
+<td><strong>Orchestrator only</strong> — executors are explicitly forbidden</td>
+</tr>
+<tr>
+<td><code>REQUIREMENTS.md</code></td>
+<td><code>/gsd:new-milestone</code></td>
+<td><code>discuss-phase</code>, <code>plan-phase</code>, CONTEXT generation</td>
+<td>Executor marks items complete</td>
+</tr>
+<tr>
+<td><code>STATE.md</code></td>
+<td><code>/gsd:new-project</code>, <code>/gsd:health --repair</code></td>
+<td>All orchestration workflows; <code>resume-project</code>, <code>progress</code>, <code>next</code></td>
+<td>Code, through one locked write seam in <code>src/state.cts</code></td>
+</tr>
+<tr>
+<td><code>STATE-ARCHIVE.md</code></td>
+<td>First <code>state prune</code> past the cutoff</td>
+<td>Humans, forensic audit</td>
+<td><code>cmdStatePrune</code> only</td>
+</tr>
+<tr>
+<td><code>NN-CONTEXT.md</code></td>
+<td><code>/gsd:discuss-phase</code></td>
+<td><code>plan-phase</code> (decisions), <code>execute-phase</code> (code_context, canonical_refs)</td>
+<td>Superseded by the next phase, not edited</td>
+</tr>
+<tr>
+<td><code>NN-RESEARCH.md</code></td>
+<td><code>/gsd:plan-phase</code></td>
+<td>Planner</td>
+<td>Write-once</td>
+</tr>
+<tr>
+<td><code>NN-MM-PLAN.md</code></td>
+<td>Planner agent</td>
+<td>Executor; task commits reference plan IDs</td>
+<td>Planner revision loop, pre-execution only</td>
+</tr>
+<tr>
+<td><code>NN-MM-SUMMARY.md</code></td>
+<td>Executor, at plan completion</td>
+<td>Orchestrator (progress), planner (future context), verifier, <code>milestone-summary</code></td>
+<td>Executor appends <code>## Self-Check: PASSED\|FAILED</code> at runtime</td>
+</tr>
+<tr>
+<td><code>NN-UAT.md</code></td>
+<td><code>/gsd:validate-phase</code></td>
+<td><code>ship</code>, and <code>plan-phase --gaps</code></td>
+<td>OVERWRITE + APPEND per <code>&lt;section_rules&gt;</code></td>
+</tr>
+<tr>
+<td><code>WINDOWS.md</code></td>
+<td>First <code>windows append</code></td>
+<td><code>ship:pre</code> gate, via <code>jq</code> on frontmatter</td>
+<td><code>windows append</code> / <code>waive</code> / <code>fixed</code></td>
+</tr>
+<tr>
+<td><code>debug/[slug].md</code></td>
+<td><code>/gsd:debug</code></td>
+<td>The debugger after a context reset</td>
+<td>Per-section IMMUTABLE / OVERWRITE / APPEND</td>
+</tr>
+<tr>
+<td><code>HANDOFF.json</code></td>
+<td><code>/gsd:pause-work</code></td>
+<td><code>resume-project</code></td>
+<td>Replaced wholesale; <strong>deleted after resume</strong></td>
+</tr>
+</tbody>
+</table>
+<h3 id="single-writer-discipline-is-stated-in-the-prompt-not-enforced-by-code">Single-writer discipline is stated in the prompt, not enforced by code<a class="headerlink" href="#single-writer-discipline-is-stated-in-the-prompt-not-enforced-by-code" title="Permanent link">&para;</a></h3>
+<p>The <code>updated-by</code> column hides the sharpest rule in the system. When
+<code>gsd-core/workflows/execute-phase.md</code> dispatches a parallel executor into a git worktree,
+the prompt it builds says, in the <code>&lt;objective&gt;</code> block:</p>
+<blockquote>
+<p>Do NOT update STATE.md or ROADMAP.md — the orchestrator owns those writes after all
+worktree agents in the wave complete.</p>
+</blockquote>
+<p>and repeats it in <code>&lt;parallel_execution&gt;</code>: "IMPORTANT: Do NOT modify STATE.md or
+ROADMAP.md." The reason is concurrency. Multiple executors run simultaneously; two of
+them updating a shared progress file would produce a lost update. So the shared files get
+exactly one writer — the orchestrator, after the wave joins — while each executor writes
+only files it uniquely owns (<code>SUMMARY.md</code>, and <code>REQUIREMENTS.md</code> for its own requirement
+IDs).</p>
+<p>That is a <em>prompt-level</em> invariant, but it is not left to the prompt alone. The same
+block records a code-level backstop: "execute-plan.md auto-detects worktree mode (<code>.git</code>
+is a file, not a directory) and skips shared file updates automatically." Belt and
+braces — the instruction states the rule so the agent understands it, and the runtime
+enforces it so a disobedient agent cannot break it.</p>
+<p>The same file also records the durability rule that follows from putting state in files:</p>
+<blockquote>
+<p>REQUIRED: SUMMARY.md MUST be committed before you return. … the orchestrator
+force-removes the worktree after you return, and any uncommitted SUMMARY.md will be
+permanently lost.</p>
+</blockquote>
+<p>If your state medium is the filesystem and your isolation mechanism is a worktree, then
+"committed to git" — not "written to disk" — is what durable means.</p>
+<h3 id="statemd-prose-written-by-agents-frontmatter-derived-by-code">STATE.md: prose written by agents, frontmatter derived by code<a class="headerlink" href="#statemd-prose-written-by-agents-frontmatter-derived-by-code" title="Permanent link">&para;</a></h3>
+<p><code>STATE.md</code> is not the only artifact written by a code module — <code>ROADMAP.md</code> goes through
+<code>platformWriteSync</code> in <code>src/roadmap.cts</code> (lines 1081 and 1311), <code>WINDOWS.md</code> through
+<code>src/broken-windows.cts</code>, and <code>milestone.lock</code> through <code>src/milestone-lock.cts</code>. What makes
+<code>STATE.md</code> distinctive is the <em>split</em>: its prose is authored by agents while its
+frontmatter is derived by code, in the same file. Reading <code>src/state.cts</code> explains why. Three things happen on every write:</p>
+<ol>
+<li><strong>Frontmatter is re-derived from the body, not authored.</strong> <code>syncStateFrontmatter</code>
+   strips the frontmatter, hands the <em>body</em> to <code>buildStateFrontmatter</code>, and rebuilds
+   the machine layer from what the prose actually says. The template's own frontmatter
+   admits this — <code>gsd_state_version: '1.0'  # placeholder; syncStateFrontmatter
+   overwrites on first state.* call</code>.</li>
+<li><strong>The write is atomic under a lock.</strong> The read-modify-write helper "holds the lock
+   across the entire read → transform → write cycle, preventing the lost-update problem
+   where two agents read the same content and the second write clobbers the first."</li>
+<li><strong>The composition is a single named function.</strong> <code>syncAndPreserveStateMd</code> exists
+   because, per the ADR quoted in its docstring, "Assembling the stages at a call site is
+   a re-derivation even when every step calls the owner" — a drift found live in a
+   different command where every individual step called the right owner and the
+   composition still diverged.</li>
+</ol>
+<p>The generalisable design here: <strong>the digest that everything reads is the one artifact you
+cannot afford to let an LLM format.</strong> Let the agent write the narrative; derive the
+queryable fields from the narrative in code; serialise the writes.</p>
+<h2 id="the-finite-context-argument-assembled">The finite-context argument, assembled<a class="headerlink" href="#the-finite-context-argument-assembled" title="Permanent link">&para;</a></h2>
+<p>Everything above is downstream of one threat model, stated repeatedly across the repo:
+the agent reading these files has a bounded context window, will lose that context
+mid-task, and cannot be trusted to re-read everything on resume. Five distinct mechanisms
+answer it.</p>
+<h3 id="mechanism-1-a-read-depth-budget-that-forbids-reading-bodies">Mechanism 1 — a read-depth budget that forbids reading bodies<a class="headerlink" href="#mechanism-1-a-read-depth-budget-that-forbids-reading-bodies" title="Permanent link">&para;</a></h3>
+<p><code>gsd-core/references/context-budget.md</code> is prescriptive, not advisory:</p>
+<table>
+<thead>
+<tr>
+<th>Context Window</th>
+<th>SUMMARY.md</th>
+<th>VERIFICATION.md</th>
+<th>PLAN.md (other phases)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>&lt; 500k (200k model)</td>
+<td>Frontmatter only</td>
+<td>Frontmatter only</td>
+<td>Current phase only</td>
+</tr>
+<tr>
+<td>≥ 500k (1M model)</td>
+<td>Full body permitted</td>
+<td>Full body permitted</td>
+<td>Current phase only</td>
+</tr>
+</tbody>
+</table>
+<p>It also bans reading agent definition files (<code>subagent_type</code> auto-loads them) and bans
+inlining large files into subagent prompts — "tell agents to read files from disk
+instead."</p>
+<p><code>gsd-core/workflows/execute-phase.md</code> implements the tiering by querying
+<code>config-get context_window</code> and branching: at ≥ 500k "Executor agents receive prior wave
+SUMMARY.md files and the phase CONTEXT.md/RESEARCH.md"; below 200k, executor prompts drop
+their inline examples and load them on demand from
+<code>gsd-core/references/executor-examples.md</code>. <strong>The read-set is a function of the budget.</strong>
+The artifact set stays constant; how much of it gets read is configuration.</p>
+<h3 id="mechanism-2-frontmatter-as-the-read-surface">Mechanism 2 — frontmatter as the read surface<a class="headerlink" href="#mechanism-2-frontmatter-as-the-read-surface" title="Permanent link">&para;</a></h3>
+<p>Mechanism 1 makes frontmatter design load-bearing, and
+<code>gsd-core/templates/summary.md</code>'s <code>&lt;frontmatter_guidance&gt;</code> says so directly: "Frontmatter
+is first ~25 lines, cheap to scan across all summaries without reading full content", and
+<code>requires</code> / <code>provides</code> / <code>affects</code> "create explicit links between phases, enabling
+transitive closure for context selection."</p>
+<p>Read those two rules together and the causal chain is explicit: <strong>frontmatter is the read
+surface because the budget rule forbids reading bodies.</strong> Planning context is assembled by
+scanning YAML across dozens of summaries and computing a transitive closure over the
+dependency edges — never by reading summary prose.</p>
+<p><code>.planning/WINDOWS.md</code> is the purest instance because there the split is enforced. From
+<code>src/broken-windows.cts</code>:</p>
+<blockquote>
+<p>Frontmatter holds scalar counts (the FAST path the ship gate reads via jq without
+parsing JSON). The JSON code block is the AUTHORITATIVE entries source. The two must
+agree; read paths cross-check and fail closed on drift.</p>
+</blockquote>
+<p>And <code>gsd-core/workflows/ship.md</code> consumes exactly that fast path —
+<code>jq -r '.ledger.open_count'</code> — with a stated fail-closed policy: an unreadable or
+non-numeric count blocks the ship rather than passing it, because "the gate is strict
+equality to <code>0</code>; never ship on an unreadable ledger."</p>
+<p>That is the complete pattern worth stealing: a cheap scalar summary for the hot read
+path, an authoritative structured body for correctness, a cross-check between them, and a
+fail-closed default when the cheap path is unreadable.</p>
+<h3 id="mechanism-3-size-treated-as-a-correctness-property">Mechanism 3 — size treated as a correctness property<a class="headerlink" href="#mechanism-3-size-treated-as-a-correctness-property" title="Permanent link">&para;</a></h3>
+<p><code>gsd-core/templates/state.md</code> does not ask nicely:</p>
+<blockquote>
+<p>Keep STATE.md under 100 lines. It's a DIGEST, not an archive. … The goal is "read once,
+know where we are" — if it's too long, that fails.</p>
+</blockquote>
+<p>It also prescribes the eviction policy — keep 3–5 recent decisions (full log lives in
+<code>PROJECT.md</code>), drop resolved blockers — and <code>src/state.cts</code> implements it as a command:
+<code>cmdStatePrune</code> resolves the current phase, computes <code>cutoff = currentPhase - keepRecent</code>
+(default 3), and moves decisions, completed summaries and resolved blockers older than the
+cutoff into <code>.planning/STATE-ARCHIVE.md</code>.</p>
+<p>The same stance appears elsewhere. <code>gsd-core/templates/DEBUG.md</code>'s <code>&lt;size_constraint&gt;</code>
+requires "No narrative prose - structured data only" and reframes a long Evidence list as
+a <em>diagnostic signal</em> of circular investigation. <code>gsd-core/templates/phase-prompt.md</code>'s
+scope guidance caps a plan at "2-3 tasks per plan, ~50% context usage maximum".</p>
+<p>A framework that persists state between stages needs an answer to unbounded growth. GSD
+Core's answer is a stated cap, a named eviction rule, and an archive file — not a
+convention that someone will trim it later.</p>
+<h3 id="mechanism-4-the-tier-is-chosen-by-code-not-by-the-agent">Mechanism 4 — the tier is chosen by code, not by the agent<a class="headerlink" href="#mechanism-4-the-tier-is-chosen-by-code-not-by-the-agent" title="Permanent link">&para;</a></h3>
+<p><code>SUMMARY.md</code> ships in three sizes — <code>gsd-core/templates/summary-minimal.md</code>,
+<code>gsd-core/templates/summary-standard.md</code>, <code>gsd-core/templates/summary-complex.md</code> — and
+<code>cmdTemplateSelect</code> in <code>src/template.cts</code> picks one from the PLAN, mechanically:</p>
+<div class="highlight"><pre><span></span><code>taskCount  = count of /###\s*Task\s*\d+/g
+fileCount  = distinct backticked paths containing '/'
+hasDecisions = /decision/gi matches anywhere in the plan
+
+minimal   if taskCount &lt;= 2 &amp;&amp; fileCount &lt;= 3 &amp;&amp; !hasDecisions
+complex   if hasDecisions || fileCount &gt; 6 || taskCount &gt; 5
+standard  otherwise (and on any read error)
+</code></pre></div>
+<p>Taking the sizing decision away from the generating agent makes summary size a
+<em>reproducible function of plan shape</em> rather than a judgement call that drifts with model
+temperature. The fallback direction is the tell: any read error lands on <code>standard</code>, the
+middle tier, never on <code>minimal</code>.</p>
+<p>The heuristic is also crude in a way worth noticing. <code>hasDecisions</code> is a bare
+case-insensitive <code>/decision/gi</code> scan over the whole plan text, so a plan that merely uses
+the word "decision" in a sentence of prose is routed to the richest tier.</p>
+<h3 id="mechanism-5-mutability-contracts-that-survive-a-context-reset">Mechanism 5 — mutability contracts that survive a context reset<a class="headerlink" href="#mechanism-5-mutability-contracts-that-survive-a-context-reset" title="Permanent link">&para;</a></h3>
+<p><code>gsd-core/templates/DEBUG.md</code> labels every section with one of three write modes in a
+<code>&lt;section_rules&gt;</code> block:</p>
+<table>
+<thead>
+<tr>
+<th>Mode</th>
+<th>Sections</th>
+<th>Why</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>IMMUTABLE</td>
+<td><code>trigger</code>, <code>created</code>, Symptoms (after gathering)</td>
+<td>The original problem statement must not drift as theories change</td>
+</tr>
+<tr>
+<td>OVERWRITE</td>
+<td><code>status</code>, <code>updated</code>, Current Focus, Resolution</td>
+<td>Always reflects now; no history needed</td>
+</tr>
+<tr>
+<td>APPEND-only</td>
+<td>Eliminated, Evidence</td>
+<td>"Prevents re-investigating dead ends after context reset"</td>
+</tr>
+</tbody>
+</table>
+<p>The same three-way vocabulary reappears in <code>gsd-core/templates/UAT.md</code>'s
+<code>&lt;section_rules&gt;</code> (<code>phase</code> / <code>source</code> / <code>started</code> IMMUTABLE, Current Test and Summary
+OVERWRITE, Gaps APPEND-only).</p>
+<p>And it is paired with a mandated <strong>read order</strong> for resume, in the same template's
+<code>&lt;resume_behavior&gt;</code> block:</p>
+<blockquote>
+<ol>
+<li>Parse frontmatter → know status</li>
+<li>Read Current Focus → know exactly what was happening</li>
+<li>Read Eliminated → know what NOT to retry</li>
+<li>Read Evidence → know what's been learned</li>
+<li>Continue from next_action</li>
+</ol>
+<p>The file IS the debugging brain.</p>
+</blockquote>
+<p>That last sentence is the design premise made explicit. <code>gsd-core/templates/UAT.md</code>'s
+<code>&lt;lifecycle&gt;</code> carries an isomorphic four-step "Resume after <code>/clear</code>". Two artifacts,
+same recipe — because the recipe is not about debugging or UAT, it is about surviving
+amnesia.</p>
+<div class="admonition tip">
+<p class="admonition-title">The pairing is the point</p>
+<p>APPEND-only alone is just an audit trail. APPEND-only <strong>plus</strong> a mandated read-order
+that puts the appended section third — before the agent forms a new hypothesis — is
+what makes negative knowledge actually prevent repeated work. If you build the
+mutability contract without the read recipe, the file grows and nobody consults the
+part that saves time.</p>
+</div>
+<h2 id="designed-to-be-deleted-state">Designed-to-be-deleted state<a class="headerlink" href="#designed-to-be-deleted-state" title="Permanent link">&para;</a></h2>
+<p>Not every persisted artifact is meant to last. GSD Core has a small class of files whose
+correct end state is deletion, and it treats that as a first-class category.</p>
+<p><code>gsd-core/workflows/pause-work.md</code> writes <em>two</em> files at the same moment, for two
+different readers: "Create structured <code>.planning/HANDOFF.json</code> and <code>.continue-here.md</code>
+handoff files … The JSON provides machine-readable state for <code>/gsd:resume-work</code>; the
+markdown provides human-readable context." <code>gsd-core/workflows/resume-project.md</code> reads
+<code>HANDOFF.json</code> first, then searches for <code>.continue-here*.md</code> at up to three locations
+(phase, non-phase, legacy root fallback), and instructs: "<strong>After successful resumption,
+delete HANDOFF.json</strong> (it's a one-shot artifact)."</p>
+<p><code>gsd-core/templates/continue-here.md</code> states the same contract from the template side —
+"This file gets DELETED after resume - it's not permanent storage" — and imposes a
+requirement that only makes sense for a throwaway: "The <code>&lt;next_action&gt;</code> should be
+actionable without reading anything else."</p>
+<p>This is the dual-channel principle taken to its limit. <code>SUMMARY.md</code> keeps the machine
+layer and the human layer in one file, separated by <code>---</code>. The pause handoff separates
+them into two files entirely, because the two readers arrive at different times through
+different paths and neither should have to parse the other's format.</p>
+<h2 id="copy-forward-for-constraints-reference-for-background">Copy-forward for constraints, <code>@</code>-reference for background<a class="headerlink" href="#copy-forward-for-constraints-reference-for-background" title="Permanent link">&para;</a></h2>
+<p>There is one more state-handoff rule, and it is a deliberate exception to "don't
+duplicate data."</p>
+<p><code>gsd-core/templates/research.md</code>'s <code>&lt;user_constraints&gt;</code> instructs the researcher to copy
+locked decisions <strong>verbatim</strong> out of <code>CONTEXT.md</code> into <code>RESEARCH.md</code>, with the
+justification "These MUST be honored by the planner." Meanwhile
+<code>gsd-core/templates/phase-prompt.md</code>'s <code>&lt;context&gt;</code> and
+<code>gsd-core/templates/planner-subagent-prompt.md</code>'s <code>&lt;planning_context&gt;</code> pass background by
+<code>@</code>-include — <code>@.planning/PROJECT.md</code>, <code>@.planning/ROADMAP.md</code>, <code>@.planning/STATE.md</code>.</p>
+<p>So the rule is: <strong>constraints an agent must not violate travel by value; background an
+agent may consult travels by reference.</strong> The cost is duplication and the staleness risk
+that comes with it. The benefit is that each agent's input is self-contained — a
+constraint cannot be missed because a referenced file was never opened, and it cannot be
+lost when the referencing file is truncated to fit a budget.</p>
+<p>Once you accept that agents read on a budget, "the constraint is in a file you were told
+to read" is not good enough. That is the whole argument.</p>
+<h2 id="where-the-map-disagrees-with-the-territory">Where the map disagrees with the territory<a class="headerlink" href="#where-the-map-disagrees-with-the-territory" title="Permanent link">&para;</a></h2>
+<p>The findings below are all verifiable in the repo as it stands. They are collected here
+rather than scattered because together they show something more useful than any one of
+them: registries drift toward the code that consults them, and the ones nothing consults
+drift furthest.</p>
+<h3 id="the-same-artifact-has-two-homes">The same artifact has two homes<a class="headerlink" href="#the-same-artifact-has-two-homes" title="Permanent link">&para;</a></h3>
+<p><code>gsd-core/templates/README.md</code> lists <code>NN-DEBUG.md</code> as a <em>phase-subdirectory</em> artifact.
+<code>gsd-core/templates/DEBUG.md</code>'s own first line says "Template for
+<code>.planning/debug/[slug].md</code> — active debug session tracking", and its <code>&lt;lifecycle&gt;</code>
+resolves by moving the file to <code>.planning/debug/resolved/</code>. Two incompatible locations
+for one template.</p>
+<p>A similar split affects <code>CLAUDE.md</code>. <code>gsd-core/templates/README.md</code> files it under
+"<code>.planning/</code> Root Artifacts", a table that opens "These files live directly at
+<code>.planning/</code>". <code>gsd-core/templates/claude-md.md</code> says "Template for project-root
+<code>CLAUDE.md</code>."</p>
+<h3 id="the-registry-omits-artifacts-that-have-templates">The registry omits artifacts that have templates<a class="headerlink" href="#the-registry-omits-artifacts-that-have-templates" title="Permanent link">&para;</a></h3>
+<p><code>gsd-core/templates/README.md</code>'s phase-subdirectory table has no row for <code>NN-SPEC.md</code>
+(<code>gsd-core/templates/spec.md</code>), <code>NN-VERIFICATION.md</code>
+(<code>gsd-core/templates/verification-report.md</code>), <code>DISCOVERY.md</code>
+(<code>gsd-core/templates/discovery.md</code>), <code>NN-DISCUSSION-LOG.md</code>
+(<code>gsd-core/templates/discussion-log.md</code>) or <code>{phase}-USER-SETUP.md</code>
+(<code>gsd-core/templates/user-setup.md</code>). The README notes that this table is "NOT checked by
+W019 (which only inspects the <code>.planning/</code> root)", so nothing breaks — but the same file
+tells agents to query it "before treating a <code>.planning/</code> file as authoritative", which a
+missing row defeats.</p>
+<p>It also lists <code>RETROSPECTIVE.md</code> with Template = <em>(inline)</em> while
+<code>gsd-core/templates/retrospective.md</code> exists as a full skeleton, and gives
+<code>gsd-core/templates/milestone-archive.md</code> no row at all despite that template's own usage
+note saying "Save to <code>.planning/milestones/v{VERSION}-{NAME}.md</code>".</p>
+<h3 id="one-template-is-the-odd-file-out-on-three-axes-at-once">One template is the odd file out on three axes at once<a class="headerlink" href="#one-template-is-the-odd-file-out-on-three-axes-at-once" title="Permanent link">&para;</a></h3>
+<p><code>gsd-core/templates/milestone-archive.md</code> is the only template with a <code>## File Template</code>
+heading and <strong>no fence</strong> — so the artifact's own <code>## Overview</code> / <code>## Phases</code> /
+<code>## Milestone Summary</code> headings sit at the same document level as the template's own
+<code>## Usage Guidelines</code>, leaving the output/instruction boundary unmarked. It is one of only
+four <code>{{mustache}}</code> templates in a repo that otherwise uses <code>[brackets]</code> for
+LLM-authored prose and <code>{single_brace}</code> for scalar substitution. And it twice cites
+<code>PROJECT-STATE.md</code> (lines 82 and 109) — a filename that appears nowhere else in the
+repository, in no registry, and that does not correspond to either canonical name
+(<code>PROJECT.md</code>, <code>STATE.md</code>).</p>
+<h3 id="the-tiered-summaries-drift-from-their-own-canonical-template-asymmetrically">The tiered summaries drift from their own canonical template, asymmetrically<a class="headerlink" href="#the-tiered-summaries-drift-from-their-own-canonical-template-asymmetrically" title="Permanent link">&para;</a></h3>
+<p><code>gsd-core/templates/summary.md</code> marks <code>requirements-completed: []</code> as "REQUIRED — Copy
+ALL requirement IDs from this plan's <code>requirements</code> frontmatter field". None of
+<code>gsd-core/templates/summary-minimal.md</code>, <code>gsd-core/templates/summary-standard.md</code> or
+<code>gsd-core/templates/summary-complex.md</code> declares the key.</p>
+<p>Worse, the divergence runs the wrong way:</p>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>minimal</th>
+<th>standard</th>
+<th>complex</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>actuals:</code></td>
+<td>✓</td>
+<td>✓</td>
+<td><strong>✗</strong></td>
+</tr>
+<tr>
+<td><code>requires:</code></td>
+<td>✗</td>
+<td>✗</td>
+<td>✓</td>
+</tr>
+<tr>
+<td><code>patterns-established:</code></td>
+<td>✗</td>
+<td>✗</td>
+<td>✓</td>
+</tr>
+<tr>
+<td><code>requirements-completed:</code></td>
+<td>✗</td>
+<td>✗</td>
+<td>✗</td>
+</tr>
+</tbody>
+</table>
+<p>The <em>richest</em> tier is missing a field both leaner tiers carry. Since all three do carry
+the <code>coverage:</code> comment block and an identical <code>**Status (#2830):**</code> paragraph, this is
+not simple staleness — the files were maintained together and diverged anyway.</p>
+<h3 id="three-authoritative-sounding-lists-of-required-planmd-frontmatter">Three authoritative-sounding lists of required PLAN.md frontmatter<a class="headerlink" href="#three-authoritative-sounding-lists-of-required-planmd-frontmatter" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Source</th>
+<th>Declares required</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>gsd-core/templates/phase-prompt.md</code> (Frontmatter Fields table)</td>
+<td>phase, plan, type, wave, depends_on, files_modified, autonomous, requirements, must_haves</td>
+</tr>
+<tr>
+<td><code>gsd-core/references/agent-contracts.md</code> (Planner → Executor)</td>
+<td>…the same, minus <code>must_haves</code> and <code>user_setup</code></td>
+</tr>
+<tr>
+<td><code>src/template.cts</code> <code>cmdTemplateFill</code> case <code>'plan'</code></td>
+<td>…the same, minus <strong><code>requirements</code></strong> — the one field <code>gsd-core/templates/phase-prompt.md</code> bolds as "<strong>MUST</strong> list requirement IDs from ROADMAP"</td>
+</tr>
+</tbody>
+</table>
+<p>The code emits a plan skeleton without the field the template calls mandatory.</p>
+<h3 id="a-section-that-is-regex-matched-exists-in-no-template">A section that is regex-matched exists in no template<a class="headerlink" href="#a-section-that-is-regex-matched-exists-in-no-template" title="Permanent link">&para;</a></h3>
+<p><code>gsd-core/references/agent-contracts.md</code>'s "Executor → Verifier (via SUMMARY.md)" contract
+requires a <code>Self-Check | PASSED or FAILED</code> section and a <code>metrics</code> frontmatter key.
+Neither string exists anywhere under <code>gsd-core/templates/</code>. <code>Self-Check</code> is appended at
+<em>runtime</em> — <code>gsd-core/workflows/execute-plan.md</code> instructs "Append <code>## Self-Check: PASSED</code>
+or <code>## Self-Check: FAILED</code> to SUMMARY", mirrored in <code>agents/gsd-executor.md</code> — and
+<code>gsd-core/workflows/execute-phase.md</code> then matches on <code>## Self-Check: FAILED</code>.</p>
+<p>So a section that control flow branches on is invisible to anyone reading the artifact's
+template. This is the clearest single illustration of the reference doc's own thesis
+inverted: here the consumption mechanism exists and the <em>declaration</em> is the thing that
+is missing.</p>
+<div class="admonition note">
+<p class="admonition-title">The repo is unusually honest about this class of problem</p>
+<p><code>gsd-core/references/agent-contracts.md</code> opens by declaring itself descriptive —
+"This doc describes what IS, not what should be. Casing inconsistencies are documented
+as they appear in agent source files." It grants named, permanent exemptions
+(<code>gsd-verifier</code>'s title-case <code>## Verification Complete</code> is "an auditable exemption,
+never deleted and never silently passed"), records a marker that was <em>deleted</em>
+because it case-collided with another agent's, and defines an
+<code>(unconsumed: &lt;reason&gt;)</code> annotation so a deliberately-orphaned marker is visibly
+distinct from a real one. And unlike the artifact registries, its <code>Consumed by</code> / <code>Kind</code>
+columns are machine-checked — <code>scripts/check-contract-drift.cjs</code> cross-references the
+table against what agents emit and what workflows consume, so "a stale row is a
+violation the check will report."</p>
+<p>Compare the two: the contract table has a drift checker and stays accurate. The
+artifact registries do not, and they are where every inconsistency on this page lives.</p>
+</div>
+<h2 id="what-to-persist-between-stages-and-why">What to persist between stages, and why<a class="headerlink" href="#what-to-persist-between-stages-and-why" title="Permanent link">&para;</a></h2>
+<p>Reading the whole artifact set back, GSD Core's implicit answer to the transferable
+question is a short list.</p>
+<p><strong>Persist the decisions, not the conversation.</strong> <code>CONTEXT.md</code> captures what was decided
+and why; <code>DISCUSSION-LOG.md</code> keeps the audit trail separately and
+<code>gsd-core/references/artifact-types.md</code> states plainly that it is "Consumed by: Human
+review; not read by automated workflows." Separating those two means the automated read
+path never pays for the audit trail.</p>
+<p><strong>Persist the expectation before the work, so verification can be goal-backward.</strong>
+<code>must_haves</code> in <code>PLAN.md</code> frontmatter exists at plan time specifically so
+<code>VERIFICATION.md</code> can check the goal rather than re-derive it from what was built.</p>
+<p><strong>Persist negative knowledge explicitly.</strong> The APPEND-only <code>Eliminated</code> section is the
+only artifact in the system dedicated to what is <em>not</em> true, and its stated purpose is
+saving a post-reset agent from repeating work.</p>
+<p><strong>Persist one digest and cap it.</strong> <code>STATE.md</code> at 100 lines with a prune command is the
+"read once, know where we are" surface. Everything else is reachable from it.</p>
+<p><strong>Persist a scannable projection of everything else.</strong> Frontmatter on <code>SUMMARY.md</code>,
+<code>PLAN.md</code>, <code>VERIFICATION.md</code> and <code>WINDOWS.md</code> exists so the orchestrator can join across
+dozens of files without opening any of them.</p>
+<p><strong>Do not persist the resume note.</strong> <code>HANDOFF.json</code> and <code>.continue-here.md</code> are explicitly
+one-shot. State that outlives its moment becomes misleading state.</p>
+<div class="admonition tip">
+<p class="admonition-title">If you are building this</p>
+<ul>
+<li><strong>One registry, generated.</strong> Make the enforcement set the source of truth and
+  generate the human-readable table from it, with a <code>--check</code> in CI. Three
+  hand-maintained lists produce three truths; this repo has the receipts.</li>
+<li><strong>Split every artifact into a scan layer and a read layer</strong>, and write down which
+  one is authoritative. <code>src/broken-windows.cts</code> does this explicitly — counts in
+  frontmatter for speed, JSON body for truth, cross-checked, fail closed.</li>
+<li><strong>Give the digest a hard cap and an eviction command.</strong> A size limit without a
+  <code>prune</code> is a suggestion.</li>
+<li><strong>Label sections IMMUTABLE / OVERWRITE / APPEND, and publish the resume read-order
+  next to them.</strong> The labels without the recipe do not save any work.</li>
+<li><strong>Copy constraints by value; reference background.</strong> Assume any <code>@</code>-referenced file
+  may go unread under budget pressure.</li>
+<li><strong>Assign exactly one writer per shared file</strong>, state it in the prompt, and back it
+  with a runtime check. Parallelism turns a shared progress file into a lost-update
+  bug immediately.</li>
+<li><strong>Derive machine fields from agent-written prose in code</strong>, not by asking the agent
+  to keep two representations in sync.</li>
+<li><strong>Name the artifacts that are meant to be deleted</strong>, and delete them.</li>
+</ul>
+</div>
+<h2 id="where-this-goes-next">Where this goes next<a class="headerlink" href="#where-this-goes-next" title="Permanent link">&para;</a></h2>
+<p>The write-ownership rules above are enforced by prompts belonging to specific subagents;
+the marker vocabulary those agents use to hand control back is covered in
+<a href="../agents/">Agents</a>. The code that owns <code>STATE.md</code>'s write seam, the health
+diagnostics that consume <code>src/artifacts.cts</code>, and the frontmatter parser behind the
+scan-layer reads all live in <a href="../runtime/">Runtime</a>. The conditional artifacts in
+bucket 4 — <code>UI-SPEC.md</code>, <code>SECURITY.md</code>, <code>AI-SPEC.md</code> — exist only because a capability
+attached at a loop point declared them, which is <a href="../capabilities/">Capabilities</a>.
+And the template-authoring mechanics glimpsed here (the fence as an output/instruction
+boundary, the four placeholder idioms, pseudo-XML doing two different jobs) are a
+prompt-engineering subject rather than a state-design one.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.tabs", "navigation.sections", "navigation.top", "content.code.copy", "toc.follow"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"provider": "mike"}}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.d7400e89.min.js"></script>
+      
+    
+  </body>
+</html>

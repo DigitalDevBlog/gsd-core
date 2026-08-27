@@ -1,0 +1,2539 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="How GSD Core is built internally — and how to build a framework like it yourself.">
+      
+      
+      
+      
+        <link rel="prev" href="../architecture/">
+      
+      
+        <link rel="next" href="blueprint/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
+    
+    
+      
+        <title>Overview - Understanding GSD Core</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.ec1eaa64.min.css">
+      
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#build-your-own" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+      <div data-md-color-scheme="default" data-md-component="outdated" hidden>
+        
+      </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="Understanding GSD Core" class="md-header__button md-logo" aria-label="Understanding GSD Core" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Understanding GSD Core
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Overview
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href=".." class="md-tabs__link">
+        
+  
+  
+    
+  
+  Home
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../loop/" class="md-tabs__link">
+          
+  
+  
+  The Loop
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../files/" class="md-tabs__link">
+          
+  
+  
+  Files & State
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../skills/" class="md-tabs__link">
+          
+  
+  
+  Skills
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../agents/" class="md-tabs__link">
+          
+  
+  
+  Agents
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../runtime/" class="md-tabs__link">
+          
+  
+  
+  Runtime
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../capabilities/" class="md-tabs__link">
+          
+  
+  
+  Capabilities
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../architecture/" class="md-tabs__link">
+          
+  
+  
+  Architecture
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+    
+  
+  
+    
+    
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="./" class="md-tabs__link">
+          
+  
+  
+  Build Your Own
+
+        </a>
+      </li>
+    
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="Understanding GSD Core" class="md-nav__button md-logo" aria-label="Understanding GSD Core" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    Understanding GSD Core
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    The Loop
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    The Loop
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../loop/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../loop/stages/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Stage internals
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Files & State
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Files & State
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../files/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../files/dataflow/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    State machinery
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Skills
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Skills
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../skills/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../skills/catalogue/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Catalogue
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Agents
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Agents
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../agents/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../agents/orchestration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Orchestration patterns
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" >
+        
+          
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Runtime
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Runtime
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../runtime/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../runtime/hooks/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    The hook system
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../runtime/bootstrap/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Bootstrap & distribution
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7" >
+        
+          
+          <label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Capabilities
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_7">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Capabilities
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../capabilities/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../capabilities/harnesses/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Multi-harness portability
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_8" >
+        
+          
+          <label class="md-nav__link" for="__nav_8" id="__nav_8_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_8_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_8">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Architecture
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_9" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_9" id="__nav_9_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Build Your Own
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_9_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_9">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Build Your Own
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#part-1-the-transferable-design-skills" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Part 1 — The transferable design skills
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Part 1 — The transferable design skills">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1-compile-contracts-out-of-the-files-that-implement-them" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. Compile contracts out of the files that implement them
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-audit-a-guards-scope-as-carefully-as-its-rule" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. Audit a guard's scope as carefully as its rule
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3-know-the-test-for-this-rule-must-become-code" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. Know the test for "this rule must become code"
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#4-treat-the-context-window-as-a-schema-and-topology-problem" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. Treat the context window as a schema and topology problem
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#5-type-the-non-terminal-outcome-and-bound-loops-on-progress" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5. Type the non-terminal outcome, and bound loops on progress
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#6-give-every-fallible-read-a-scope-envelope" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6. Give every fallible read a scope envelope
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#7-assign-one-writer-per-shared-file-in-the-prompt-and-in-code" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7. Assign one writer per shared file — in the prompt and in code
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#8-separate-the-format-layer-from-the-protocol-layer-before-you-port-anything" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8. Separate the format layer from the protocol layer before you port anything
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#9-put-identity-on-the-return-edge-of-a-closed-loop" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9. Put identity on the return edge of a closed loop
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#10-make-the-source-format-and-the-distribution-format-different-on-purpose" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10. Make the source format and the distribution format different on purpose
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#part-2-reuse-adapt-drop" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Part 2 — Reuse, adapt, drop
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Part 2 — Reuse, adapt, drop">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#spec-driven-loop-reuse-the-premise-everywhere-buy-the-machinery-once" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Spec-driven loop — reuse the premise everywhere, buy the machinery once
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#file-based-state-reuse-at-every-scale-the-cost-is-parallelism-not-headcount" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        File-based state — reuse at every scale; the cost is parallelism, not headcount
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#generated-skill-files-reuse-and-scale-genuinely-does-not-move-this" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Generated skill files — reuse, and scale genuinely does not move this
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#subagent-contracts-the-return-types-are-free-the-roster-is-a-headcount-artifact" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Subagent contracts — the return types are free; the roster is a headcount artifact
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#runtime-code-reuse-the-five-categories-drop-the-shape" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Runtime code — reuse the five categories, drop the shape
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#hooks-as-enforcement-reuse-but-decide-up-front-which-host-gets-it" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Hooks as enforcement — reuse, but decide up front which host gets it
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#capability-packs-the-packaging-idea-is-cheap-the-extension-contract-is-not" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Capability packs — the packaging idea is cheap, the extension contract is not
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#multi-harness-adapters-drop-it-unless-portability-is-the-product" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Multi-harness adapters — drop it unless portability is the product
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#the-one-thing-to-take-if-you-take-nothing-else" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The one thing to take if you take nothing else
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="blueprint/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Minimal blueprint
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#part-1-the-transferable-design-skills" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Part 1 — The transferable design skills
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Part 1 — The transferable design skills">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1-compile-contracts-out-of-the-files-that-implement-them" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. Compile contracts out of the files that implement them
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-audit-a-guards-scope-as-carefully-as-its-rule" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. Audit a guard's scope as carefully as its rule
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3-know-the-test-for-this-rule-must-become-code" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. Know the test for "this rule must become code"
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#4-treat-the-context-window-as-a-schema-and-topology-problem" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. Treat the context window as a schema and topology problem
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#5-type-the-non-terminal-outcome-and-bound-loops-on-progress" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5. Type the non-terminal outcome, and bound loops on progress
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#6-give-every-fallible-read-a-scope-envelope" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6. Give every fallible read a scope envelope
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#7-assign-one-writer-per-shared-file-in-the-prompt-and-in-code" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7. Assign one writer per shared file — in the prompt and in code
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#8-separate-the-format-layer-from-the-protocol-layer-before-you-port-anything" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8. Separate the format layer from the protocol layer before you port anything
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#9-put-identity-on-the-return-edge-of-a-closed-loop" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9. Put identity on the return edge of a closed loop
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#10-make-the-source-format-and-the-distribution-format-different-on-purpose" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10. Make the source format and the distribution format different on purpose
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#part-2-reuse-adapt-drop" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Part 2 — Reuse, adapt, drop
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Part 2 — Reuse, adapt, drop">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#spec-driven-loop-reuse-the-premise-everywhere-buy-the-machinery-once" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Spec-driven loop — reuse the premise everywhere, buy the machinery once
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#file-based-state-reuse-at-every-scale-the-cost-is-parallelism-not-headcount" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        File-based state — reuse at every scale; the cost is parallelism, not headcount
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#generated-skill-files-reuse-and-scale-genuinely-does-not-move-this" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Generated skill files — reuse, and scale genuinely does not move this
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#subagent-contracts-the-return-types-are-free-the-roster-is-a-headcount-artifact" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Subagent contracts — the return types are free; the roster is a headcount artifact
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#runtime-code-reuse-the-five-categories-drop-the-shape" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Runtime code — reuse the five categories, drop the shape
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#hooks-as-enforcement-reuse-but-decide-up-front-which-host-gets-it" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Hooks as enforcement — reuse, but decide up front which host gets it
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#capability-packs-the-packaging-idea-is-cheap-the-extension-contract-is-not" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Capability packs — the packaging idea is cheap, the extension contract is not
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#multi-harness-adapters-drop-it-unless-portability-is-the-product" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Multi-harness adapters — drop it unless portability is the product
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#the-one-thing-to-take-if-you-take-nothing-else" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The one thing to take if you take nothing else
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<h1 id="build-your-own">Build your own<a class="headerlink" href="#build-your-own" title="Permanent link">&para;</a></h1>
+<p>The preceding sections took GSD Core apart. This one puts the pieces back down in front
+of you and asks the only question that matters if you are here to build something: <strong>which
+of these choices should you make, and which are artifacts of somebody else's scale?</strong></p>
+<p>GSD Core grew to 71 commands, 71 generated skills, 35 agents, 46 capability packs, 194
+top-level TypeScript modules and 19 harness integrations — on a maintainer count the
+<code>harnesses.md</code> page puts at one. Some of what it does
+is transferable design skill — the kind of thing that is correct on day one of a weekend
+project. Some of it is the predictable cost of being that large, and copying it into a
+small project buys you the cost with none of the benefit. A few things are load-bearing
+mistakes that the repo's own CI is currently failing to catch.</p>
+<p>This page separates the three.</p>
+<div class="admonition info">
+<p class="admonition-title">How to read the claims</p>
+<p>Two kinds of statement appear below. <strong>Structural claims</strong> cite a repo path and a
+command that produced the number — those are checkable, and you should check them.
+<strong>Scale judgements</strong> ("at ten people this stops paying") are editorial. No path in this
+repository supports them, and none is offered. Where both kinds appear in one paragraph,
+the citation belongs to the first kind only.</p>
+</div>
+<h2 id="part-1-the-transferable-design-skills">Part 1 — The transferable design skills<a class="headerlink" href="#part-1-the-transferable-design-skills" title="Permanent link">&para;</a></h2>
+<p>These are not principles. They are things you learn to <em>do</em>, each one visible in the repo
+at a specific place, each one independent of how big your framework gets.</p>
+<h3 id="1-compile-contracts-out-of-the-files-that-implement-them">1. Compile contracts out of the files that implement them<a class="headerlink" href="#1-compile-contracts-out-of-the-files-that-implement-them" title="Permanent link">&para;</a></h3>
+<p>The strongest single pattern on this site. Do not maintain a registry file describing your
+system; put a marker inside each file that <em>is</em> the system, compile the markers into an
+artifact, commit the artifact, and byte-compare it in CI.</p>
+<p>GSD Core's five-stage loop is not written down as a list anywhere an author edits.
+<code>grep -rn "gsd:loop-host" gsd-core/workflows/*.md</code> returns exactly five hits — one HTML
+comment at line 1 of <code>discuss-phase.md</code>, <code>plan-phase.md</code>, <code>execute-phase.md</code>,
+<code>verify-work.md</code> and <code>ship.md</code>. <code>scripts/gen-loop-host-contract.cjs</code> parses them into
+<code>gsd-core/bin/lib/loop-host-contract.cjs</code>: five steps, twelve attachment points, per-step
+<code>agentRoles</code> and a <code>coreArtifacts.produces</code> / <code>consumes</code> pair. That file carries
+<code>DO NOT EDIT BY HAND</code> in its header and is re-derived with <code>--check</code> on every CI run.</p>
+<p>The gradient shows up repeatedly in this repo, and where I could check it, it ran the same
+direction: surfaces with a generator and a <code>--check</code> hold; the surfaces I found drifting had
+no generator pointed at them.
+<code>npm run lint:generated-sync</code> chains <strong>14</strong> <code>--check</code> invocations
+(<code>node -e "console.log(require('./package.json').scripts['lint:generated-sync'].split('&amp;&amp;').length)"</code>),
+and the surfaces underneath them — the loop contract, all 71 <code>skills/*/SKILL.md</code> regenerated
+from <code>commands/gsd/*.md</code>, the ~308 KB flattened <code>capability-registry.cjs</code> — are the ones with
+no reported drift. <code>scripts/check-contract-drift.cjs</code> reports the three-way agent roster
+clean: running it prints <code>ok check-contract-drift: 35 agents, 38 markers, 0 violations</code>.</p>
+<p>Against that, the surfaces with no generator: three artifact registries
+(<code>gsd-core/templates/README.md</code>, <code>src/artifacts.cts</code>, <code>gsd-core/references/artifact-types.md</code>)
+that disagree with one another; the six <code>ns-*</code> router tables in <code>commands/gsd/</code>
+(<code>ls commands/gsd/ns-*.md | wc -l</code> → 6) with a hand-written alphabetical tie-break; and
+<code>agent_hint</code>, which has a complete consumer chain and no producer —
+<code>grep -rn agent_hint agents/</code> returns nothing.</p>
+<p><strong>Cost, stated honestly:</strong> one generator plus one CI script per surface, and generated
+output you must commit. The alternative — code review as the enforcement mechanism —
+produced each item in the drifted list above.</p>
+<h3 id="2-audit-a-guards-scope-as-carefully-as-its-rule">2. Audit a guard's scope as carefully as its rule<a class="headerlink" href="#2-audit-a-guards-scope-as-carefully-as-its-rule" title="Permanent link">&para;</a></h3>
+<p>This is the refinement that stops "generate everything" from reproducing GSD's exact bugs.
+A green check can deliver no coverage in three distinct ways, and all three are live in
+this repository.</p>
+<p><strong>(a) A generator proves the artifact matches its source, never that the source is true.</strong>
+<code>gen-plugin-skills.cjs --check</code> is byte-exact across all 71 pairs. It is also completely
+indifferent to the fact that three of the four stage dispatchers describe the CLI three
+different ways while the workflows underneath run something else again. Drift migrates to
+whichever layer has no generator pointed at it.</p>
+<p><strong>(b) A checker whose scope excludes the violation reads as coverage.</strong>
+<code>scripts/lint-compiled-artifact-sync.cjs</code> runs on every CI pass and reports success over an
+empty pair set. <code>scripts/lint-hooks-runtime-build-seam.cjs</code> enforces a real rule and misses
+its largest violator because of one constant, <code>SCAN_ROOT = 'hooks'</code>.</p>
+<p><strong>(c) A checker can be existential where you need universal.</strong>
+<code>check-contract-drift.cjs</code> fires only when <em>no</em> cited consumer matches, so a row with one
+stale citation beside one fresh citation passes clean.</p>
+<p><strong>The practical rule:</strong> give a guard's scope constant the same review as its rule, and
+write down what the guard deliberately cannot see — in the place a maintainer will be
+standing when it matters, which is the guard's own header, not a wiki.</p>
+<h3 id="3-know-the-test-for-this-rule-must-become-code">3. Know the test for "this rule must become code"<a class="headerlink" href="#3-know-the-test-for-this-rule-must-become-code" title="Permanent link">&para;</a></h3>
+<blockquote>
+<p>Does this rule survive a model that has read it, understood it, and decided it does not
+apply?</p>
+</blockquote>
+<p>If yes, prose is fine. If no, it needs to be a hard block. The evidence in this repo is that the
+hard-blocking guards I traced were each written <em>after</em> the prose version demonstrably
+failed.
+<code>hooks/gsd-write-guard.js:7</code> opens with <code>Problem (#973, fix 3 of 3)</code> and states the
+recursion at line 14: an advisory will not do, because #973 records an agent reading the
+advisory and reasoning past it. <code>hooks/gsd-agent-isolation-guard.js:15</code> puts it as a
+general law:</p>
+<blockquote>
+<p>A prose backstop cannot fix a prose defect — it is the same class of artifact the model
+may equally skip.</p>
+</blockquote>
+<p>The migration recurs well outside the hook layer. <code>gsd-core/bin/verify-reapply-patches.cjs</code>
+exists because, per its own header at line 26, the gate it replaces "previously trusted
+Claude's free-text 'verified:'" assertion (#2969). Prose asserting a fact was replaced by
+code checking it.</p>
+<p><strong>Two riders.</strong> You usually learn which category a rule is in the expensive way — budget
+for retrofitting rather than trying to classify up front. And state the bound:
+<code>hooks/gsd-write-guard.js:19</code> says out loud that it "stops accidental and single-shot
+collapse, not a determined" agent. What a hook buys is the conversion of <em>ignoring a
+sentence</em> into <em>taking one deliberate, path-bound, auditable action</em>. That is achievable.
+Prevention is not, and claiming it is how a guard becomes a false sense of safety.</p>
+<h3 id="4-treat-the-context-window-as-a-schema-and-topology-problem">4. Treat the context window as a schema and topology problem<a class="headerlink" href="#4-treat-the-context-window-as-a-schema-and-topology-problem" title="Permanent link">&para;</a></h3>
+<p>Most frameworks respond to finite context by shortening prompts. GSD Core treats one threat
+model — bounded window, agent lost mid-task, cannot be trusted to re-read on resume — as a
+design input at five unrelated layers.</p>
+<p><code>gsd-core/references/context-budget.md:16–17</code> sets a read-<em>depth</em> budget keyed to window
+size: below 500,000 tokens, read only frontmatter, status fields or summaries and <em>never</em>
+the bodies of <code>SUMMARY.md</code>, <code>VERIFICATION.md</code> or <code>RESEARCH.md</code>; at or above it, full bodies
+are permitted. That single rule is what makes frontmatter the
+read surface, and what turns <code>requires</code> / <code>provides</code> / <code>affects</code> into a transitive-closure
+index rather than decoration. <code>gsd-core/workflows/execute-phase.md</code> implements a three-band
+policy where the inline examples get demoted to on-demand <code>@</code>-references while the decision
+logic stays inline — thinning the illustrations, not the reasoning, which is the direction
+most frameworks get backwards. <code>cmdTemplateSelect</code> at <code>src/template.cts:58</code> picks one of three
+SUMMARY tiers mechanically from plan shape, taking the sizing decision away from the
+generating agent so it is a reproducible function rather than a judgement that moves with
+temperature. Progressive disclosure is implemented as a directory:
+<code>ls gsd-core/workflows/execute-phase/steps/ | wc -l</code> → 11 step files, read only when
+reached, with conditionality expressed as an instruction <em>not to read a file</em> — because
+<code>@</code>-imports are eager and there is no lazy include.</p>
+<p>If you accept a context budget, it determines your frontmatter schema and your agent
+topology. It is not a prompt-length setting.</p>
+<h3 id="5-type-the-non-terminal-outcome-and-bound-loops-on-progress">5. Type the non-terminal outcome, and bound loops on progress<a class="headerlink" href="#5-type-the-non-terminal-outcome-and-bound-loops-on-progress" title="Permanent link">&para;</a></h3>
+<p>A nested orchestrator that runs out of budget mid-loop has a caller waiting for a terminal
+result. Without a third value in the return type, budget exhaustion gets encoded as success
+and you find out weeks later.</p>
+<p><code>agents/gsd-debug-session-manager.md</code> defines <code>## CONTINUE_REQUIRED</code> at line 312 and
+explains at line 320 that it is distinct from both terminal shapes <em>and</em> from a genuine
+user checkpoint. Line 398 makes the commit behaviour differ on that path, because
+committing on a non-terminal return would strand work.</p>
+<p>The paired idea is the bound. <code>gsd-core/workflows/plan-phase.md:1131</code> tracks
+<code>prev_issue_count</code>, initialised to <code>Infinity</code>, alongside the iteration counter, and line
+1140 aborts the moment issue count stops <em>decreasing</em> rather than only when a cap is hit.
+Line 1148 is the sharp bit: re-entry resets <code>iteration_count</code> but <code>stall_reentry_count</code>
+persists across re-entries and is capped at 2. That asymmetry is what stops "adjust the
+approach and try again" from being an unbounded loop wearing a bound. The terminal state is
+a named marker downstream logic can branch on, not a silent give-up.</p>
+<p>The family is not uniform, which is itself the lesson: the same producer/checker shape
+carries hardcoded bounds at several sites with no shared constant and no config key. That
+is the predictable cost of writing a policy number inline.</p>
+<h3 id="6-give-every-fallible-read-a-scope-envelope">6. Give every fallible read a scope envelope<a class="headerlink" href="#6-give-every-fallible-read-a-scope-envelope" title="Permanent link">&para;</a></h3>
+<p><code>src/planning-scope.cts</code> is 49 lines with no imports, and it exports one frozen four-value
+enum: <code>complete</code>, <code>truncated</code>, <code>unscoped</code>, <code>unreadable</code> (lines 25–28). Its header states
+the reason at lines 7–9 — zero items under <code>COMPLETE</code> is a real answer; zero items under
+the other three means the scan could not run.</p>
+<p>The sharpest instance of the idea is a deletion rather than an addition. <code>getMilestoneInfo</code>
+used to fall back to <code>{version: 'v1.0', name: 'milestone'}</code>. That default was removed not
+because it was wrong but because it was <strong>output-identical to a successful read of a
+genuine v1.0 project</strong>. A default indistinguishable from success destroys the caller's
+ability to detect failure.</p>
+<p>The rule generalises: never emit a default value that a real input could also produce. And
+the envelope must survive to the point of consequence rather than being reconciled away in
+the middle — in GSD Core it crosses out of TypeScript entirely, with
+<code>gsd-core/workflows/next.md</code> reading <code>.scope</code> off a JSON result and treating any non-<code>complete</code>
+value as scan-failed. A safety check that reports "clean" over a list it could not populate
+is a silent disarm.</p>
+<h3 id="7-assign-one-writer-per-shared-file-in-the-prompt-and-in-code">7. Assign one writer per shared file — in the prompt <em>and</em> in code<a class="headerlink" href="#7-assign-one-writer-per-shared-file-in-the-prompt-and-in-code" title="Permanent link">&para;</a></h3>
+<p><code>gsd-core/workflows/execute-phase.md:707</code> instructs the executor:
+<code>Do NOT update STATE.md or ROADMAP.md — the orchestrator owns those writes after all
+worktree agents in the wave complete.</code> And <code>gsd-core/workflows/execute-plan.md</code> skips those
+writes structurally regardless of whether the agent complied, detecting worktree mode three
+separate times (lines 433, 490, 529) with the comment
+<code>.git is a file in worktrees, a directory in main repo</code>.</p>
+<p>Belt and braces: the instruction so the agent understands the rule, the code so a
+disobedient agent cannot break it. Two consequences worth copying. Durability is defined by
+the isolation mechanism, not the medium — a SUMMARY must be committed before the agent
+returns, because the orchestrator force-removes the worktree and an uncommitted file is
+gone. And one agent definition can legitimately carry two mutually exclusive success
+contracts selected by dispatch mode: <code>agents/gsd-executor.md</code> in sequential mode <em>requires</em>
+exactly the writes worktree mode forbids.</p>
+<p>Where the medium genuinely must be shared, serialise in code. <code>withPlanningLock</code> in
+<code>src/planning-workspace.cts:212</code> is an <code>O_EXCL</code> create whose hardening reads as an incident
+list: a pid-liveness gate, an identity re-confirm before stealing a lock, atomic
+rename-then-remove, and a named-errno retry set whose comments cite Docker overlay-fs and
+NFS by name (lines 102–112).</p>
+<h3 id="8-separate-the-format-layer-from-the-protocol-layer-before-you-port-anything">8. Separate the format layer from the protocol layer before you port anything<a class="headerlink" href="#8-separate-the-format-layer-from-the-protocol-layer-before-you-port-anything" title="Permanent link">&para;</a></h3>
+<p>Nineteen of the 46 capability packs declare a host integration
+(<code>grep -rl '"hostIntegration"' capabilities/ | wc -l</code> → 19). The bill splits cleanly.</p>
+<p><strong>Format projection absorbed into data.</strong> One installer path, a set of mechanical
+frontmatter converters under a naming convention, and a dispatch table where absence of an
+entry means identity. Adding a harness's file format is a descriptor edit.</p>
+<p><strong>Protocol adaptation stayed bespoke.</strong> Read the negotiated axes as columns
+and some collapse hard while others do not collapse at all. The concrete cost: of the 26
+scripts in <code>hooks/</code> (<code>ls hooks/*.js hooks/*.sh | wc -l</code> → 26), <strong>8</strong> are per-harness
+adapters — six <code>gsd-cursor-*</code>, two <code>gsd-windsurf-*</code> — sharing nothing with each other.</p>
+<p>And extract the abstraction from <em>two</em> implementations, not one.
+<code>src/host-integration-adapters/imperative-hook-bus.cts</code> parameterised the variable the
+first harness exposed and hardcoded the one it did not, so the second harness got a
+copy-shaped sibling rather than a second use of the abstraction.</p>
+<h3 id="9-put-identity-on-the-return-edge-of-a-closed-loop">9. Put identity on the return edge of a closed loop<a class="headerlink" href="#9-put-identity-on-the-return-edge-of-a-closed-loop" title="Permanent link">&para;</a></h3>
+<p>An arrow back is not a loop; it is a way to lose state. GSD Core's verify→fix→verify cycle
+carries an identity token the whole way round. <code>gsd-core/workflows/verify-work.md:411</code>
+defines <code>gap_id: G-{phase}-{N}</code> as a stable id. Gap-closure plans tag it in frontmatter;
+re-entered verification runs a <code>reconcile_gaps</code> step (line 430) that flips a gap to
+<code>resolved</code> only when both a plan citing its <code>gap_id</code> <em>and</em> a SUMMARY proving that plan
+executed exist — line 444 leaves the gap open if either is missing. The workflow states the failure mode it prevents in its own
+words: without reconciliation, verify re-diagnoses closed gaps as fresh blockers.</p>
+<p>The regression case is handled by deliberately <em>not</em> reusing identity: line 451 says a
+resolved gap reported broken again gets a <strong>fresh</strong> <code>gap_id</code>, so "fixed once, broke again"
+stays distinguishable from "never fixed". Stable id, tag on the fix, and existence proof
+are three parts of one idempotency mechanism, and you need all three.</p>
+<h3 id="10-make-the-source-format-and-the-distribution-format-different-on-purpose">10. Make the source format and the distribution format different on purpose<a class="headerlink" href="#10-make-the-source-format-and-the-distribution-format-different-on-purpose" title="Permanent link">&para;</a></h3>
+<p><code>package.json</code>'s <code>files[]</code> array does not contain <code>capabilities</code> — all 46 first-party packs
+are build-time <em>inputs</em> that do not ship in the npm package. <code>scripts/gen-capability-registry.cjs</code>
+flattens them into one committed ~308 KB <code>gsd-core/bin/lib/capability-registry.cjs</code> with
+fragment text inlined and cross-capability invariants already resolved. Authors get one
+diffable folder per capability; the runtime gets one validated table and no filesystem walk
+on the hot path. Critically, the <em>same</em> build function runs on the load path, so no derived
+view can drift from the built one.</p>
+<p>The payload/packaging boundary is a directory, not a convention: <code>gsd-core/</code> is recursively
+copied into every host's config dir, and top-level <code>bin/</code> is packaging that never is. That
+rule is asserted in the header of <code>bin/gsd-mcp-server.js</code> (lines 6–9) — the file most likely
+to be misfiled — where it explains that this is "a PACKAGE bin the host spawns via
+<code>npx gsd-mcp-server</code> … NOT a per-runtime artifact copied into a host's config dir", because
+placing it under <code>gsd-core/bin/</code> "would leak it into every runtime install".</p>
+<hr />
+<h2 id="part-2-reuse-adapt-drop">Part 2 — Reuse, adapt, drop<a class="headerlink" href="#part-2-reuse-adapt-drop" title="Permanent link">&para;</a></h2>
+<p>Same eight choices, three scales. The columns are <strong>Solo</strong> (one maintainer, possibly you in
+six months as the second maintainer), <strong>Small team</strong> (2–5, everyone reads everyone's
+diffs), and <strong>Team of ten</strong> (nobody reads all the diffs; that is the whole difference).</p>
+<table>
+<thead>
+<tr>
+<th>GSD Core's choice</th>
+<th>Solo</th>
+<th>Small team (2–5)</th>
+<th>Team of ten</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Spec-driven loop</strong></td>
+<td><strong>Reuse</strong> the staged artifacts; <strong>drop</strong> the attachment-point contract</td>
+<td><strong>Reuse</strong>; contract as a plain ordered list</td>
+<td><strong>Reuse</strong> both — compile and <code>--check</code> the contract</td>
+</tr>
+<tr>
+<td><strong>File-based state</strong></td>
+<td><strong>Reuse</strong> as-is</td>
+<td><strong>Reuse</strong> + one-writer rule</td>
+<td><strong>Reuse</strong> + one-writer rule enforced in code + locking</td>
+</tr>
+<tr>
+<td><strong>Generated skill files</strong></td>
+<td><strong>Reuse</strong></td>
+<td><strong>Reuse</strong></td>
+<td><strong>Reuse</strong></td>
+</tr>
+<tr>
+<td><strong>Subagent contracts</strong></td>
+<td><strong>Adapt</strong> — keep the return types, drop the roster</td>
+<td><strong>Adapt</strong> — roster as one file, checked one way</td>
+<td><strong>Reuse</strong> — three-way roster + drift checker</td>
+</tr>
+<tr>
+<td><strong>Runtime code</strong></td>
+<td><strong>Reuse</strong> the five categories; <strong>drop</strong> the shape</td>
+<td><strong>Reuse</strong> categories; <strong>adapt</strong> shape (real modules + cycle checker)</td>
+<td><strong>Reuse</strong> categories; <strong>drop</strong> the flat bag outright</td>
+</tr>
+<tr>
+<td><strong>Hooks as enforcement</strong></td>
+<td><strong>Reuse</strong> — one host, retrofit per incident</td>
+<td><strong>Reuse</strong> — same, plus write down the bound</td>
+<td><strong>Adapt</strong> — name the single enforcement host in the README</td>
+</tr>
+<tr>
+<td><strong>Capability packs</strong></td>
+<td><strong>Drop</strong> the extension contract; <strong>reuse</strong> build-input-vs-distribution</td>
+<td><strong>Adapt</strong> — packs as folders, one flattened registry</td>
+<td><strong>Reuse</strong> in full</td>
+</tr>
+<tr>
+<td><strong>Multi-harness adapters</strong></td>
+<td><strong>Drop</strong></td>
+<td><strong>Drop</strong>, or format projection only</td>
+<td><strong>Adapt</strong> — projection everywhere, enforcement to one</td>
+</tr>
+</tbody>
+</table>
+<h3 id="spec-driven-loop-reuse-the-premise-everywhere-buy-the-machinery-once">Spec-driven loop — reuse the premise everywhere, buy the machinery once<a class="headerlink" href="#spec-driven-loop-reuse-the-premise-everywhere-buy-the-machinery-once" title="Permanent link">&para;</a></h3>
+<p>The premise (a fixed sequence of stages, each producing a named artifact the next one
+consumes) is correct at every scale and costs nothing. <code>loop-host-contract.cjs</code> declares a
+single strand — <code>CONTEXT.md → PLAN.md → SUMMARY.md → UAT.md</code> — with no fan-in and no step
+reading two upstream artifacts. That narrowness is not a limitation, it is the feature: it
+is what makes the chain checkable at all.</p>
+<p>The machinery is a separate purchase. <code>gsd-core/bin/lib/capability-validator.cjs</code> type-checks
+third-party extension steps against the host: it maps each core artifact to the index of the
+<code>:post</code> point that produces it, rejects a step consuming an artifact at a point before
+anything produces it, refuses self-satisfaction from a step's own <code>produces</code>, and resolves
+same-point ordering by topological sort with cycle detection that fails the build. That
+validator is 3,749 lines (<code>wc -l gsd-core/bin/lib/capability-validator.cjs</code>), and <strong>it only
+pays if third parties exist</strong>. Solo,
+they do not. You are the third party, and you can read the ordering off the file.</p>
+<p>At ten people, extensions arrive whether or not you designed for them, and the failure you
+are buying insurance against is somebody's plugin silently consuming an artifact that has
+not been written yet.</p>
+<div class="admonition warning">
+<p class="admonition-title">The declared chain understates real coupling</p>
+<p>The contract's <code>consumes</code> lists are <em>minimums</em>, not read-sets. Above a configured
+context-window threshold, executors additionally receive prior-wave SUMMARY, phase
+CONTEXT and RESEARCH; the verifier's set differs again. The full read-set could not be
+declared even in principle, because its membership is a function of a config key.
+Declare the minimum — it is checkable, and the full set is not — but write the gap down
+somewhere, because a reader who trusts the contract will underestimate what a stage
+touches.</p>
+</div>
+<h3 id="file-based-state-reuse-at-every-scale-the-cost-is-parallelism-not-headcount">File-based state — reuse at every scale; the cost is parallelism, not headcount<a class="headerlink" href="#file-based-state-reuse-at-every-scale-the-cost-is-parallelism-not-headcount" title="Permanent link">&para;</a></h3>
+<p>Markdown files with YAML frontmatter as the state store is the cheapest correct choice on
+this list. It survives process boundaries, diffs in review, resumes after a crash, and is
+readable by the model without a tool call. Nothing about it gets more expensive with more
+people.</p>
+<p>What gets more expensive is <em>concurrency</em>, and that is driven by whether you dispatch
+agents in parallel, not by headcount. A solo builder running one agent at a time needs none
+of <code>withPlanningLock</code>'s pid-liveness gate or errno retry set. The moment you fan out, you
+need the one-writer rule from skill 7 — and you need it in code, because the prompt version
+alone has a known failure mode and this repo implements both.</p>
+<p>The one thing to copy at all scales, free: <strong>mutability contracts</strong>. Label every artifact
+IMMUTABLE, OVERWRITE or APPEND, and publish the read-order a resuming agent should follow.
+The labels alone are an audit trail. The read-order is what turns negative knowledge —
+"this was already tried and failed" — into work that does not get repeated.</p>
+<h3 id="generated-skill-files-reuse-and-scale-genuinely-does-not-move-this">Generated skill files — reuse, and scale genuinely does not move this<a class="headerlink" href="#generated-skill-files-reuse-and-scale-genuinely-does-not-move-this" title="Permanent link">&para;</a></h3>
+<p>The only row with the same verdict in all three columns, so it owes you a reason.</p>
+<p>The cost is one generator plus one <code>--check</code> step, and it is constant. It does not grow
+with team size, corpus size, or anything else. Meanwhile the drift it prevents starts
+accruing on day one, because your framework's second maintainer is you in six months, and
+you will not remember that <code>commands/gsd/foo.md</code> and <code>skills/gsd-foo/SKILL.md</code> were supposed
+to agree.</p>
+<p>GSD Core's version: <code>commands/gsd/*.md</code> is the sole authoring surface; everything else is
+output. Across all 71 pairs the transformation reduces to a handful of mechanical changes.
+The body is <em>nearly</em> verbatim: <code>transformContentToHyphen</code> rewrites <code>/gsd:&lt;cmd&gt;</code> to
+<code>/gsd-&lt;cmd&gt;</code> inside the prose (#3583/#2808), so 18 of the 71 bodies differ — <code>ship.md</code>'s
+"After /gsd:verify-work passes" becomes "After /gsd-verify-work passes". The other 53
+carry through byte-for-byte. Three structural rules make it
+work, and all three are worth copying verbatim:</p>
+<ul>
+<li><strong>Reconstruct frontmatter from a whitelist, do not filter it.</strong> The authored surface is a
+  deliberate superset of the shipped one, so the default for any new key is "does not ship."
+  <code>requires:</code> has two consumers: <code>scripts/lint-skill-deps.cjs</code> proves closures, and
+  <code>src/install-profiles.cts</code> (<code>parseRequires</code> at <code>:121</code>) computes the transitive closure
+  deciding which skills land on disk. Both are build- and install-time — there is no
+  <em>runtime</em> resolver to get wrong, which is the property that makes it safe.</li>
+<li><strong>Separate the two surfaces with a greppable token.</strong> Commands use <code>gsd:</code>, skills use
+  <code>gsd-</code>. A linter aimed at the wrong surface finds <em>nothing</em> rather than finding something
+  wrong, which is the difference between a loud failure and a quiet one.</li>
+<li><strong>Record the reason for every dropped field in the code that drops it.</strong>
+  <code>src/runtime-artifact-conversion.cts:468–472</code> explains in five lines of comment why
+  <code>effort:</code> is not emitted into skill frontmatter: a static value changes <code>output_config.effort</code>
+  on invocation and invalidates the caller's prompt cache (#3151). Nobody would ever
+  reconstruct that reason from the source, and without it the omission looks like a bug.</li>
+</ul>
+<p>Two costs to accept. The generated tree must be committed, because npm and plugin-only
+installs run no build; staleness becomes a CI failure rather than a merge surprise, which
+is the trade you want. And build-at-publish buys a single source of truth while costing
+cross-boundary type checking. This repo has a live example:
+<code>scripts/gen-plugin-skills.cjs:44</code> calls <code>convertClaudeCommandToClaudeSkill</code> with <strong>five</strong>
+arguments, while its definition at <code>src/runtime-artifact-conversion.cts:452</code> declares
+<strong>four</strong>. The trailing argument is silently discarded, and nothing catches it — because the
+call crosses a <code>require()</code> into a gitignored emit that TypeScript never sees.</p>
+<h3 id="subagent-contracts-the-return-types-are-free-the-roster-is-a-headcount-artifact">Subagent contracts — the return types are free; the roster is a headcount artifact<a class="headerlink" href="#subagent-contracts-the-return-types-are-free-the-roster-is-a-headcount-artifact" title="Permanent link">&para;</a></h3>
+<p>Split this one hard, because the two halves have opposite verdicts.</p>
+<p><strong>Free at every scale, copy immediately:</strong> the non-terminal return value
+(<code>## CONTINUE_REQUIRED</code>), progress-bounded loops, named terminal markers instead of silent
+give-up, and inferring completion from observable side effects rather than the agent's own
+declaration. That last one is worth stressing — under backgrounded parallel dispatch,
+<code>execute-phase.md</code> detects completion from SUMMARY existence and git commit state rather
+than matching the executor's declared success string.
+<code>gsd-core/references/agent-contracts.md:97</code> records that as deliberate: <code>## PLAN COMPLETE</code>
+is the executor's completion marker and execute-phase.md does not regex-match it — "this is
+intentional behavior, not a mismatch". When the return channel is unreliable, believe the filesystem.</p>
+<p><strong>Not free:</strong> a 35-agent roster kept aligned across <code>agents/</code>,
+<code>gsd-core/bin/shared/model-catalog.json</code> and <code>gsd-core/references/agent-contracts.md</code>, with a
+CI script maintaining the three-way. That alignment exists because at 35 agents nobody can
+hold the roster in their head. At five agents you can, and the checker is pure overhead.</p>
+<p>One structural idea from that machinery <em>is</em> worth copying at any size, though, because it
+inverts an intuition most people hold: <strong>make some file other than the directory listing
+your roster.</strong> <code>src/agent-install-check.cts:159</code> derives the expected roster from
+<code>Object.keys(MODEL_PROFILES)</code> — from the catalog, not from <code>agents/</code>. An agent file dropped
+in with no catalog entry is invisible to the install checker. That sounds like a bug until
+you notice what it buys: "I added a file and nothing happened" becomes impossible to ship
+silently, because the registration is explicit.</p>
+<p>The corollary, also cheap: <strong>declare position at the layer that has it.</strong> Zero of the 71
+command files declare a loop position
+(<code>grep -l "loop-host\|loop_position" commands/gsd/*.md | wc -l</code> → 0), because the workflow
+underneath does the work and carries the marker. Metadata that cannot drift from behaviour is metadata you never have to
+check.</p>
+<h3 id="runtime-code-reuse-the-five-categories-drop-the-shape">Runtime code — reuse the five categories, drop the shape<a class="headerlink" href="#runtime-code-reuse-the-five-categories-drop-the-shape" title="Permanent link">&para;</a></h3>
+<p>GSD Core wrote deterministic TypeScript for five things: parsing and serialising the model's
+own markdown output, state transitions, concurrency, platform portability, and trust
+boundaries. Everything else — what to build, whether a plan is sound, how to phrase a review
+finding — lives in prompts. <strong>Those five categories transfer unchanged to any scale.</strong> They
+are a good answer to "where does the code stop" and I would not modify the list.</p>
+<p><code>src/uat-predicate.cts</code> shows the asymmetry cleanly: it exists because a naive whole-file
+regex false-matches <code>result:</code> lines inside frontmatter, fenced blocks, blockquotes and HTML
+comments. The model's <em>judgement</em> about whether verification passed is trusted; the
+runtime's <em>reading</em> of that judgement is not left to a regex. The same line is drawn
+structurally in <code>gsd-core/bin/lib/capability-validator.cjs:2802–2805</code>, where
+<code>gates[].check.agentVerdict</code> is <em>forced</em> to <code>blocking: false</code> with the message
+<code>non-deterministic checks may not halt the loop</code>. In a framework whose premise is
+model-driven workflow, an LLM verdict can advise and structurally cannot halt. That is a
+better place for that rule than any style guide.</p>
+<p>Two more habits that cost nearly nothing and pay at every scale: errors as frozen <code>reason</code>
+enums plus a JSON error mode, so tests assert typed fields instead of grepping stderr
+(<code>grep -l "Object.freeze(" src/*.cts | wc -l</code> → 53 of the 194 top-level modules); and an
+inline <code>#NNNN</code> or <code>ADR-NNNN</code> on non-obvious branches, which is what turns a codebase into a
+searchable incident log — <code>verify-reapply-patches.cjs:26</code> explains its own existence in one
+line because of this habit.</p>
+<p><strong>The shape is the part to drop.</strong> <code>src/</code> is a flat bag: 194 top-level <code>.cts</code> files
+(220 including subdirectories) with prefix-only grouping, guarded by 22 bespoke <code>local/*</code>
+ESLint rules — every one of them wired at <code>error</code> in at least one config block
+(<code>grep -oE "'local/[a-z0-9-]+': 'error'" eslint.config.mjs | sort -u | wc -l</code> → 22) — plus
+40 <code>scripts/lint-*.cjs</code> scripts, 35 steps chained into <code>lint:ci</code>, and 821 test files
+under <code>tests/</code>.</p>
+<p>That is an enormous amount of machinery bolted onto a structure with no boundaries. The
+bill it produces: <strong>eight modules over 100 KB</strong> with nowhere to split them —
+<code>runtime-hooks-surface</code>, <code>runtime-artifact-conversion</code>, <code>init</code>, <code>state-transition</code>, <code>state</code>,
+<code>commands</code>, <code>install-engine</code>, <code>phase</code> (<code>find src -name '*.cts' -size +100k</code>) — and <strong>no import-cycle
+tooling I could find</strong> — <code>grep -rniE "madge|dpdm|no-cycle|circular" package.json
+eslint.config.mjs scripts/*.cjs</code> returns nothing, and <code>eslint-plugin-import</code> is not among the
+14 <code>devDependencies</code>. Acyclicity across 220 files with two interleaved export styles is
+asserted in comments and enforced by no tool in that search.</p>
+<div class="admonition tip">
+<p class="admonition-title">If you go flat, buy the cycle checker on day one</p>
+<p>It is the one piece of tooling whose absence compounds silently. At 194 files there is
+no cheap moment to add it, because you will find cycles and have nowhere to move code
+to. At 20 files it is a five-minute install.</p>
+</div>
+<p>The counter-example in the same repository is worth more than the rule.
+<code>bin/install.js</code> is a single file of <strong>642,054 bytes</strong> (<code>wc -c bin/install.js</code>). Every
+individual decision inside it is defensible — splice rather than re-serialise so a user's
+comments and key ordering survive, marker-delimited ownership with a named inverse per
+writer, confinement roots checked before any recursive delete. What it lacks is the build step and the
+guard layer that made the module boundary the path of least resistance in <code>src/*.cts</code> — a
+<code>.cts</code> file gets compiled, linted by the nine <code>local/*</code> rules the <code>src/**/*.cts</code> block promotes to <code>error</code> (out of 22 bespoke rules in <code>eslint-rules/</code>) and swept by the 28 of 40 <code>lint-*</code> scripts that <code>lint:ci</code> actually runs;
+<code>bin/install.js</code> gets <code>eslint</code> and nothing structural. <strong>Module boundaries come from forcing functions, not intentions.</strong> And those 22
+ESLint rules, each naming the incident that motivated it, are a better architecture document
+than any style guide, because a rule that cites its own incident cannot be argued away by
+someone who was not there.</p>
+<h3 id="hooks-as-enforcement-reuse-but-decide-up-front-which-host-gets-it">Hooks as enforcement — reuse, but decide up front which host gets it<a class="headerlink" href="#hooks-as-enforcement-reuse-but-decide-up-front-which-host-gets-it" title="Permanent link">&para;</a></h3>
+<p>The <code>#973</code> evidence in <code>hooks/gsd-write-guard.js</code> says the first hard block earns itself
+immediately. A solo builder has exactly one host, so "which host gets enforcement" is not a
+question — reuse the pattern, retrofit each guard when an incident proves prose insufficient,
+and write the bound in the header the way <code>gsd-write-guard.js:19</code> does.</p>
+<p>The thing that scales badly is <em>how many hosts</em> get enforcement. GSD Core projects artifacts
+to 19 harnesses and guards meaningfully far fewer, and the gap is visible in the shape of the
+directory: 8 of the 26 scripts in <code>hooks/</code> are per-harness adapters sharing nothing. Worse,
+the same <code>.planning/</code> write policy is implemented three times at three different enforcement
+strengths from character-identical regexes, and the strictest copy sits on a host nothing
+calls.</p>
+<p>At ten people that ambiguity is a real cost, because nobody can tell from the code which
+host is authoritative. The honest shape is one sentence in the README: <em>artifacts project to
+everything; enforcement is Claude Code only.</em> State it rather than letting it be discovered
+in the shape of <code>hooks/</code>.</p>
+<div class="admonition danger">
+<p class="admonition-title">One registration surface per hook</p>
+<p>This is a <strong>drop</strong> at every scale, not an adapt. Where a hook is registered in two places
+— a plugin manifest and an installer — the hook-layer defects documented elsewhere on this
+site are drift between them: a config flag that silently does nothing on plugin installs, a matcher
+narrowed on one surface only, a guaranteed no-op that still spawns a subprocess. One
+surface, generated into the others if you must.</p>
+</div>
+<h3 id="capability-packs-the-packaging-idea-is-cheap-the-extension-contract-is-not">Capability packs — the packaging idea is cheap, the extension contract is not<a class="headerlink" href="#capability-packs-the-packaging-idea-is-cheap-the-extension-contract-is-not" title="Permanent link">&para;</a></h3>
+<p>Two separable ideas again.</p>
+<p><strong>Cheap, copy at any scale:</strong> the source format and the distribution format should differ,
+and the boundary should be a directory. Authoring in 46 folders and shipping one flattened
+committed table is a good trade even for a solo project with three packs, because the
+flattening function is also the load function and therefore cannot drift.</p>
+<p><strong>Expensive:</strong> a validated extension contract with declared attachment points, artifact
+type-checking and third-party trust boundaries. That machinery exists to let people who are
+not you extend the loop safely. If nobody is doing that, it is elaborate self-defence.</p>
+<p>The best evidence that install-time composition is genuinely hard sits in the profile system.
+Three install profiles are computed as a transitive closure over one <code>requires:</code> field.
+Machine enforcement catches unreachability. It does not catch <em>completeness</em>, and the result
+is the single most instructive fact on this page:</p>
+<div class="admonition failure">
+<p class="admonition-title">The minimal profile omits the entry point to the step CI byte-checks</p>
+<p>Resolving the closure over <code>requires:</code> in <code>commands/gsd/*.md</code> from the base sets at
+<code>src/install-profiles.cts:73–104</code> gives <code>core</code> = <strong>15</strong> skills and <code>standard</code> = <strong>23</strong>.
+<code>ship</code> is in <strong>neither</strong> — and none of the 15 <code>core</code> members routes to it
+(<code>grep -ln ship commands/gsd/{phase,progress,review,quick,verify-work,surface}.md</code>
+returns nothing). Meanwhile <code>loop-host-contract.cjs</code> byte-checks in CI that the loop has
+five steps, the fifth being <code>ship</code>, whose <code>consumes</code> list is <code>UAT.md</code>.</p>
+<p>Be precise about what is missing. <code>gsd-core</code> <strong>is</strong> in <code>package.json</code>'s <code>files[]</code>, so
+<code>gsd-core/workflows/ship.md</code> is present on disk in a <code>core</code> install — the loop <em>logic</em>
+ships. What does not ship is the <strong>invocation surface</strong>: no <code>skills/gsd-ship/</code>, and no
+<code>core</code> skill that reaches it. So the minimal profile can produce <code>UAT.md</code> and offers the
+user no installed way to invoke the step that consumes it. The same closure also puts
+both <code>config</code> and <code>settings</code> into the tier meant to be minimal.</p>
+<p>I found no comment or marker recording that omission as deliberate
+(<code>grep -rn ship src/install-profiles.cts scripts/lint-skill-deps.cjs</code> turns up only
+unrelated uses of the word). Two CI checks pass over this: one proves the contract
+matches its markers, the other proves every declared dependency resolves. Neither is
+positioned to ask whether the shipped profile can <em>reach</em> the contract. That is skill 2
+in the wild — the scope of the check, not the check.</p>
+</div>
+<p>Copy the closure idea — one declaration, several consumers, no second source of truth. But
+add the assertion nobody wrote: <strong>every install profile must expose an entry point for
+every loop step.</strong></p>
+<h3 id="multi-harness-adapters-drop-it-unless-portability-is-the-product">Multi-harness adapters — drop it unless portability is the product<a class="headerlink" href="#multi-harness-adapters-drop-it-unless-portability-is-the-product" title="Permanent link">&para;</a></h3>
+<p>The hardest verdict on the list, and the one I hold most firmly. Nineteen harness
+integrations is an extraordinary amount of surface for a framework with one maintainer, and
+the return is real only if reaching users on other harnesses is the point of the project.</p>
+<p>If it is not, the costs are: 8 per-harness hook adapters sharing nothing; one policy
+implemented three times at three strengths; and a <code>tools:</code> grant translation surface where a
+bad translation <em>aborts the entire agent load</em> rather than degrading.
+<code>src/runtime-artifact-conversion.cts:2231–2232</code> spells that out: an invalid tool name "fails
+frontmatter validation … and aborts the entire agent load (#1394)". That failure mode is the
+one to weigh, because a portability layer that fails loudly on the host you
+do not test is worse than not supporting that host.</p>
+<p>At a team of ten with portability as a goal, the shape that works is the one this repo
+arrived at without stating: <strong>full artifact projection to every harness, enforcement to
+one.</strong> Projection is descriptor data and scales. Enforcement is bespoke and does not.</p>
+<p>And when you do build the abstraction, extract it from two implementations rather than one.
+The imperative hook bus parameterised what the first harness varied and hardcoded what it did
+not, so the second harness produced a sibling rather than a second caller. One data point
+does not define an axis.</p>
+<hr />
+<h2 id="the-one-thing-to-take-if-you-take-nothing-else">The one thing to take if you take nothing else<a class="headerlink" href="#the-one-thing-to-take-if-you-take-nothing-else" title="Permanent link">&para;</a></h2>
+<p>The pages on this site kept arriving at the same finding from different directions, so it is
+worth stating plainly:</p>
+<blockquote>
+<p><strong>Pick the surfaces that must not drift, generate them from a single source, and compare
+them byte-for-byte in CI. Then audit the scope of each comparison as carefully as you
+audited its rule.</strong></p>
+</blockquote>
+<p>The first half is what GSD Core got right: of the surfaces examined across this site, the
+ones with a generator and a <code>--check</code> are the ones still in agreement. The second half is
+what it is still getting wrong, and the evidence is a <code>core</code> profile that ships an incomplete
+loop straight past two green checks — neither of which was ever asked the right question.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.tabs", "navigation.sections", "navigation.top", "content.code.copy", "toc.follow"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"provider": "mike"}}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.d7400e89.min.js"></script>
+      
+    
+  </body>
+</html>

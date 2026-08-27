@@ -1,0 +1,2563 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="How GSD Core is built internally — and how to build a framework like it yourself.">
+      
+      
+      
+      
+        <link rel="prev" href="../agents/orchestration/">
+      
+      
+        <link rel="next" href="hooks/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
+    
+    
+      
+        <title>Overview - Understanding GSD Core</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.ec1eaa64.min.css">
+      
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#runtime" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+      <div data-md-color-scheme="default" data-md-component="outdated" hidden>
+        
+      </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="Understanding GSD Core" class="md-header__button md-logo" aria-label="Understanding GSD Core" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Understanding GSD Core
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Overview
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href=".." class="md-tabs__link">
+        
+  
+  
+    
+  
+  Home
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../loop/" class="md-tabs__link">
+          
+  
+  
+  The Loop
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../files/" class="md-tabs__link">
+          
+  
+  
+  Files & State
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../skills/" class="md-tabs__link">
+          
+  
+  
+  Skills
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../agents/" class="md-tabs__link">
+          
+  
+  
+  Agents
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+    
+  
+  
+    
+    
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="./" class="md-tabs__link">
+          
+  
+  
+  Runtime
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../capabilities/" class="md-tabs__link">
+          
+  
+  
+  Capabilities
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../architecture/" class="md-tabs__link">
+          
+  
+  
+  Architecture
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../build-your-own/" class="md-tabs__link">
+          
+  
+  
+  Build Your Own
+
+        </a>
+      </li>
+    
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="Understanding GSD Core" class="md-nav__button md-logo" aria-label="Understanding GSD Core" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    Understanding GSD Core
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    The Loop
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    The Loop
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../loop/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../loop/stages/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Stage internals
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Files & State
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Files & State
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../files/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../files/dataflow/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    State machinery
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Skills
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Skills
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../skills/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../skills/catalogue/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Catalogue
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Agents
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Agents
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../agents/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../agents/orchestration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Orchestration patterns
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Runtime
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Runtime
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#what-you-can-actually-see" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What you can actually see
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="What you can actually see">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#the-nine-files-that-are-committed-there" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The nine files that are committed there
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#the-module-map" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The module map
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="The module map">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#size-is-brutally-skewed" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Size is brutally skewed
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#the-central-argument-what-got-real-code" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The central argument: what got real code
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="The central argument: what got real code">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#srciocts-is-the-boundary-artifact" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        src/io.cts is the boundary artifact
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#what-the-code-looks-like-once-youre-inside-it" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What the code looks like once you're inside it
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="What the code looks like once you&#39;re inside it">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#two-export-styles-split-by-role" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Two export styles, split by role
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#test-seams-shipped-in-production" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Test seams shipped in production
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#clock-injection" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Clock injection
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#inline-issue-provenance" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Inline issue provenance
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#lint-is-the-architecture-not-the-type-system" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Lint is the architecture, not the type system
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Lint is the architecture, not the type system">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#but-the-biggest-structural-risk-has-no-checker-at-all" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        But the biggest structural risk has no checker at all
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#the-dispatch-refactor-caught-mid-flight" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The dispatch refactor, caught mid-flight
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#three-defects-worth-reading-the-source-for" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Three defects worth reading the source for
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#one-more-the-stated-rationale-that-does-not-apply" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        One more: the stated rationale that does not apply
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#what-to-take-into-your-own-framework" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What to take into your own framework
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="hooks/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    The hook system
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="bootstrap/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Bootstrap & distribution
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7" >
+        
+          
+          <label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Capabilities
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_7">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Capabilities
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../capabilities/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../capabilities/harnesses/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Multi-harness portability
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_8" >
+        
+          
+          <label class="md-nav__link" for="__nav_8" id="__nav_8_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_8_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_8">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Architecture
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_9" >
+        
+          
+          <label class="md-nav__link" for="__nav_9" id="__nav_9_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Build Your Own
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_9_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_9">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Build Your Own
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../build-your-own/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../build-your-own/blueprint/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Minimal blueprint
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#what-you-can-actually-see" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What you can actually see
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="What you can actually see">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#the-nine-files-that-are-committed-there" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The nine files that are committed there
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#the-module-map" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The module map
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="The module map">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#size-is-brutally-skewed" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Size is brutally skewed
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#the-central-argument-what-got-real-code" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The central argument: what got real code
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="The central argument: what got real code">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#srciocts-is-the-boundary-artifact" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        src/io.cts is the boundary artifact
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#what-the-code-looks-like-once-youre-inside-it" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What the code looks like once you're inside it
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="What the code looks like once you&#39;re inside it">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#two-export-styles-split-by-role" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Two export styles, split by role
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#test-seams-shipped-in-production" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Test seams shipped in production
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#clock-injection" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Clock injection
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#inline-issue-provenance" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Inline issue provenance
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#lint-is-the-architecture-not-the-type-system" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Lint is the architecture, not the type system
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Lint is the architecture, not the type system">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#but-the-biggest-structural-risk-has-no-checker-at-all" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        But the biggest structural risk has no checker at all
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#the-dispatch-refactor-caught-mid-flight" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The dispatch refactor, caught mid-flight
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#three-defects-worth-reading-the-source-for" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Three defects worth reading the source for
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#one-more-the-stated-rationale-that-does-not-apply" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        One more: the stated rationale that does not apply
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#what-to-take-into-your-own-framework" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What to take into your own framework
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<h1 id="runtime">Runtime<a class="headerlink" href="#runtime" title="Permanent link">&para;</a></h1>
+<p>Every AI coding framework is a pile of markdown. GSD Core is a pile of markdown plus
+194 TypeScript modules, and the interesting question is not <em>how much</em> code there is —
+it is <strong>where the code stops</strong>.</p>
+<p>This section has no equivalent in a pure prompt framework. There is nothing to compare it
+to in PAUL or in any of the prompt-only spec-driven kits. That absence is the point: this
+page is where you decide what deserves real code in <em>your</em> framework, and GSD Core is a
+useful subject precisely because it drew the line somewhere unusual and left evidence of
+why.</p>
+<div class="admonition info">
+<p class="admonition-title">Reading this as construction</p>
+<p>Nothing below tells you how to run <code>gsd-tools</code>. It answers: what did the authors
+choose to make deterministic, what did they leave to the model, what shape did the
+resulting code take, and where did that shape fail them.</p>
+</div>
+<h2 id="what-you-can-actually-see">What you can actually see<a class="headerlink" href="#what-you-can-actually-see" title="Permanent link">&para;</a></h2>
+<p>Before the map, a warning about the terrain — because it changes what "reading the source"
+means here.</p>
+<p>The runtime's source of truth is <code>src/*.cts</code>. It is compiled to <code>gsd-core/bin/lib/*.cjs</code>
+at <strong>install, pack, publish and test time</strong>, and the output is gitignored. From
+<code>tsconfig.build.json</code>:</p>
+<table>
+<thead>
+<tr>
+<th>Setting</th>
+<th>Value</th>
+<th>Consequence</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>rootDir</code> / <code>outDir</code></td>
+<td><code>src</code> → <code>gsd-core/bin/lib</code></td>
+<td>Flat 1:1 emit, no bundler</td>
+</tr>
+<tr>
+<td><code>module</code> / <code>moduleResolution</code></td>
+<td><code>nodenext</code></td>
+<td>CommonJS semantics with modern resolution</td>
+</tr>
+<tr>
+<td><code>target</code></td>
+<td><code>ES2022</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>strict</code></td>
+<td><code>true</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>noEmitOnError</code></td>
+<td><code>true</code></td>
+<td><strong>The type check is a hard build gate</strong> — a type error produces no artifact at all</td>
+</tr>
+<tr>
+<td><code>include</code></td>
+<td><code>src/**/*.cts</code></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<p>The <code>.cts</code> extension is not decoration. It is chosen <em>because</em> <code>tsc</code> then emits <code>.cjs</code>
+natively, which is what lets the project ship CommonJS to a Node CLI without Rollup,
+esbuild or a bundler config. The price is paid in every import statement in the tree:</p>
+<div class="highlight"><pre><span></span><code><span class="c1">// src/roadmap.cts — the file on disk is ./clock.cts, but the specifier names the emit</span>
+<span class="k">import</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">realClock</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="kr">from</span><span class="w"> </span><span class="s1">'./clock.cjs'</span><span class="p">;</span>
+</code></pre></div>
+<p><code>package.json</code> wires <code>npm run build:lib</code> (<code>tsc -p tsconfig.build.json</code>) into four
+lifecycle hooks — <code>prepare</code>, <code>prepack</code>, <code>prepublishOnly</code> and <code>pretest</code>. So the artifact is
+regenerated whenever anyone installs, packs, publishes or tests, and never committed.</p>
+<div class="admonition warning">
+<p class="admonition-title">The repo's own architecture doc is inconsistent about this</p>
+<p><code>docs/ARCHITECTURE.md</code> gets it right in some places — lines 323, 352, 362 and 399 all
+say "generated to <code>gsd-core/bin/lib/*.cjs</code> per ADR-457". But its section headings do
+not: line 304 is <code>### Command Routing Hub (gsd-core/bin/lib/command-routing-hub.cjs)</code>,
+naming a path that does not exist in a fresh clone. The directory tree at line 659
+lists <code>bin/lib/*.cjs   # Domain modules</code> with no such note, and the word "gitignored"
+appears exactly once in the whole document — about screenshots, not about this.</p>
+<p>A reader who clones the repo and greps <code>bin/lib/</code> finds eight files. <strong>Cite
+<code>src/&lt;name&gt;.cts</code>.</strong> If you must cite a <code>.cjs</code> under <code>gsd-core/bin/lib/</code>, say out loud
+that it is build output. Inconsistent provenance labelling is worse than none: it
+teaches the reader that an unlabelled path is a real one.</p>
+</div>
+<h3 id="the-nine-files-that-are-committed-there">The nine files that <em>are</em> committed there<a class="headerlink" href="#the-nine-files-that-are-committed-there" title="Permanent link">&para;</a></h3>
+<p><code>git ls-files gsd-core/bin/lib</code> returns exactly eleven entries. Eight are <code>.cjs</code>:
+<code>capability-command-router</code>, <code>capability-registry</code>, <code>capability-validator</code>,
+<code>legacy-cleanup</code>, <code>loop-host-contract</code>, <code>package-identity</code>,
+<code>profile-pipeline-command-router</code>, <code>stale-bake-guard</code>. The other three are
+<code>gsd-core/bin/lib/vendor/re2js.cjs</code>, its <code>.d.cts</code> and a README.</p>
+<p>The obvious reading — "modules not yet migrated to ADR-457" — is wrong. I checked each of
+the eight for a <code>src/*.cts</code> counterpart: <strong>none exists.</strong> They are not tsc output at all.
+Most are <em>generator</em> output — <code>scripts/gen-capability-registry.cjs</code>,
+<code>scripts/generate-package-identity.cjs</code>, <code>scripts/gen-loop-host-contract.cjs</code> — committed
+because they must exist before a build runs. <code>package.json</code>'s <code>version</code> script even
+<code>git add</code>s one of them by name:</p>
+<div class="highlight"><pre><span></span><code>"version": "… &amp;&amp; node scripts/gen-capability-registry.cjs --write &amp;&amp; git add gsd-core/bin/lib/capability-registry.cjs"
+</code></pre></div>
+<p><code>src/package-identity.d.cts</code> is the tell: a hand-written type declaration in <code>src/</code> for a
+generated artifact that has no implementation in <code>src/</code>.</p>
+<div class="admonition danger">
+<p class="admonition-title">Defect: the CI check that guards this guards nothing</p>
+<p><code>scripts/lint-compiled-artifact-sync.cjs</code> exists to catch a committed <code>.cjs</code> drifting
+from its <code>.cts</code> source — the incident in its own docstring is #2653, where
+<code>api-coverage.cjs</code> sat four days behind its <code>.cts</code> with CI green. It only compares
+<em>tracked</em> <code>gsd-core/bin/lib/*.cjs</code> files <strong>that have a matching <code>src/*.cts</code></strong>. Since
+all eight tracked artifacts have no <code>src/</code> counterpart, the pair set is empty. Running
+it prints:</p>
+<div class="highlight"><pre><span></span><code>ok compiled-artifact-sync: no tracked compiled artifacts (ADR-457 end state)
+</code></pre></div>
+<p>It is wired into <code>lint:ci</code> via <code>lint:generated-sync</code>, so CI executes a vacuous check on
+every run. Its own test suite asserts the empty-set path
+(<code>tests/lint-compiled-artifact-sync.test.cjs</code>). The docstring anticipates this
+("passes trivially"), which makes it a <em>deliberate</em> no-op — but a green check named
+after a defect class it can no longer detect is worse than no check, because it reads
+as coverage.</p>
+</div>
+<h2 id="the-module-map">The module map<a class="headerlink" href="#the-module-map" title="Permanent link">&para;</a></h2>
+<p><code>src/</code> is not a package tree. It is a flat bag of 194 top-level <code>.cts</code> files (one of which,
+<code>package-identity.d.cts</code>, is a declaration, leaving 193 implementations) plus five
+subdirectories holding 26 more: <code>health-diagnostic-rules/</code> (10), <code>installer-migrations/</code>
+(10), <code>observability/</code> (3), <code>host-integration-adapters/</code> (2), <code>vendor/</code> (1). There are no
+<code>index</code> barrels, no directory-per-feature, no import boundaries. <strong>The only grouping
+mechanism in the repo is the filename prefix.</strong></p>
+<p>The nine families below are therefore <em>my</em> overlay, not the repo's. Every module is
+assigned to exactly one; the counts sum to 194.</p>
+<table>
+<thead>
+<tr>
+<th>Family</th>
+<th>n</th>
+<th>Representative modules</th>
+<th>What it owns</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Loop state machine</td>
+<td>34</td>
+<td><code>state.cts</code>, <code>state-transition.cts</code>, <code>phase.cts</code>, <code>phase-lifecycle.cts</code>, <code>roadmap-parser.cts</code>, <code>planning-workspace.cts</code></td>
+<td>Reading and writing <code>.planning/</code>, phase/milestone/workstream identity, locking</td>
+</tr>
+<tr>
+<td>Quality gates &amp; verification</td>
+<td>33</td>
+<td><code>verify.cts</code>, <code>uat-predicate.cts</code>, <code>audit.cts</code>, <code>review-lane-runner.cts</code>, <code>broken-windows.cts</code>, <code>gate-predicate-evaluator.cts</code></td>
+<td>Deciding whether an artifact the model produced actually satisfies a gate</td>
+</tr>
+<tr>
+<td>Install &amp; host adaptation</td>
+<td>32</td>
+<td><code>init.cts</code>, <code>install-engine.cts</code>, <code>runtime-artifact-conversion.cts</code>, <code>runtime-hooks-surface.cts</code>, <code>host-integration.cts</code>, <code>codex-agent-toml.cts</code></td>
+<td>Projecting the same framework onto Claude Code, Cursor, Codex, Gemini, Kilo, …</td>
+</tr>
+<tr>
+<td>Dispatch &amp; process contract</td>
+<td>27</td>
+<td><code>io.cts</code>, <code>command-routing-hub.cts</code>, <code>cjs-command-router-adapter.cts</code>, <code>commands.cts</code>, 18 <code>*-command-router.cts</code></td>
+<td>Turning argv into a handler and a handler into an exit code</td>
+</tr>
+<tr>
+<td>Knowledge, research &amp; side workflows</td>
+<td>17</td>
+<td><code>graphify.cts</code>, <code>intel.cts</code>, <code>research-store.cts</code>, <code>decisions.cts</code>, <code>learnings.cts</code></td>
+<td>Everything orbiting the loop rather than driving it</td>
+</tr>
+<tr>
+<td>Capability &amp; MCP system</td>
+<td>16</td>
+<td><code>capability-loader.cts</code>, <code>capability-trust.cts</code>, <code>capability-consent.cts</code>, <code>mcp-catalog.cts</code></td>
+<td>Third-party extension packs and their trust boundary</td>
+</tr>
+<tr>
+<td>Text &amp; document primitives</td>
+<td>13</td>
+<td><code>markdown-sectionizer.cts</code>, <code>frontmatter.cts</code>, <code>markdown-table.cts</code>, <code>text-lines.cts</code>, <code>pattern.cts</code></td>
+<td>The one implementation of each parsing concern</td>
+</tr>
+<tr>
+<td>Config &amp; model resolution</td>
+<td>11</td>
+<td><code>config-loader.cts</code>, <code>model-resolver.cts</code>, <code>model-catalog.cts</code>, <code>federated-config.cts</code></td>
+<td>Layered config and which model runs which role</td>
+</tr>
+<tr>
+<td>OS, process &amp; VCS seams</td>
+<td>11</td>
+<td><code>shell-command-projection.cts</code>, <code>clock.cts</code>, <code>project-root.cts</code>, <code>worktree-safety.cts</code></td>
+<td>Everything platform-dependent, isolated so it can be lint-enforced</td>
+</tr>
+</tbody>
+</table>
+<p><img alt="Kroki" src="https://kroki.io/plantuml/svg/eNptVclu5DYQvfdXFHww7MBy0HYwE0yAYCaeIAiyOIEHOfWlTJUkpimSIKm2e4J819zzZXnU0pbaffFSVXzv1ar3MXFIXWtWcaut58AtKdd6Z8Wmh7Q3QkFUYlsbmYXEhkv3pG1NFZs495RScWfSJ3lOH4yubQscUvghYbXyrLZcC5394Dpbcti_o9QICEspkita_Dakc2zFSs7onxW9qKGzjzp6Tqqhc_LBKYkRXpsCq7SxN28J7zsjcWO1u1Yp0n9f8uuWbVkE1yXILZruMbs2dv0tfVXMvRKy44w4Iqd2olr9O1P9MeidhPhK16_OeUIhk1DLqtFWNvb2m43tTZMS33CUgdsbtjareXJhCx4lc-qMtsT_s2Oj055qwOH57e3GQoeu9hN2x6nwQUqtRsKNzbEvtkJ2bBDlFkn-lPGWVD9n0cagwo2LibhkjyS0s6C9QWGtThOpHkILsTUyHlhDZ5NupcBMabQwocJZagTAnHhkWVLfsedH3Sd6Tr_d_YEevdlYdbAWxnE5dGlhTqGLaY4OoKOsfrHuyUiJHp5T1KVQLnxl3FMehLcoVmDfzOqZR9AsBcOwmIWHhlFcisJtpAvw5MnP5UGq5CUAY8dBs02Xr-YlLweUlE51_Xr4oFs83OXmrtHclsMW62WLiNUDnv48pV0FzHvLaZzWfq76_xblzfhHtXW20jU4hxULEp3phrau16hm714UuA8s-sDdcjUGrCX-_cPVYSXP6a-7h6EwA3psBGMy7RrC_h7SGjtpnNoekhmcWEi3aOl9zMWf7SUVxfeHZTlhH0b7hGMavROufm5OPsnNX41sk7Uv8sR0bMxQx7YeZmE8hhwr-6LytWMOPFqPUe7jCYTBuNAK08o63KxHl5JryVWLw0f0Ixq_zzZt9hiZ1AUbca9xLOuGhhP7DmG4nb5LF5f0FHSGr0paX5GE4MLBiDCYbwgDQAqy4jQt1_Ks08X68hoRn_ApEJwL47yQjv2nYaAl1eBiYiVXAoAsepQedN2kUfk49R8sm33C1TPkkIDh_VV-ASTvcKRDp4AomS8G9XXmqQyn73o2Z_tM8bRGlh4nGmGjkkobsdwKlGPRn6_pd5eaIUJs5QKyyXEx17P_uGmJM73v8Vf-zP4PPCWkig==?"></p>
+<h3 id="size-is-brutally-skewed">Size is brutally skewed<a class="headerlink" href="#size-is-brutally-skewed" title="Permanent link">&para;</a></h3>
+<p>Eight modules exceed 100 KB in that flat directory:</p>
+<table>
+<thead>
+<tr>
+<th>Module</th>
+<th>Size</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>src/state.cts</code></td>
+<td>261 KB</td>
+</tr>
+<tr>
+<td><code>src/init.cts</code></td>
+<td>168 KB</td>
+</tr>
+<tr>
+<td><code>src/runtime-artifact-conversion.cts</code></td>
+<td>168 KB</td>
+</tr>
+<tr>
+<td><code>src/phase.cts</code></td>
+<td>160 KB</td>
+</tr>
+<tr>
+<td><code>src/runtime-hooks-surface.cts</code></td>
+<td>119 KB</td>
+</tr>
+<tr>
+<td><code>src/commands.cts</code></td>
+<td>117 KB</td>
+</tr>
+<tr>
+<td><code>src/state-transition.cts</code></td>
+<td>109 KB</td>
+</tr>
+</tbody>
+</table>
+<p>Against dozens of sub-2 KB leaves: <code>src/model-profiles.cts</code> (965 B),
+<code>src/eval-command-router.cts</code> (996 B), <code>src/secrets.cts</code> (1.1 KB),
+<code>src/planning-scope.cts</code> (2.1 KB). There is no intermediate structure to break the large
+ones against — no package boundary a <code>state/</code> split could hide behind, no barrel to
+re-export through. This is the cost of the flat-bag choice, paid at exactly the modules
+where it hurts most.</p>
+<h2 id="the-central-argument-what-got-real-code">The central argument: what got real code<a class="headerlink" href="#the-central-argument-what-got-real-code" title="Permanent link">&para;</a></h2>
+<p>Read the family table sideways and the rule falls out. GSD Core wrote deterministic code
+for five things, and only five:</p>
+<p><strong>1. Parsing and serializing the model's own output.</strong> The model writes markdown; the
+runtime must read it back without ambiguity. <code>src/markdown-sectionizer.cts</code> (48 KB),
+<code>src/frontmatter.cts</code> (47 KB) and <code>src/markdown-table.cts</code> (39 KB) exist because "just
+regex the file" fails. The clearest statement of the principle is in
+<code>src/uat-predicate.cts</code>'s docstring — it exists to harden against</p>
+<blockquote>
+<p>the naive whole-file regex in <code>cmdPhaseComplete</code> which false-matches <code>result:</code> lines
+inside frontmatter, fenced code blocks, blockquotes, and HTML comments.</p>
+</blockquote>
+<p>The model's <em>judgement</em> about whether UAT passed is trusted. The runtime's <em>reading</em> of
+that judgement is not left to a regex. That asymmetry is the whole design.</p>
+<p><strong>2. State transitions.</strong> <code>src/state-transition.cts</code> and <code>src/phase-lifecycle.cts</code> make
+"which stage am I in, and may I move to the next one" a total function over typed inputs.
+An LLM asked to reason about its own position in a workflow will drift; a state machine
+will not.</p>
+<p><strong>3. Concurrency.</strong> <code>src/planning-workspace.cts</code> owns <code>withPlanningLock</code>, backed by a
+<code>.planning/.lock</code> file whose body is JSON <code>{ pid, cwd, acquired }</code>. Stealing a lock is
+gated on <code>process.kill(pid, 0)</code> liveness (treating <code>EPERM</code> as alive), so a dead holder is
+stolen promptly and a live one waited on. <code>PLANNING_LOCK_RETRY_ERRNOS</code> enumerates eight
+transient codes — <code>EPERM</code>, <code>EBUSY</code>, <code>EAGAIN</code>, <code>EINTR</code>, <code>EINVAL</code>, <code>EIO</code>, <code>ENOENT</code>,
+<code>ESTALE</code> — each with a per-platform rationale (Docker overlayfs, NFS, Windows AV), and
+deliberately <em>excludes</em> <code>EMFILE</code>, <code>ENOSPC</code>, <code>EROFS</code>, <code>EACCES</code>. No prompt can encode that.</p>
+<p><strong>4. Platform portability.</strong> <code>src/shell-command-projection.cts</code> (53 KB) centralises
+<code>platformWriteSync</code>, <code>platformReadSync</code>, <code>platformEnsureDir</code>, <code>retryRenameSync</code> and
+Windows binary resolution.</p>
+<p><strong>5. Trust and security boundaries.</strong> <code>src/capability-trust.cts</code> (92 KB),
+<code>src/capability-consent.cts</code> (54 KB) and <code>src/external-descriptor-trust.cts</code> decide whether
+third-party code may run. Consent binds to a <em>recomputed</em> full-bundle content hash rather
+than the ledger's own integrity field (#1459), so a planted ledger entry does not grant
+consent. <code>destSubpaths</code> outside <code>configHome</code> reject the descriptor outright, fail-closed
+(#1681).</p>
+<p>Everything else — what to build, whether a plan is sound, what the risks are, how to phrase
+a review finding — lives in <code>commands/gsd/*.md</code> (71 files) and <code>agents/*.md</code> (35 files), not
+in <code>src/</code>.</p>
+<div class="admonition quote">
+<p class="admonition-title">The transferable rule</p>
+<p><strong>Predicates are code; the content they gate is prose.</strong>
+<code>src/gate-predicate-evaluator.cts</code>, <code>src/uat-predicate.cts</code> and
+<code>src/context-predicates.cts</code> implement decision <em>mechanics</em>. The decision <em>substance</em>
+is workflow markdown. If you are drawing this line in your own framework, that is the
+cut to copy: write code for anything whose answer must be identical on two runs, and
+leave everything whose answer is a judgement to the model.</p>
+</div>
+<h3 id="srciocts-is-the-boundary-artifact"><code>src/io.cts</code> is the boundary artifact<a class="headerlink" href="#srciocts-is-the-boundary-artifact" title="Permanent link">&para;</a></h3>
+<p>If you read one file to understand the whole position, read this one. It defines the
+CLI envelope, and the CLI envelope <em>is</em> the interface between the deterministic layer and
+the model.</p>
+<p><code>output(result, raw, rawValue)</code> writes fd 1. <code>error(message, reason, extra): never</code> writes
+fd 2 and calls <code>process.exit(1)</code>. Routers such as <code>src/agent-command-router.cts</code> return
+<code>void</code> and terminate — <strong>the envelope, not a return value, is the return channel for most
+of the system.</strong></p>
+<p>Three details carry the argument:</p>
+<ul>
+<li><strong><code>ERROR_REASON</code> is a frozen string enum</strong>, and its stated purpose is that tests assert
+  on a typed field instead of grepping stderr (#2974). <code>--json-errors</code> flips <code>error()</code> into
+  emitting <code>{ ok, reason, message, ...extra }</code>, and the <code>extra</code> bag exists specifically so
+  a caller can assert a structured field rather than regex a human sentence. The same
+  pattern recurs in <code>src/command-routing-hub.cts</code> (<code>ERROR_KINDS</code>) and
+  <code>src/agent-command-router.cts</code> (<code>AGENT_FAILURE_CLASSES</code>) — <code>Object.freeze({</code> appears in
+  41 of the 194 modules. <strong>Never make phrasing load-bearing</strong> is the position, and it is
+  stated four separate times in four separate files.</li>
+<li><strong><code>writeAllSync</code> treats stdout as a possibly-non-blocking pipe.</strong> It loops on short write
+  counts and retries <code>EAGAIN</code>/<code>EINTR</code> with a bounded ~1 s <code>Atomics.wait</code> backoff. A bare
+  <code>fs.writeSync</code> silently truncated output under the parallel <code>node --test</code> runner (#1008).
+  <code>output()</code> deliberately does <em>not</em> call <code>process.exit()</code>, so the event loop drains.</li>
+<li><strong>The <code>@file:</code> escape hatch encodes an assumption about the host, not the data.</strong> At
+  <code>src/io.cts:153</code>, a JSON payload over 50 000 characters is written to
+  <code>$TMPDIR/gsd/gsd-&lt;ts&gt;.json</code> and the string <code>'@file:' + tmpPath</code> emitted instead.
+  <code>gsd-core/bin/gsd-tools.cjs</code> — the hand-written, tracked CLI entrypoint, not a build
+  artifact — intercepts stdout at lines 4275–4329 and resolves it transparently. The comment says why: without it, "every workflow" would need its own
+  <code>if [[ "$INIT" == @file:* ]]</code> branch (#1891). The number 50 000 is Claude Code's Bash tool
+  buffer — a <em>host</em> constraint leaking into a <em>library</em> — and centralising the leak in one
+  function is the right call.</li>
+</ul>
+<h2 id="what-the-code-looks-like-once-youre-inside-it">What the code looks like once you're inside it<a class="headerlink" href="#what-the-code-looks-like-once-youre-inside-it" title="Permanent link">&para;</a></h2>
+<p>Four conventions recur often enough to be the house dialect.</p>
+<h3 id="two-export-styles-split-by-role">Two export styles, split by role<a class="headerlink" href="#two-export-styles-split-by-role" title="Permanent link">&para;</a></h3>
+<p>110 of the 194 top-level modules use <code>export =</code> (103 of them the exact <code>export = { … }</code>
+literal form). The remaining 84 do not: 82 use ESM named exports (<code>export const</code> /
+<code>export function</code> / <code>export class</code>), <code>src/configuration.cts</code> uses an <code>export { … }</code> list,
+and <code>src/package-identity.d.cts</code> is a declaration file. The two sets are <strong>disjoint</strong> — no
+module mixes them.</p>
+<p>The tempting hypothesis is that <code>export =</code> marks pre-ADR-457 legacy. The crosstab
+falsifies it: 107 modules carry an <code>ADR-457</code> reference and 61 of those use <code>export =</code> — a
+57 % rate against a 57 % base rate across all 194. That is independence, not correlation.
+What <em>does</em> track is role — as a strong tendency, not an absolute. <strong>Thirty of the 35 modules that
+define a <code>cmd*</code> CLI entry point use <code>export =</code>. Zero use ESM named exports.</strong> So do all 19
+files matching <code>src/*command-router*.cts</code>, without exception. (<code>src/planning-inspect.cts</code>
+is one of seven that write <code>export =</code> against a named object rather than
+an inline literal — a formatting difference, not a different style.) Pure leaves —
+<code>src/clock.cts</code>, <code>src/pattern.cts</code>, <code>src/text-lines.cts</code>, <code>src/artifacts.cts</code>,
+<code>src/markdown-table.cts</code> — use ESM.</p>
+<p>The reason is mechanical: <code>export =</code> exports one namespace object, which is what lets a
+module ship mutable test-seam setters and frozen enums through the same handle.</p>
+<p>The cost propagates into consumers. An <code>export =</code> module cannot be ESM-destructured, so
+callers must write <code>import x = require('./x.cjs'); const { … } = x;</code>, each occurrence
+preceded by <code>// eslint-disable-next-line @typescript-eslint/no-require-imports</code>. <strong>115 of
+194 modules carry that disable.</strong> <code>src/roadmap.cts</code> lines 9–51 shows both styles
+interleaved in a single import block — ESM for <code>clock.cjs</code>, <code>pattern.cjs</code>,
+<code>text-lines.cjs</code>, <code>markdown-sectionizer.cjs</code>, <code>markdown-table.cjs</code>, <code>phase-lifecycle.cjs</code>,
+<code>shell-command-projection.cjs</code>; <code>import … = require()</code> for <code>io.cjs</code>, <code>phase-id.cjs</code>,
+<code>planning-scope.cjs</code>, <code>roadmap-parser.cjs</code>, <code>config-loader.cjs</code>, <code>core-utils.cjs</code>,
+<code>frontmatter.cjs</code>, <code>verification.cjs</code> and more.</p>
+<h3 id="test-seams-shipped-in-production">Test seams shipped in production<a class="headerlink" href="#test-seams-shipped-in-production" title="Permanent link">&para;</a></h3>
+<p>Underscore-prefixed setters on the module's export object: <code>_setLockProbes</code>,
+<code>_resetLockProbes</code>, <code>_setPlanningLockTestHooks</code>, <code>_setStateLockTestHooks</code>,
+<code>_setValidatorForTest</code>, <code>_setGeneratorForTest</code>, <code>_setHttpGet</code>,
+<code>_setCapabilitySourceHttpGet</code>, <code>_setBundleMaxFilesForTest</code>, plus seven <code>_reset*ForTests</code>
+cache clearers — <strong>22 distinct <code>_set*</code>/<code>_reset*</code> identifiers</strong> across <code>src/*.cts</code>. It is an explicit convention;
+<code>src/intel-command-router.cts</code> lines 25–29 says the <code>_</code>-prefix "follows the repo's
+established seam convention (see <code>audit-command-router.cts</code>)".</p>
+<p>This buys deterministic tests for pid-liveness, lock-steal races and HTTP without a DI
+container. It costs mutable module-level singletons in shipped code. For a CLI that runs as
+a short-lived process, that trade is defensible; for a long-lived server it would not be.</p>
+<h3 id="clock-injection">Clock injection<a class="headerlink" href="#clock-injection" title="Permanent link">&para;</a></h3>
+<p><code>src/clock.cts</code> is imported by 14 modules, and twelve signatures across seven modules take
+an optional <code>clock?</code> parameter (<code>withPlanningLock(cwd, fn, clock?)</code>). Time is treated as a
+dependency, not an ambient.</p>
+<h3 id="inline-issue-provenance">Inline issue provenance<a class="headerlink" href="#inline-issue-provenance" title="Permanent link">&para;</a></h3>
+<p>Nearly every non-obvious branch carries <code>#NNNN</code> or <code>ADR-NNNN</code> in a comment naming the
+failure it was written against. This is the single most imitable habit on the page: it turns
+the codebase into a searchable incident log, and it is why this write-up can cite a cause
+for almost every design decision.</p>
+<h2 id="lint-is-the-architecture-not-the-type-system">Lint is the architecture, not the type system<a class="headerlink" href="#lint-is-the-architecture-not-the-type-system" title="Permanent link">&para;</a></h2>
+<p><code>noEmitOnError: true</code> makes TypeScript a hard gate, but the invariants that actually hold
+this system together are not expressible in types. So they were built as lint rules.</p>
+<p><code>eslint-rules/</code> contains <strong>22 bespoke rules</strong>. The <code>src/**/*.cts</code> block of
+<code>eslint.config.mjs</code> (line 341) promotes <strong>nine</strong> to <code>'error'</code>:</p>
+<p>Each carries its own provenance comment in the config. Quoting them, because the comments
+<em>are</em> the argument:</p>
+<table>
+<thead>
+<tr>
+<th>Rule</th>
+<th>Provenance</th>
+<th>What the config comment says it catches</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>local/no-adhoc-markdown-parsing</code></td>
+<td>ADR-1372 T7</td>
+<td>"enforce use of the markdown-sectionizer seam; grandfather pre-migration sites with <code>// allow-adhoc-markdown: &lt;reason&gt;</code>"</td>
+</tr>
+<tr>
+<td><code>local/no-adhoc-regex-escape</code></td>
+<td>ADR-3212 Phase 1, #3412</td>
+<td>"flags a re-inlined escape-all-metachars <code>.replace()</code> helper or an unrouted <code>new RegExp()</code> from a runtime value"</td>
+</tr>
+<tr>
+<td><code>local/no-crlf-fragile-split</code></td>
+<td>ADR-3212 Phase 2, #3413</td>
+<td>"widen the CRLF-fragile-split prohibition from <code>tests/</code> to <code>src/</code>"</td>
+</tr>
+<tr>
+<td><code>local/no-unbounded-quantifier</code></td>
+<td>ADR-3212 Phase 4, #3415</td>
+<td>"bound quantifiers over document content (CWE-1333, #2128 class)"</td>
+</tr>
+<tr>
+<td><code>local/normalize-path-in-content</code></td>
+<td>ADR-1703 Phase 5</td>
+<td>"flag path-returning calls interpolated into content … without POSIX normalization"; promoted to error "after precision review (<code>path.basename</code> excluded)"</td>
+</tr>
+<tr>
+<td><code>local/require-fs-op-fallback</code></td>
+<td>ADR-1703 Phase 6</td>
+<td>"an unguarded <code>fs.rename</code>/<code>fs.renameSync</code> … that lacks a transient-errno fallback (EPERM/EBUSY/EACCES retry or a Windows platform guard). See DEFECT.WINDOWS-FS-OPS"</td>
+</tr>
+<tr>
+<td><code>local/require-subprocess-timeout</code></td>
+<td>DEFECT.UNBOUNDED-SUBPROCESS</td>
+<td>"<code>execSync</code>/<code>execFileSync</code>/<code>spawnSync</code> without a <code>timeout</code> option — an unbounded sync subprocess hangs indefinitely on a stuck remote/large repo/missing network. The 8 pre-existing call sites this surfaced were migrated in #2896"</td>
+</tr>
+<tr>
+<td><code>local/no-external-require-in-bin</code></td>
+<td>#3477 follow-up</td>
+<td>"the emitted mirror is almost always eslint-ignored as a generated artifact … so this is the ONLY place a bad external import in an already-migrated module is still visible to lint"</td>
+</tr>
+<tr>
+<td><code>local/no-private-binary-resolution</code></td>
+<td>#3619, epic #3411 Phase 3</td>
+<td>"a re-implemented Windows binary resolver — a PATHEXT read or a hardcoded exe-extension list — outside the platform seam (<code>src/shell-command-projection.cts</code>, exempt by path)"</td>
+</tr>
+</tbody>
+</table>
+<p>Two things to notice. First, each of the first five names a <em>seam module</em> and makes
+re-inlining its job a build failure rather than a review catch. Second — read the
+<code>no-external-require-in-bin</code> entry again. It exists <strong>because</strong> the emitted <code>.cjs</code> mirrors
+are eslint-ignored, so <code>src/**/*.cts</code> is the only surface where the rule can still see
+anything. The build model and the lint model are load-bearing on each other, which is
+exactly why the three missing ignore entries above matter more than they look. That is the mechanism that keeps "one
+definition per invariant" true over years. On top of it, <code>lint:ci</code> chains <strong>28</strong> separate
+<code>node scripts/lint-*.cjs</code> drift checkers (of 40 such scripts in <code>scripts/</code>) —
+<code>lint-state-field-drift</code>, <code>lint-completion-predicate-drift</code>,
+<code>lint-planning-snapshot-bypass-drift</code>, <code>lint-phase-enumeration-drift</code>,
+<code>lint-health-diagnostic-rule-table</code> and more.</p>
+<div class="admonition tip">
+<p class="admonition-title">The lesson for your framework</p>
+<p>Every one of these rules cites the incident that motivated it. That is the discipline
+worth stealing: when a class of bug recurs, do not write a style guide entry — write a
+lint rule and name the issue in its comment. GSD Core's 22 rules are its actual
+architecture document.</p>
+</div>
+<h3 id="but-the-biggest-structural-risk-has-no-checker-at-all">But the biggest structural risk has no checker at all<a class="headerlink" href="#but-the-biggest-structural-risk-has-no-checker-at-all" title="Permanent link">&para;</a></h3>
+<p>Twenty-two bespoke ESLint rules, 28 chained drift checkers — and <strong>zero import-cycle
+tooling</strong>. No <code>import/no-cycle</code>, no <code>madge</code>, no <code>dependency-cruiser</code> anywhere in
+<code>eslint.config.mjs</code> or <code>package.json</code> (verified: zero occurrences in either file).
+Acyclicity across 220 <code>.cts</code> files with two interleaved import styles is maintained by prose.
+<code>src/roadmap.cts:37-38</code>:</p>
+<div class="highlight"><pre><span></span><code>#3641: milestone-scope's convention resolution reads the project config
+(no cycle — config-loader does not import this module)
+</code></pre></div>
+<p>That invariant is asserted in a comment and checked by nothing. In a flat directory with no
+package boundaries, the <em>only</em> thing preventing a cycle is a developer remembering to write
+that comment — and the only thing keeping the comment true is that nobody edits
+<code>config-loader.cts</code>. Given how thoroughly everything else here is mechanised, this gap is
+striking. <strong>If you build a flat module bag, buy the cycle checker on day one.</strong></p>
+<h2 id="the-dispatch-refactor-caught-mid-flight">The dispatch refactor, caught mid-flight<a class="headerlink" href="#the-dispatch-refactor-caught-mid-flight" title="Permanent link">&para;</a></h2>
+<p><code>src/command-routing-hub.cts</code> is the newest and cleanest thing in the tree. Its docstring
+declares hard invariants: it never prints, never calls <code>process.exit</code>, never throws. Errors
+are a closed taxonomy — <code>UnknownCommand</code>, <code>InvalidArgs</code>, <code>HandlerRefusal</code>, <code>HandlerFailure</code>
+— every variant is <code>Object.freeze</code>d, and a runtime <code>_VARIANT_SCHEMA</code> rejects handler results
+carrying fields outside their variant's allowed set. It is a pure dispatch core, fully
+testable without spawning a process.</p>
+<p>Then it is undone at the boundary. <code>src/cjs-command-router-adapter.cts</code> takes <code>error</code> as an
+<strong>injected callback</strong> and translates the hub's typed <code>InvalidArgs.exitReason</code> straight back
+into <code>error(msg, reason)</code> — which exits the process. The <code>error</code> parameter is declared on
+<code>RouteCjsCommandFamilyOptions</code> at <code>src/cjs-command-router-adapter.cts:49</code>, widened by
+amendment #1642 to carry an <code>ERROR_REASON</code> value. Legacy callers are routed through a
+synthetic family literal <code>'__legacy_cjs_family__'</code> (line 80).</p>
+<p>So the closed taxonomy and the no-exit invariant hold <em>inside the core</em> and evaporate at the
+process edge. That is a defensible strangler-fig position — you get typed, testable
+internals now and change the process contract never — but it means the hub's guarantees do
+not describe what the CLI actually does.</p>
+<p><strong>The migration is roughly a fifth done.</strong> Of the 19 files matching <code>*command-router*</code> in
+<code>src/</code> (18 concrete routers plus the adapter), exactly four routers import the hub:
+<code>graphify-</code>, <code>intel-</code>, <code>phase-</code>, <code>refactor-trigger-</code>. Nine of the concrete routers still
+import <code>io.cjs</code>, and thirteen of the eighteen contain a bare <code>error(</code> or <code>output(</code> call.
+And <code>gsd-core/bin/gsd-tools.cjs</code> lines 304–326 <code>require()</code>s <strong>14 routers directly by
+path</strong>, bypassing the hub entirely.</p>
+<p>The adapter's own #2620 comment (<code>src/cjs-command-router-adapter.cts:16-19</code>) records the cost of a half-migration: observability was
+<strong>inert in the live CLI for an unknown period</strong>, because the hub defaults to a no-op logger
+and the dispatch path never injected the real one. <code>GSD_AUDIT</code> and <code>config.audit.enabled</code>
+did nothing. A refactor that lands the abstraction but not the wiring produces exactly this
+failure mode, and it is invisible — nothing errors, telemetry is simply absent.</p>
+<h2 id="three-defects-worth-reading-the-source-for">Three defects worth reading the source for<a class="headerlink" href="#three-defects-worth-reading-the-source-for" title="Permanent link">&para;</a></h2>
+<p>The passages above are design tensions. These three are plain bugs, and each is instructive
+about a different failure mode.</p>
+<div class="admonition danger">
+<p class="admonition-title">A comment that contradicts the code, with a real consequence</p>
+<p><code>src/audit.cts:1669</code>:</p>
+<div class="highlight"><pre><span></span><code><span class="nx">ioError</span><span class="p">(</span><span class="sb">`unknown --category "</span><span class="si">${</span><span class="nx">category</span><span class="si">}</span><span class="sb">". Available: …`</span><span class="p">);</span>
+<span class="k">return</span><span class="p">;</span><span class="w"> </span><span class="c1">// unreachable — ioError throws — satisfies TS control-flow analysis</span>
+</code></pre></div>
+<p><code>ioError</code> is bound at <code>src/audit.cts:36</code> as <code>const { output, error: ioError } = io;</code> —
+it is <code>io.cts</code>'s <code>error()</code>, which does <strong>not</strong> throw. At <code>src/io.cts:253</code> it calls
+<code>process.exit(1)</code>.</p>
+<p>The rest of the repo knows this. <code>src/state.cts:241-242</code> documents the correct
+behaviour precisely — "<code>process.on('exit')</code> fires even on <code>process.exit(1)</code>, unlike
+<code>try/finally</code> which is skipped when <code>error()</code> calls <code>process.exit(1)</code> inside a locked
+region (#1916)" — and <code>src/intel-command-router.cts:31-33</code> says the same. So the
+consequence is concrete: a developer trusting the <code>audit.cts</code> comment would wrap the
+call in <code>try/catch</code> expecting to intercept the failure. It will not fire, and any
+<code>finally</code> cleanup in that frame is skipped.</p>
+</div>
+<div class="admonition danger">
+<p class="admonition-title">A hand-maintained ignore list that is already missing entries</p>
+<p><code>eslint.config.mjs</code> carries an ignores block listing <code>gsd-core/bin/lib/*.cjs</code> paths
+<strong>individually</strong> — there is no <code>gsd-core/bin/lib/**</code> glob. Three emitted mirrors have
+no entry anywhere in the file:
+<code>host-integration-adapters/cline-sdk-binding</code>, <code>host-integration-adapters/imperative-hook-bus</code>,
+and <code>installer-migrations/006-pi-extension-cjs-to-js</code> — while sibling migrations 000–005
+and 007–009 all do (lines 132, 152–153, 195–198, 202, 205).</p>
+<p>Their emitted <code>.cjs</code> therefore falls under the <code>gsd-core/bin/**/*.cjs</code> block at line 435
+and gets linted as if hand-written CommonJS. There are zero <em>stale</em> entries, which
+proves the list is otherwise carefully curated — and that is the point. A
+hand-maintained mirror of a generated file set will drift; the design guarantees it. A
+glob would have cost one line.</p>
+</div>
+<div class="admonition danger">
+<p class="admonition-title">Dead code masquerading as a narrowing</p>
+<p><code>src/artifacts.cts:34-36</code>:</p>
+<div class="highlight"><pre><span></span><code><span class="k">export</span><span class="w"> </span><span class="kd">const</span><span class="w"> </span><span class="nx">CANONICAL_PATTERNS</span><span class="o">:</span><span class="w"> </span><span class="kt">ReadonlyArray</span><span class="o">&lt;</span><span class="nb">RegExp</span><span class="o">&gt;</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span>
+<span class="w">  </span><span class="sr">/^v\d+\.\d+(?:\.\d+)?-MILESTONE-AUDIT\.md$/i</span><span class="p">,</span><span class="w"> </span><span class="c1">// gsd-complete-milestone (pre-archive)</span>
+<span class="w">  </span><span class="sr">/^v\d+\.\d+(?:\.\d+)?-.*\.md$/i</span><span class="p">,</span><span class="w">               </span><span class="c1">// other version-stamped planning docs</span>
+<span class="p">];</span>
+</code></pre></div>
+<p>The second pattern fully subsumes the first — both match <code>v1.2-MILESTONE-AUDIT.md</code> — so
+entry 0 can never be the sole matcher. It documents provenance rather than narrowing
+anything, which is a reasonable intent, but a reader auditing <code>isCanonicalPlanningFile</code>
+would assume a real distinction exists.</p>
+</div>
+<h2 id="one-more-the-stated-rationale-that-does-not-apply">One more: the stated rationale that does not apply<a class="headerlink" href="#one-more-the-stated-rationale-that-does-not-apply" title="Permanent link">&para;</a></h2>
+<p><code>src/cli-exit.cts</code> provides <code>ExitError</code> and <code>runMain()</code>, which set <code>process.exitCode</code>
+instead of calling <code>process.exit</code>. Lines 8 and 24 justify the whole apparatus with: exit is
+"banned by <code>n/no-process-exit</code>".</p>
+<p>It is not banned here. <code>n/no-process-exit</code> is registered at <code>eslint.config.mjs:470</code>, inside
+the <strong>CommonJS-files block</strong>. The <code>src/**/*.cts</code> block at line 341 loads
+<code>tseslint.configs.recommendedTypeChecked</code> plus nine <code>local/*</code> rules and <strong>never loads the
+<code>n</code> plugin at all</strong>. There are 26 live <code>process.exit(</code> call sites across 15 <code>src/*.cts</code>
+modules — <code>api-coverage</code>, <code>teams-status</code>, <code>io</code>, <code>ui-safety-gate</code>, <code>state</code>,
+<code>assumption-delta</code> and others — carrying <strong>zero</strong> eslint-disable comments. They are
+lint-legal. The rule also cannot reach the emitted mirrors, which sit in the ignores list.</p>
+<p>The discipline <code>cli-exit.cts</code> exists to satisfy is not enforced on the code it lives among.
+The module is still good practice; its stated reason is scope-wrong, and a reader who
+believes it will draw a false conclusion about what the linter guarantees.</p>
+<h2 id="what-to-take-into-your-own-framework">What to take into your own framework<a class="headerlink" href="#what-to-take-into-your-own-framework" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Decision</th>
+<th>GSD Core's answer</th>
+<th>Worth copying?</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>What gets deterministic code</td>
+<td>Parsing, state transitions, concurrency, portability, trust</td>
+<td><strong>Yes.</strong> All five are places where two runs must agree.</td>
+</tr>
+<tr>
+<td>What stays prose</td>
+<td>Judgement: what to build, is this plan sound, what are the risks</td>
+<td><strong>Yes.</strong> Code cannot do it and shouldn't fake it.</td>
+</tr>
+<tr>
+<td>Errors as data</td>
+<td>Frozen <code>reason</code> enums + <code>--json-errors</code>; tests assert fields, never stderr text</td>
+<td><strong>Yes</strong>, unambiguously. Cheapest high-leverage decision here.</td>
+</tr>
+<tr>
+<td>Build-at-publish, gitignored output</td>
+<td><code>.cts</code> → <code>.cjs</code> via <code>tsc</code>, no bundler; <code>noEmitOnError</code> gates</td>
+<td><strong>Yes for shipping</strong>, but document loudly that <code>bin/lib/</code> is generated — this repo didn't, and its own docs mislead.</td>
+</tr>
+<tr>
+<td>Lint rules over style guides</td>
+<td>22 bespoke rules, each naming its incident</td>
+<td><strong>Yes.</strong> This is the actual architecture doc.</td>
+</tr>
+<tr>
+<td>Flat module bag</td>
+<td>194 top-level files, prefix-only grouping, 8 modules over 100 KB</td>
+<td><strong>No.</strong> Eight six-figure files with nowhere to split them is the direct cost.</td>
+</tr>
+<tr>
+<td>No cycle checking</td>
+<td>Acyclicity asserted in comments</td>
+<td><strong>No.</strong> If you go flat, buy the checker on day one.</td>
+</tr>
+<tr>
+<td>Test seams in shipped code</td>
+<td>22 <code>_</code>-prefixed setters on export objects</td>
+<td><strong>Situationally.</strong> Fine for a short-lived CLI; a hazard in a long-lived process.</td>
+</tr>
+</tbody>
+</table>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.tabs", "navigation.sections", "navigation.top", "content.code.copy", "toc.follow"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"provider": "mike"}}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.d7400e89.min.js"></script>
+      
+    
+  </body>
+</html>

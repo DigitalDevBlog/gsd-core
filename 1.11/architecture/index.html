@@ -1,0 +1,2689 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="How GSD Core is built internally — and how to build a framework like it yourself.">
+      
+      
+      
+      
+        <link rel="prev" href="../capabilities/harnesses/">
+      
+      
+        <link rel="next" href="../build-your-own/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
+    
+    
+      
+        <title>Overview - Understanding GSD Core</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.ec1eaa64.min.css">
+      
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#architecture" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+      <div data-md-color-scheme="default" data-md-component="outdated" hidden>
+        
+      </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="Understanding GSD Core" class="md-header__button md-logo" aria-label="Understanding GSD Core" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Understanding GSD Core
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Overview
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href=".." class="md-tabs__link">
+        
+  
+  
+    
+  
+  Home
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../loop/" class="md-tabs__link">
+          
+  
+  
+  The Loop
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../files/" class="md-tabs__link">
+          
+  
+  
+  Files & State
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../skills/" class="md-tabs__link">
+          
+  
+  
+  Skills
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../agents/" class="md-tabs__link">
+          
+  
+  
+  Agents
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../runtime/" class="md-tabs__link">
+          
+  
+  
+  Runtime
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../capabilities/" class="md-tabs__link">
+          
+  
+  
+  Capabilities
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+    
+  
+  
+    
+    
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="./" class="md-tabs__link">
+          
+  
+  
+  Architecture
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../build-your-own/" class="md-tabs__link">
+          
+  
+  
+  Build Your Own
+
+        </a>
+      </li>
+    
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="Understanding GSD Core" class="md-nav__button md-logo" aria-label="Understanding GSD Core" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    Understanding GSD Core
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    The Loop
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    The Loop
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../loop/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../loop/stages/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Stage internals
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Files & State
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Files & State
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../files/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../files/dataflow/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    State machinery
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Skills
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Skills
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../skills/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../skills/catalogue/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Catalogue
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Agents
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Agents
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../agents/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../agents/orchestration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Orchestration patterns
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" >
+        
+          
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Runtime
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Runtime
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../runtime/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../runtime/hooks/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    The hook system
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../runtime/bootstrap/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Bootstrap & distribution
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7" >
+        
+          
+          <label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Capabilities
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_7">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Capabilities
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../capabilities/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../capabilities/harnesses/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Multi-harness portability
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_8" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_8" id="__nav_8_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_8_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_8">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Architecture
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#the-four-strata-and-the-surface-where-they-meet" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The four strata and the surface where they meet
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#trace-gsdexecute-phase-end-to-end" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Trace: /gsd:execute-phase, end to end
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Trace: /gsd:execute-phase, end to end">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#hop-1-the-registered-surface-is-a-manifest-not-a-program" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Hop 1 — the registered surface is a manifest, not a program
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#hop-2-the-include-what-skills-calls-the-only-operator" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Hop 2 — the @-include, what Skills calls the only operator
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#hop-3-into-the-cli" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Hop 3 — into the CLI
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#hop-4-the-scheduling-already-happened" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Hop 4 — the scheduling already happened
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#hop-5-what-the-model-actually-decides" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Hop 5 — what the model actually decides
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#hop-6-rendering-the-loop-point" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Hop 6 — rendering the loop point
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#hop-7-dispatch-and-the-one-edge-with-teeth" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Hop 7 — dispatch, and the one edge with teeth
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#hop-8-the-completion-oracle-refuses-the-agents-word" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Hop 8 — the completion oracle refuses the agent's word
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#hop-9-a-three-valued-gate-written-in-prose" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Hop 9 — a three-valued gate, written in prose
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#hop-10-the-terminal-transition-which-fails-closed" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Hop 10 — the terminal transition, which fails closed
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#the-trace-in-one-table" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The trace in one table
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#the-principles-the-architecture-embodies" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The principles the architecture embodies
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#where-the-seams-are" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Where the seams are
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Where the seams are">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#executepre-validates-installs-materialises-and-never-fires" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        execute:pre validates, installs, materialises, and never fires
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#point-ownership-is-enforced-point-rendering-is-not-scoped" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Point ownership is enforced; point rendering is not scoped
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#the-wf-cli-edge-has-no-linter" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The WF → CLI edge has no linter
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#two-include-spellings-one-rewriter" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Two @-include spellings, one rewriter
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#the-one-progressive-disclosure-tree-the-reachability-linter-cannot-see" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The one progressive-disclosure tree the reachability linter cannot see
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#descriptors-and-adrs-that-describe-an-older-wiring" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Descriptors and ADRs that describe an older wiring
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#a-vocabulary-the-type-system-does-not-know-about" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        A vocabulary the type system does not know about
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#what-the-seams-have-in-common" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What the seams have in common
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#if-you-were-rebuilding-this" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        If you were rebuilding this
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_9" >
+        
+          
+          <label class="md-nav__link" for="__nav_9" id="__nav_9_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Build Your Own
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_9_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_9">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Build Your Own
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../build-your-own/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../build-your-own/blueprint/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Minimal blueprint
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#the-four-strata-and-the-surface-where-they-meet" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The four strata and the surface where they meet
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#trace-gsdexecute-phase-end-to-end" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Trace: /gsd:execute-phase, end to end
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Trace: /gsd:execute-phase, end to end">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#hop-1-the-registered-surface-is-a-manifest-not-a-program" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Hop 1 — the registered surface is a manifest, not a program
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#hop-2-the-include-what-skills-calls-the-only-operator" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Hop 2 — the @-include, what Skills calls the only operator
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#hop-3-into-the-cli" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Hop 3 — into the CLI
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#hop-4-the-scheduling-already-happened" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Hop 4 — the scheduling already happened
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#hop-5-what-the-model-actually-decides" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Hop 5 — what the model actually decides
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#hop-6-rendering-the-loop-point" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Hop 6 — rendering the loop point
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#hop-7-dispatch-and-the-one-edge-with-teeth" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Hop 7 — dispatch, and the one edge with teeth
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#hop-8-the-completion-oracle-refuses-the-agents-word" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Hop 8 — the completion oracle refuses the agent's word
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#hop-9-a-three-valued-gate-written-in-prose" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Hop 9 — a three-valued gate, written in prose
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#hop-10-the-terminal-transition-which-fails-closed" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Hop 10 — the terminal transition, which fails closed
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#the-trace-in-one-table" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The trace in one table
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#the-principles-the-architecture-embodies" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The principles the architecture embodies
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#where-the-seams-are" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Where the seams are
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Where the seams are">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#executepre-validates-installs-materialises-and-never-fires" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        execute:pre validates, installs, materialises, and never fires
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#point-ownership-is-enforced-point-rendering-is-not-scoped" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Point ownership is enforced; point rendering is not scoped
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#the-wf-cli-edge-has-no-linter" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The WF → CLI edge has no linter
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#two-include-spellings-one-rewriter" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Two @-include spellings, one rewriter
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#the-one-progressive-disclosure-tree-the-reachability-linter-cannot-see" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The one progressive-disclosure tree the reachability linter cannot see
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#descriptors-and-adrs-that-describe-an-older-wiring" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Descriptors and ADRs that describe an older wiring
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#a-vocabulary-the-type-system-does-not-know-about" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        A vocabulary the type system does not know about
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#what-the-seams-have-in-common" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What the seams have in common
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#if-you-were-rebuilding-this" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        If you were rebuilding this
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<h1 id="architecture">Architecture<a class="headerlink" href="#architecture" title="Permanent link">&para;</a></h1>
+<p>Every other section of this site cuts the system one way — by stage, by artifact, by
+agent, by module, by capability pack. This page puts the cuts back together and then
+tests the assembly against a single real command, <code>/gsd:execute-phase</code>, from the moment a
+host registers it to the moment a phase is marked complete on disk.</p>
+<p>The test matters because the strata do not compose the way the directory listing
+suggests. Reading <code>commands/gsd/execute-phase.md</code> you would conclude the program is 2,940
+bytes long. Reading <code>gsd-core/workflows/execute-phase.md</code> you would conclude the model
+schedules the work. Reading <code>src/phase.cts</code> you would conclude it never does. All three
+readings are drawn from real files, and all three are wrong in the same way: <strong>no single
+stratum contains the program.</strong> The program is the trace across them.</p>
+<h2 id="the-four-strata-and-the-surface-where-they-meet">The four strata and the surface where they meet<a class="headerlink" href="#the-four-strata-and-the-surface-where-they-meet" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Stratum</th>
+<th>Surface</th>
+<th>What it is authoritative for</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Prompt — authored</td>
+<td><code>commands/gsd/*.md</code> (71), <code>agents/*.md</code> (35)</td>
+<td>Registration, tool grants, subagent contracts</td>
+</tr>
+<tr>
+<td>Prompt — generated</td>
+<td><code>skills/gsd-*/SKILL.md</code> (71)</td>
+<td>The second host surface; mechanically derived from the first</td>
+</tr>
+<tr>
+<td>Procedure</td>
+<td><code>gsd-core/workflows/**</code> (152 files), <code>gsd-core/references/**</code> (106 <code>.md</code>)</td>
+<td>The actual instructions; loaded lazily via <code>@</code>-include</td>
+</tr>
+<tr>
+<td>Runtime</td>
+<td><code>gsd-core/bin/gsd-tools.cjs</code>, <code>src/*.cts</code> (194 top-level), <code>hooks/*.js</code> (22) + <code>hooks/*.sh</code> (4)</td>
+<td>Anything whose answer must be identical on two runs</td>
+</tr>
+<tr>
+<td>Extension</td>
+<td><code>gsd-core/bin/lib/loop-host-contract.cjs</code> (12 points), <code>capabilities/*/capability.json</code> (46 packs)</td>
+<td>Where third-party work may attach</td>
+</tr>
+<tr>
+<td>State</td>
+<td><code>.planning/**</code></td>
+<td>The only thing that survives a context reset</td>
+</tr>
+</tbody>
+</table>
+<p>The extension row is not a fifth peer — it is the seam. Twelve named loop points are the
+one vocabulary that the prompt layer, the runtime and third-party packs all speak. That
+is why <a href="../loop/">The Loop</a> argues the contract has to be generated rather than
+narrated, and it is why most of the seams at the bottom of this page live there.</p>
+<p><img alt="Kroki" src="https://kroki.io/plantuml/svg/eNp9VO9PGkEQ_b5_xYRPar1DKdq0sUZC_RUwIWhjmpCYZW-Alb3Zy-6eiE3_987eoYCm_UJg5828t2_ecuaDdKHMjfBzTYV0Mgdl88ISUrgNS4PgUAVJU4MbED-TmV1omsJEGr9ZIZuhxwIODzYOnaR5PGy1Nw4znMjShDt8Dh2jp5QzIyj-QCdEIdVcThEaA8dqAhi5RNeA3wLW8qDBX3NJmW9OfdbcS_NsRF8OIdO-kEHN0PkGSA_dmx_bbazBmKop2Wve9q77_dfWKRI6GTCDwLer2297290si4Jf0X0-4hIFJ1Wo0Z1L8WdbvsKsdPhBe2RX1mFzYd18YuyCR-6N6PCoBRNtsJ52f_GPJocTdEgKV10Hx8B6qp7h-cWWhPPngOS1JfClm0j1UYqxtkhm1ofk9S6pevQ8tQWF1bS6WX_wznxZyLE2Ougogv149JZG1D6GSL2yvjPY0jIsKej8o4KxpmodwVrja3JnyxADNivH9aj-9bstOsWk7DsL_dqGwHcw-ISmXtqwu42eWTtnmSNqtYCVwidoQ-pnFfiqF0VugNPCSCJmr8zlJxIQgkOsR98JwZGCJDnlbAB8W6dmHzh1as7x0QTdaxHLEXZ_EWFniSZlygxhx8iX5a6Ix7HMG_tfmW8eSXz24EqCk1XoT0U8r0QMu1x_Tf0V77FbQ0SsVIi7yB-WBStzKDNowrSULuOfC6cDvlF1LiOwExO-48txFfWH2Pc9TdNdEcvreVUr-_Hz5qYz_MXx24-G5zr4Cpimp-xsRcxbBSWNYVv4dSss2Ctx1dscFmV5KPjNah_fn2dmTWjepPUHERajyljK0CXVSuGkiii70Rls4DJURjpWJ0OQahb_W7yIpbVhXLXmianGy2pssjpw4oznx7_Ev3klp4M=?"></p>
+<p>Three edges in that picture carry most of the design.</p>
+<p><strong><code>SK → WF</code> is lazy and enormous.</strong> The host registers a manifest; the manifest pulls in
+a procedure two orders of magnitude larger. Everything about progressive disclosure
+follows from this edge.</p>
+<p><strong><code>AG ⇢ HK</code> is the edge whose enforcement does not depend on the model choosing to
+traverse it.</strong> A subagent's tool call is intercepted by a <code>PreToolUse</code> hook whose input is
+a file on disk, not the model's arguments. That is the enforcement ceiling described on
+<a href="../build-your-own/">Build Your Own</a>.</p>
+<p><strong><code>WF → CLI</code> is unproven.</strong> Nothing verifies that a workflow actually made the call it
+says it makes. That single missing edge is the source of the largest seam on this page.</p>
+<h2 id="trace-gsdexecute-phase-end-to-end">Trace: <code>/gsd:execute-phase</code>, end to end<a class="headerlink" href="#trace-gsdexecute-phase-end-to-end" title="Permanent link">&para;</a></h2>
+<h3 id="hop-1-the-registered-surface-is-a-manifest-not-a-program">Hop 1 — the registered surface is a manifest, not a program<a class="headerlink" href="#hop-1-the-registered-surface-is-a-manifest-not-a-program" title="Permanent link">&para;</a></h3>
+<p><code>commands/gsd/execute-phase.md</code> is 2,940 bytes. Its generated twin
+<code>skills/gsd-execute-phase/SKILL.md</code> is 2,900. Together they carry the frontmatter
+contract (<a href="../skills/">Skills</a>), the tool grant, and a <code>&lt;process&gt;</code> block whose
+only per-command content is the parenthesised gate list — "wave execution, checkpoint
+handling, verification, state updates, routing."</p>
+<p>What they pull in: <code>gsd-core/workflows/execute-phase.md</code> at 92,326 bytes / 1,532 lines,
+plus 11 step files under <code>gsd-core/workflows/execute-phase/steps/</code> totalling 95,590
+bytes. The corpus behind the dispatcher is 187,916 bytes — a ratio of roughly <strong>1:64</strong>
+against the 2,940-byte artifact the host actually registers.</p>
+<div class="admonition note">
+<p class="admonition-title">What this means for a builder</p>
+<p>Everything machine-visible about a 183 KiB program lives in 2,940 bytes: the tool
+grant, the description a router matches against, and a prose list of gate names.
+That is a deliberate trade — the host's context cost is the manifest, not the
+program — but it means the registered surface cannot be used to reason about, lint
+or type-check what the command does.</p>
+</div>
+<h3 id="hop-2-the-include-what-skills-calls-the-only-operator">Hop 2 — the <code>@</code>-include, what <a href="../skills/">Skills</a> calls the only operator<a class="headerlink" href="#hop-2-the-include-what-skills-calls-the-only-operator" title="Permanent link">&para;</a></h3>
+<p><code>@</code>-references are how the procedure arrives. Across <code>gsd-core/**</code>, a grep for
+<code>@[prefix]gsd-core/&lt;path&gt;</code> returns 147 matches in four spellings: 78 anchored
+<code>@~/.claude/gsd-core/…</code>, 6 <code>@$HOME/.claude/…</code>, 1 <code>@./.claude/…</code>, and <strong>62 bare
+<code>@gsd-core/…</code></strong>. <code>execute-phase.md</code> alone carries 18 of them — 12 anchored, 6 bare.</p>
+<p>The step files are not loaded up front. <code>execute-phase.md:644</code> reaches
+<code>gsd-core/references/loop-hook-dispatch.md</code> only when a wave is about to start;
+<code>:967</code> reaches <code>steps/post-merge-gate.md</code> only after a merge. The read-depth budget
+described in <a href="../files/">Files &amp; State</a> is enforced here by the shape of the
+include graph, not by a checker.</p>
+<h3 id="hop-3-into-the-cli">Hop 3 — into the CLI<a class="headerlink" href="#hop-3-into-the-cli" title="Permanent link">&para;</a></h3>
+<p>The workflow's calls all go through a <code>gsd_run</code> shell function that lands in
+<code>gsd-core/bin/gsd-tools.cjs</code>. Two normalisations happen before anything dispatches:</p>
+<ul>
+<li><strong><code>gsd-tools.cjs:4204</code></strong> strips <code>query</code> as a meta-prefix, so
+  <code>gsd_run query phase-plan-index</code> and <code>gsd_run phase-plan-index</code> are the same call.</li>
+<li><strong><code>gsd-tools.cjs:4218</code></strong> splits a dotted canonical form on the <strong>first dot only</strong>
+  (<code>state.update</code> → <code>state</code> + <code>update</code>), guarding that head and remainder are both
+  non-empty so <code>.hidden</code> and a bare <code>.</code> are rejected (#3243).</li>
+</ul>
+<p>Dispatch is table-driven. <code>HOST_COMMAND_ROUTERS</code> is declared at <code>:3665</code>; its <code>init</code> entry
+at <code>:3678</code> wraps a best-effort stale-bake warning around <code>routeInitCommand</code> inside a
+<code>try/catch</code> whose comment reads <em>"guard must never break init"</em>.
+<code>dispatchHostCommand</code> at <code>:3784</code> rejects <code>__proto__</code>, <code>constructor</code> and <code>prototype</code> as
+command keys and uses <code>Object.prototype.hasOwnProperty</code> for the lookup — a prototype-
+pollution guard on a string that came from a model-authored shell line.</p>
+<p>From there: <code>src/init-command-router.cts:79</code> holds the <code>'execute-phase'</code> handler, which
+runs <code>parseNamedArgs</code> over <code>validate</code> / <code>tdd</code> / <code>wave</code> and calls
+<code>src/init.cts:854</code> <code>cmdInitExecutePhase</code>.</p>
+<p>That dot-split at <code>:4218</code> also explains a harmless oddity: <code>execute-phase.md</code> spells the
+same command two ways, 946 lines apart — <code>gsd_run query verification status</code> at <code>:352</code>
+and <code>gsd_run query verification.status</code> at <code>:1298</code>. The normaliser absorbs it, which is
+why the divergence has neither a consequence nor any pressure to converge.</p>
+<h3 id="hop-4-the-scheduling-already-happened">Hop 4 — the scheduling already happened<a class="headerlink" href="#hop-4-the-scheduling-already-happened" title="Permanent link">&para;</a></h3>
+<p>This is the hop that changes how you read the whole system.</p>
+<p><code>gsd-core/workflows/execute-phase.md:12-14</code> opens with a <code>&lt;core_principle&gt;</code> block:</p>
+<blockquote>
+<p>Orchestrator: discover plans → analyze deps → group waves → spawn agents → handle
+checkpoints → collect results.</p>
+</blockquote>
+<p>Read that and you conclude the model analyses dependencies and groups waves. It does not.
+By the time the model has a plan list, <code>src/phase.cts:681</code> <code>cmdPhasePlanIndex</code> has already
+returned a finished <code>waves</code> map computed by <code>src/phase.cts:629</code> <code>computeDependencyLevels</code>
+— Kahn's algorithm with longest-path levelling, O(V+E), using a head index rather than
+<code>Array.shift()</code> to dequeue (cited to #307).</p>
+<p>Three details make it a hard boundary rather than a hint:</p>
+<ul>
+<li>A <code>depends_on</code> cycle is a fail-loud <code>error()</code> at <code>src/phase.cts:861</code>, naming the cycle
+  members. Not a warning, not a best-effort order.</li>
+<li>The planner's own declared <code>wave:</code> frontmatter is <strong>demoted</strong>. <code>src/phase.cts:908</code> sets
+  <code>effectiveWave = computedWave</code> unconditionally; a disagreement only pushes a string
+  onto <code>warnings</code> at <code>:911</code>.</li>
+<li><code>src/phase.cts:883</code> picks 0- or 1-based wave numbering (<code>levelOffset</code>) depending on
+  whether any plan declared wave 0 — a presentation decision also taken in code.</li>
+</ul>
+<p>So one artifact field (<code>wave:</code> in <code>PLAN.md</code> frontmatter) is authored by an agent and
+overridden by a graph algorithm — and the override is reported through a channel the
+consumer does not read. <code>execute-phase.md:337</code> enumerates exactly what to parse out of
+<code>phase-plan-index</code>: <code>phase</code>, <code>plans[]</code>, <code>waves</code>, <code>incomplete</code>, <code>runnable</code>,
+<code>has_checkpoints</code>. <code>warnings</code> is not in that list. The workflow <em>does</em> know how to handle
+a <code>warnings</code> array — it extracts and displays one at <code>:1416-1422</code>, from <code>phase.complete</code>'s
+result. So the mechanism exists; it is simply not wired to this producer, and a planner
+whose declared wave was overruled is told so by nobody.</p>
+<h3 id="hop-5-what-the-model-actually-decides">Hop 5 — what the model actually decides<a class="headerlink" href="#hop-5-what-the-model-actually-decides" title="Permanent link">&para;</a></h3>
+<p>The model's real scheduling authority in this command is one veto.
+<code>execute-phase.md:575</code> requires an intra-wave <code>files_modified</code> overlap check <em>before</em>
+spawning, with pseudocode at <code>:583-591</code>. If two plans in a wave touch the same file, the
+wave serialises. And the instruction attributes the fault upstream (<code>:604</code>):</p>
+<blockquote>
+<p>The planner should have caught this; flag it as a planning defect so the user can
+replan the phase if desired.</p>
+</blockquote>
+<p>The veto is prose-only. Nothing verifies the check ran. Contrast it with hop 4: the
+dependency ordering is a total function over typed input; the file-overlap ordering is a
+sentence. Both produce the same kind of decision — "these two plans must not run
+together" — and they sit at opposite ends of the enforcement ladder on
+<a href="../build-your-own/">Build Your Own</a>.</p>
+<h3 id="hop-6-rendering-the-loop-point">Hop 6 — rendering the loop point<a class="headerlink" href="#hop-6-rendering-the-loop-point" title="Permanent link">&para;</a></h3>
+<p><code>execute-phase.md:644</code> renders the extension surface:</p>
+<div class="highlight"><pre><span></span><code><span class="nv">WAVE_PRE_HOOKS_JSON</span><span class="o">=</span><span class="k">$(</span>gsd_run<span class="w"> </span>loop<span class="w"> </span>render-hooks<span class="w"> </span>execute:wave:pre<span class="w"> </span>--raw<span class="k">)</span>
+</code></pre></div>
+<p>which reaches <code>cmdLoopRenderHooks</code> in <code>src/loop-resolver.cts</code> (<code>:478</code>). The resolver
+derives its canonical point list from <code>LOOP_HOST_CONTRACT</code> at require time — but it also
+keeps a hardcoded fallback copy of all twelve point strings (<code>src/loop-resolver.cts:70-82</code>),
+returned whenever the require throws or the contract yields zero points (<code>:69</code>). The
+vocabulary <em>can</em> drift, and two further hardcoded copies live at
+<code>gsd-core/bin/lib/capability-validator.cjs:28-40</code> and <code>scripts/registry-schema.cjs:66</code>.
+Derivation with a silent fallback is weaker than derivation alone.</p>
+<p>A census over all 46 manifests (a Node script summing <code>steps</code>, <code>gates</code> and
+<code>contributions</code> per point) gives 37 attachments. Their error posture is the interesting
+column:</p>
+<table>
+<thead>
+<tr>
+<th><code>onError</code></th>
+<th>Count</th>
+<th>Effect</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>skip</code></td>
+<td>29</td>
+<td>The attachment's own error is absorbed; loop continues</td>
+</tr>
+<tr>
+<td><code>halt</code></td>
+<td>7</td>
+<td>The attachment's own error stops the loop</td>
+</tr>
+<tr>
+<td>absent</td>
+<td>1</td>
+<td><code>security</code>'s contribution at <code>plan:pre</code></td>
+</tr>
+</tbody>
+</table>
+<p>Read the column precisely. <code>gsd-core/references/loop-hook-dispatch.md:92</code> defines
+<code>onError</code> as what to do <em>"if the check itself errors"</em> — <code>skip</code> means treat as
+non-blocking and continue. It is not the same field as a gate's <code>blocking</code>, which governs
+what happens when a check runs successfully and returns a failing verdict. So this table
+is about crash posture, not about where the loop can be stopped on the merits.</p>
+<p>The absence is schema-legal, not a defect: <code>gsd-core/bin/lib/capability-validator.cjs</code>
+requires <code>onError</code> on steps (<code>:2738</code>) and gates (<code>:2818</code>) but treats it as optional on
+contributions (<code>:2778</code>). The seven halting attachments are <code>ui@plan:pre</code>,
+<code>ui@execute:wave:post</code>, <code>ai-integration@verify:pre</code>, <code>nyquist@verify:post</code>,
+<code>security@verify:post</code>, <code>broken-windows@ship:pre</code> and <code>security@ship:pre</code> — five distinct
+points, all of them either pre-planning or post-execution quality gates. Everywhere else,
+a first-party capability that blows up is absorbed. The default posture of the extension
+system is <strong>degrade, don't block</strong>, and that is a load-bearing choice: a plugin surface
+whose failure mode is "stop the user's build" gets disabled, and a disabled extension
+point is a dead one.</p>
+<h3 id="hop-7-dispatch-and-the-one-edge-with-teeth">Hop 7 — dispatch, and the one edge with teeth<a class="headerlink" href="#hop-7-dispatch-and-the-one-edge-with-teeth" title="Permanent link">&para;</a></h3>
+<p>The workflow spawns executors with <code>Agent(subagent_type="{EXECUTOR_TYPE}")</code>. That call is
+intercepted before it runs. <code>hooks/gsd-agent-isolation-guard.js</code> is registered on <strong>both</strong>
+host surfaces — <code>hooks/hooks.json:31-36</code> with matcher <code>Agent|Task</code>, and
+<code>src/runtime-hooks-surface.cts:2028-2050</code> with the same matcher, widened from <code>Agent</code>-only
+per #3045. Dual registration is the norm rather than the exception: 9 of the 10 scripts
+<code>hooks/hooks.json</code> references also appear in <code>src/runtime-hooks-surface.cts</code> — the same
+figure <a href="../runtime/hooks/">The hook system</a> reports independently. The isolation guard is
+not unusual for being dual-registered; eight other scripts share the property, which is why
+it reads as a defect class rather than a one-off.</p>
+<p>The guard's input is the part worth stealing. It <em>does</em> parse the model's <code>Agent()</code>
+arguments — <code>:421</code> reads <code>data.tool_input</code>, <code>:422</code> reads <code>subagent_type</code>, <code>:465</code> tests for
+the isolation kwarg — but it does not <em>trust</em> them to carry the isolation decision. It also
+reads <code>.gsd/dispatch-isolation-sentinel.json</code>, which
+<code>hooks/lib/isolation-sentinel.js:20</code> documents as written <em>"as an unconditional side
+effect of resolving"</em> the <code>dispatch-isolation</code> query itself. The workflow computed the
+isolation decision in shell; the sentinel carries that value to the enforcement point
+<strong>without passing through the model.</strong> A dropped flag in a model-authored dispatch cannot
+launder a worktree-less execution past the guard, because the guard is not reading the
+dispatch.</p>
+<p>The module also states its residual risk out loud at <code>:37</code>: an already-isolated agent can
+write a fabricated fresh <code>{isolation:"none"}</code> sentinel into the primary checkout. That is
+documented as accepted, not designed away.</p>
+<h3 id="hop-8-the-completion-oracle-refuses-the-agents-word">Hop 8 — the completion oracle refuses the agent's word<a class="headerlink" href="#hop-8-the-completion-oracle-refuses-the-agents-word" title="Permanent link">&para;</a></h3>
+<p><code>execute-phase.md:967-969</code> explains why:</p>
+<blockquote>
+<p>This addresses the Generator self-evaluation blind spot identified in Anthropic's
+harness engineering research: agents reliably report Self-Check: PASSED even when
+merging their work creates failures.</p>
+</blockquote>
+<p>So completion is inferred, not received. The oracle at <code>:1061-1064</code> is three independent
+observable checks per <code>SUMMARY.md</code>: the first two files listed under <code>key-files.created</code>
+must exist on disk; <code>git log --oneline --all --grep="{phase}-{plan}"</code> must return at least
+one commit; and no <code>## Self-Check: FAILED</code> marker may be present.</p>
+<p><a href="../agents/orchestration/">Orchestration patterns</a> documents the resulting oddity from
+the agent side — <code>agents/gsd-executor.md</code> declares a <code>## PLAN COMPLETE</code> sentinel that the
+orchestrator deliberately never matches, and <code>gsd-core/references/agent-contracts.md</code>
+labels that mismatch <em>intentional behavior, not a mismatch</em>. What that page does not say,
+and this trace adds, is that the same command distrusts the executor at <strong>both</strong> ends: its
+scheduling was taken away in code at hop 4, and its self-report is discarded here.</p>
+<h3 id="hop-9-a-three-valued-gate-written-in-prose">Hop 9 — a three-valued gate, written in prose<a class="headerlink" href="#hop-9-a-three-valued-gate-written-in-prose" title="Permanent link">&para;</a></h3>
+<p><code>execute-phase.md:977-999</code> guards the tracking writes on the post-merge test result, and
+distinguishes three outcomes rather than two:</p>
+<div class="highlight"><pre><span></span><code><span class="k">if</span><span class="w"> </span><span class="o">[</span><span class="w"> </span><span class="s2">"</span><span class="si">${</span><span class="nv">TEST_EXIT</span><span class="si">}</span><span class="s2">"</span><span class="w"> </span>-eq<span class="w"> </span><span class="m">0</span><span class="w"> </span><span class="o">]</span><span class="p">;</span><span class="w"> </span><span class="k">then</span>
+<span class="w">  </span><span class="c1"># roadmap.update-plan-progress ... complete</span>
+<span class="k">elif</span><span class="w"> </span><span class="o">[</span><span class="w"> </span><span class="s2">"</span><span class="si">${</span><span class="nv">TEST_EXIT</span><span class="si">}</span><span class="s2">"</span><span class="w"> </span>-eq<span class="w"> </span><span class="m">124</span><span class="w"> </span><span class="o">]</span><span class="p">;</span><span class="w"> </span><span class="k">then</span>
+<span class="w">  </span><span class="nb">echo</span><span class="w"> </span><span class="s2">"⚠ Skipping tracking update — test suite timed out. Plans remain in-progress."</span>
+<span class="k">else</span>
+<span class="w">  </span><span class="nb">echo</span><span class="w"> </span><span class="s2">"⚠ Skipping tracking update — post-merge tests failed (exit </span><span class="si">${</span><span class="nv">TEST_EXIT</span><span class="si">}</span><span class="s2">)."</span>
+<span class="k">fi</span>
+</code></pre></div>
+<p>Exit 124 — timeout — is neither pass nor fail. It is <em>inconclusive</em>, and inconclusive must
+not advance state.</p>
+<p>This is the prompt-layer twin of the code-layer discipline that
+<a href="../files/dataflow/">State machinery</a> documents under "A zero that is not an answer":
+<code>src/planning-scope.cts</code>'s frozen four-value enum exists so that <code>COMPLETE</code> with zero
+items and <code>UNREADABLE</code> with zero items cannot be confused. Same insight, applied at two
+strata, with two enforcement strengths — one is a frozen type every read-path module
+returns, the other is a shell conditional inside a markdown file that nothing verifies
+was executed. Noticing that the same idea appears in both places, at very different
+prices, is the single most useful thing this trace produces.</p>
+<h3 id="hop-10-the-terminal-transition-which-fails-closed">Hop 10 — the terminal transition, which fails closed<a class="headerlink" href="#hop-10-the-terminal-transition-which-fails-closed" title="Permanent link">&para;</a></h3>
+<p><code>src/phase.cts:2162</code> <code>cmdPhaseComplete</code> carries a plan-coverage gate at <code>:2243-2318</code> whose
+comment is an incident report:</p>
+<blockquote>
+<p><code>phase.complete</code> used to gate ONLY on a single <code>*-VERIFICATION.md</code> status, so a phase
+could close "complete" while an arbitrary number of its plans […] had no completion
+record (a confirmed production incident closed a phase with 6/30 plans unexecuted,
+including its entire final UI scope, with every tool-reported signal green).</p>
+</blockquote>
+<p>The gate now refuses completion when any plan lacks a matching <code>*-SUMMARY.md</code>, exempting
+only plans retired via machine-readable <code>status: superseded</code> frontmatter (#2349), and it
+surfaces the superseded count in the error so the bypass stays visible rather than silent.
+Two ordering decisions in the same block are worth copying:</p>
+<ul>
+<li>It runs <strong>before</strong> the verification-gate transaction, so a coverage refusal fails fast
+  without mutating <code>ROADMAP.md</code> or <code>STATE.md</code>.</li>
+<li>An unreadable phase directory is itself a refusal. <code>scanPhasePlans</code> swallows
+  <code>readdirSync</code> errors and returns an empty set, which is indistinguishable from an empty
+  phase — so the gate treats it as a failure. The message at <code>src/phase.cts:2282</code> states
+  the principle: <em>"a coverage gate that passes when it cannot read the plans is no gate at
+  all."</em></li>
+</ul>
+<p>The same function also demonstrates a small naming discipline. It emits both
+<code>warnings: string[]</code> and <code>preservation_warnings: {field, reason}[]</code> rather than merging
+them, and the comment at <code>:2228-2237</code> names why: reusing one field name for two element
+types is the <em>"Generative Fix Divergence"</em> anti-pattern. One command, two shapes, two
+names, stated reason.</p>
+<p>Control then reaches <code>execute-phase.md:1496</code> <code>delegate_post_completion_to_transition</code>,
+which <code>@</code>-includes <code>transition.md</code> in post-completion mode and explicitly skips its
+<code>verify_completion</code> and <code>update_roadmap_and_state</code> steps, because re-running
+<code>phase.complete</code> would double-write state (#1526).</p>
+<h3 id="the-trace-in-one-table">The trace in one table<a class="headerlink" href="#the-trace-in-one-table" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Hop</th>
+<th>Artifact</th>
+<th>Kind</th>
+<th>Decided by</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td><code>commands/gsd/execute-phase.md</code> → <code>skills/gsd-execute-phase/SKILL.md</code></td>
+<td>Authored + generated prompt</td>
+<td>Host registration</td>
+</tr>
+<tr>
+<td>2</td>
+<td><code>gsd-core/workflows/execute-phase.md</code> + 11 step files</td>
+<td>Procedure</td>
+<td>Model, lazily</td>
+</tr>
+<tr>
+<td>3</td>
+<td><code>gsd-core/bin/gsd-tools.cjs</code> → <code>src/init-command-router.cts</code> → <code>src/init.cts</code></td>
+<td>Runtime dispatch</td>
+<td>Code</td>
+</tr>
+<tr>
+<td>4</td>
+<td><code>src/phase.cts</code> <code>computeDependencyLevels</code> / <code>cmdPhasePlanIndex</code></td>
+<td>Runtime</td>
+<td>Code (planner's <code>wave:</code> overridden)</td>
+</tr>
+<tr>
+<td>5</td>
+<td><code>execute-phase.md:575</code> <code>files_modified</code> overlap</td>
+<td>Procedure</td>
+<td>Model, unverified</td>
+</tr>
+<tr>
+<td>6</td>
+<td><code>gsd_run loop render-hooks execute:wave:pre</code> → <code>src/loop-resolver.cts</code></td>
+<td>Extension surface</td>
+<td>Code + capability manifests</td>
+</tr>
+<tr>
+<td>7</td>
+<td><code>hooks/gsd-agent-isolation-guard.js</code> + <code>.gsd/dispatch-isolation-sentinel.json</code></td>
+<td>Hook</td>
+<td>Code, on persisted shell state</td>
+</tr>
+<tr>
+<td>8</td>
+<td><code>execute-phase.md:1061-1064</code></td>
+<td>Procedure</td>
+<td>Model reading git + disk</td>
+</tr>
+<tr>
+<td>9</td>
+<td><code>execute-phase.md:977-999</code></td>
+<td>Procedure</td>
+<td>Model reading <code>TEST_EXIT</code></td>
+</tr>
+<tr>
+<td>10</td>
+<td><code>src/phase.cts:2162</code> <code>cmdPhaseComplete</code></td>
+<td>Runtime</td>
+<td>Code, fail-closed</td>
+</tr>
+</tbody>
+</table>
+<p>Seven artifact kinds, three enforcement strengths, one command.</p>
+<h2 id="the-principles-the-architecture-embodies">The principles the architecture embodies<a class="headerlink" href="#the-principles-the-architecture-embodies" title="Permanent link">&para;</a></h2>
+<p><strong>1. Predicates are code; the substance they gate is prose.</strong> This is
+<a href="../runtime/">Runtime</a>'s central argument, and the trace confirms it hop after hop:
+the <em>mechanics</em> of ordering, dispatch, isolation and completion are compiled; <em>what to
+build</em> and <em>whether it is any good</em> never are.</p>
+<div class="admonition note">
+<p class="admonition-title">A judgement this page owes the reader</p>
+<p><a href="../runtime/">Runtime</a> enumerates five things that got real code — parsing,
+state transitions, concurrency, portability, trust. Wave scheduling
+(<code>src/phase.cts:629</code>) does not sit cleanly in any of them. It is not a
+position-in-workflow transition; it is an ordering computation over a graph. My call
+is that it does <strong>not</strong> earn a sixth category, because all five are already instances
+of one rule — <em>anything whose answer must be identical on two runs is code</em> — and a
+topological level is a fact about the DAG, not a judgement about the work. That is
+exactly why it can override the planner's declared <code>wave:</code> at <code>:908</code> and demote the
+disagreement to a warning at <code>:911</code>. If you are drawing this line in your own
+framework, apply the rule, not the list.</p>
+</div>
+<p><strong>2. Distrust the producer's report; observe the artifact.</strong> The completion oracle reads
+git and the filesystem instead of the agent's return channel (hop 8). The consent system
+recomputes a bundle hash instead of trusting a ledger's own integrity field
+(<a href="../capabilities/">Capabilities</a>). Same move, different layer.</p>
+<p><strong>3. "I could not see" is not "there is nothing there."</strong> <code>src/planning-scope.cts</code>'s
+<code>UNREADABLE</code>, <code>cmdPhaseComplete</code>'s unreadable-directory refusal, and the <code>TEST_EXIT=124</code>
+branch are three expressions of one rule: distinguish an absent answer from a negative
+one, and never let the absent one advance state.</p>
+<p><strong>4. Carry decisions in state, not in arguments, when a model sits in between.</strong> The
+isolation sentinel (hop 7) is the cleanest instance. If enforcement must survive a model
+that forgot a flag, the enforcement point cannot read the flag.</p>
+<p><strong>5. Declare the whole extension surface before you have extensions.</strong> All twelve loop
+points exist from the start because you cannot renumber a point third parties have bound
+to. <a href="../loop/">The Loop</a> makes the case; the next section is the bill.</p>
+<p><strong>6. When one fact has two representations, generate the second and check it in CI.</strong> 71
+skills from 71 commands; the loop contract from workflow markers;
+<code>src/loop-resolver.cts</code>'s point list derived at require time. Every place the repo does
+this, the two copies agree. Most of the drift catalogued below sits where it did not.</p>
+<h2 id="where-the-seams-are">Where the seams are<a class="headerlink" href="#where-the-seams-are" title="Permanent link">&para;</a></h2>
+<p>None of these is fatal, and each is the visible cost of a decision made deliberately
+elsewhere.</p>
+<h3 id="executepre-validates-installs-materialises-and-never-fires"><code>execute:pre</code> validates, installs, materialises, and never fires<a class="headerlink" href="#executepre-validates-installs-materialises-and-never-fires" title="Permanent link">&para;</a></h3>
+<p><code>execute:pre</code> is one of the canonical twelve in
+<code>gsd-core/bin/lib/loop-host-contract.cjs:51</code>. It is in the validator's accepted set
+(<code>gsd-core/bin/lib/capability-validator.cjs:33</code>). It ships as an empty bucket in the
+generated registry (<code>gsd-core/bin/lib/capability-registry.cjs:4358</code>).
+<code>tests/capability-registry.test.cjs:994</code> asserts that a step declared at <code>execute:pre</code>
+consuming <code>PLAN.md</code> is <strong>accepted</strong>.</p>
+<p>But <code>grep -l '"execute:pre"' capabilities/*/capability.json</code> returns 0 files, and
+<code>grep -rl 'render-hooks execute:pre ' gsd-core/workflows/</code> returns 0 files. So no
+first-party capability binds it, and no workflow in the shipped corpus renders it. A
+third-party capability declaring a step there would validate, install, obtain consent,
+materialise into <code>byLoopPoint</code> — and, against the shipped corpus, never be rendered.</p>
+<p>I searched <code>gsd-core/bin/lib/</code>, <code>scripts/</code> and <code>src/</code> for a warning about a declared point
+with no renderer and found none; the "declared but not rendered" messages that grep did
+surface, <code>src/loop-resolver.cts:385</code> and <code>:393</code>, are about a <em>fragment path</em>, not a point.
+That is a negative result from one grep, not a proof, but it is the state of the tree as I
+read it. The cheap mitigation for a pre-declared surface is a build-time warning when a
+declared point has no renderer.</p>
+<h3 id="point-ownership-is-enforced-point-rendering-is-not-scoped">Point <em>ownership</em> is enforced; point <em>rendering</em> is not scoped<a class="headerlink" href="#point-ownership-is-enforced-point-rendering-is-not-scoped" title="Permanent link">&para;</a></h3>
+<p>The loop-host marker assigns each point to exactly one step, and
+<code>scripts/gen-loop-host-contract.cjs</code> asserts that ownership. Nothing constrains which
+workflow may call <code>loop render-hooks &lt;point&gt;</code>. Counting files under
+<code>gsd-core/workflows/</code> that contain a render site (<code>grep -rl</code>, with total occurrences in
+parentheses where they differ):</p>
+<table>
+<thead>
+<tr>
+<th>Point</th>
+<th>Files rendering it</th>
+<th>Attachments bound to it</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>discuss:pre</code> / <code>discuss:post</code></td>
+<td>1 / 1</td>
+<td>1 / 1</td>
+</tr>
+<tr>
+<td><code>plan:pre</code></td>
+<td>1 (3 sites)</td>
+<td>13</td>
+</tr>
+<tr>
+<td><code>plan:post</code></td>
+<td>1</td>
+<td>4</td>
+</tr>
+<tr>
+<td><code>execute:pre</code></td>
+<td><strong>0</strong></td>
+<td><strong>0</strong></td>
+</tr>
+<tr>
+<td><code>execute:wave:pre</code></td>
+<td>1</td>
+<td>1</td>
+</tr>
+<tr>
+<td><code>execute:wave:post</code></td>
+<td>1</td>
+<td>6</td>
+</tr>
+<tr>
+<td><code>execute:post</code></td>
+<td>5 (7 sites)</td>
+<td>3</td>
+</tr>
+<tr>
+<td><code>verify:pre</code></td>
+<td>1</td>
+<td>1</td>
+</tr>
+<tr>
+<td><code>verify:post</code></td>
+<td><strong>6</strong></td>
+<td>4</td>
+</tr>
+<tr>
+<td><code>ship:pre</code> / <code>ship:post</code></td>
+<td>1 / 1</td>
+<td>2 / 1</td>
+</tr>
+</tbody>
+</table>
+<p>Two readings. First, the busiest attachment site is not the busiest render site:
+<code>plan:pre</code> carries 13 of 37 attachments from a single rendering file, while <code>verify:post</code>
+carries 4 attachments and is rendered from six. Second, <code>execute-phase.md:1170</code> renders
+<code>verify:post</code> from inside its own <code>aggregate_results</code> step — a workflow rendering a point
+it does not own. A capability author reasoning from the contract will predict one
+invocation and can get up to six, in steps they have never read.</p>
+<h3 id="the-wf-cli-edge-has-no-linter">The <code>WF → CLI</code> edge has no linter<a class="headerlink" href="#the-wf-cli-edge-has-no-linter" title="Permanent link">&para;</a></h3>
+<p><code>node scripts/lint-command-contract.cjs</code> reports <code>71 command files checked, 0 violations</code>
+and <code>152 workflow files, 152 reachable, 0 unreachable</code>. Genuinely clean. But what it
+checks is reachability and <code>@</code>-ref shape, not execution.</p>
+<p>Across <code>execute-phase.md</code> and its 11 step files there are <strong>76 <code>gsd_run</code> call sites</strong>, in
+<strong>28 distinct <code>gsd_run query &lt;sub&gt;</code> forms</strong> — 16 of them <code>config-get</code> alone. Each is a
+round-trip the model can simply not make. No linter, hook or test proves that any of them
+happened. This is the same gap as hop 5's unverified <code>files_modified</code> veto, and it is the
+structural reason the runtime keeps taking work <em>away</em> from the prompt layer (hops 4, 7
+and 10): the only reliable way to know a check ran is to run it in code.</p>
+<h3 id="two-include-spellings-one-rewriter">Two <code>@</code>-include spellings, one rewriter<a class="headerlink" href="#two-include-spellings-one-rewriter" title="Permanent link">&para;</a></h3>
+<p>Of the 147 <code>@gsd-core/…</code> references under <code>gsd-core/**</code>, 62 are the bare form. The
+installer's <code>_applyRuntimeRewrites</code> in <code>src/runtime-artifact-conversion.cts</code> rewrites only
+<em>anchored</em> prefixes — <code>~/.claude/</code>, <code>$HOME/.claude/</code>, <code>./.claude/</code> and the per-runtime
+homes — so bare references are not matched by that rewrite and pass through verbatim into
+the installed tree.
+<code>execute-phase.md</code> uses both spellings, 12 anchored and 6 bare.</p>
+<p>I did not verify how a bare <code>@gsd-core/…</code> resolves at read time on any host, so this is
+stated as an unverified seam, not a defect. On disk today it is clean: stripping trailing
+sentence punctuation, every distinct target resolves against the repo layout except a
+documentation placeholder (<code>@gsd-core/workflows/foo.md</code>, an example inside
+<code>gsd-tools.cjs:2682</code>) and one prose mention of <code>gsd-core/cli</code>. Nothing lints <code>@</code>-refs
+inside <code>gsd-core/**</code> at all — <code>lint-command-contract</code>'s Rules 4 and 5 scan only
+<code>commands/gsd/*.md</code> (<code>COMMANDS_DIR</code> at <code>:35</code>, globbed at <code>:146</code>). The surface happens to be
+clean, which is exactly why the gap is easy to miss.</p>
+<h3 id="the-one-progressive-disclosure-tree-the-reachability-linter-cannot-see">The one progressive-disclosure tree the reachability linter cannot see<a class="headerlink" href="#the-one-progressive-disclosure-tree-the-reachability-linter-cannot-see" title="Permanent link">&para;</a></h3>
+<p>Rule 6's reachability set is <code>gsd-core/workflows/**</code> only, and the resolver it uses,
+<code>workflowPathRefs</code> (<code>scripts/command-contract-helpers.cjs:98</code>), matches only paths
+containing <code>workflows/</code> or <code>&lt;x&gt;/(steps|modes|templates)/…</code>. <code>references/</code> is invisible to
+it <strong>by construction</strong>.</p>
+<p>Consequence: of the 106 <code>.md</code> files under <code>gsd-core/references/</code>, seven have their
+filename appear in no markdown under <code>commands/</code>, <code>agents/</code>, <code>skills/</code> or <code>gsd-core/**</code> —
+<code>api-coverage.md</code>, <code>artifact-types.md</code>, <code>decimal-phase-calculation.md</code>,
+<code>git-planning-commit.md</code>, <code>offer-next.md</code>, <code>planner-graphify-auto-update.md</code>,
+<code>planner-human-verify-mode.md</code>. Their filenames appear in no markdown under <code>commands/</code>,
+<code>agents/</code>, <code>skills/</code> or <code>gsd-core/**</code> — shipped with the install, byte-checked by install
+parity, named by no prompt. (They are not invisible everywhere: <code>docs/INVENTORY.md</code>,
+<code>docs/ARCHITECTURE.md</code> and several tests do name them.)</p>
+<p><code>artifact-types.md</code> is among them — the file whose own opening line supplies the thesis
+this site uses to judge everything else, that a well-formatted artifact no workflow reads
+is inert.</p>
+<h3 id="descriptors-and-adrs-that-describe-an-older-wiring">Descriptors and ADRs that describe an older wiring<a class="headerlink" href="#descriptors-and-adrs-that-describe-an-older-wiring" title="Permanent link">&para;</a></h3>
+<p><code>docs/adr/1143-claude-orchestration-capability.md:114-118</code> states that the capability
+registers at <code>execute:wave:post into:executor</code> and that <em>"<code>execute:wave:pre</code> and
+<code>execute:pre</code> are declared in the contract but not wired today."</em> The shipped
+<code>capabilities/claude-orchestration/capability.json</code> declares contributions at
+<code>execute:wave:pre</code> (<code>:59</code>) and <code>plan:post</code> (<code>:72</code>) — not <code>wave:post</code> — and
+<code>execute-phase.md:644</code> renders <code>execute:wave:pre</code>. Only the <code>execute:pre</code> half of the
+ADR's claim still holds.</p>
+<p>The same stale belief also lives in a <strong>shipped descriptor</strong>, not just in docs:
+<code>capabilities/external-job/capability.json</code> explains in-manifest that it registers at
+<code>execute:wave:post</code> because <em>"<code>wave:pre</code> is declared in the loop host contract but not
+rendered."</em> That justification no longer describes the tree. Documentation drift in
+<code>docs/</code> is this site's standing assumption; drift inside a capability manifest that ships
+to users is a step further, because it is the artifact a third-party author copies.</p>
+<h3 id="a-vocabulary-the-type-system-does-not-know-about">A vocabulary the type system does not know about<a class="headerlink" href="#a-vocabulary-the-type-system-does-not-know-about" title="Permanent link">&para;</a></h3>
+<p><code>src/host-integration.cts:47</code> freezes <code>subagentToolkit</code>'s vocabulary as
+<code>['full', 'read-only', 'built-in-only']</code>. The TypeScript type at <code>:88</code> is
+<code>'full' | 'read-only'</code>. <code>capabilities/kimi-code/capability.json</code> ships
+<code>"subagentToolkit": "built-in-only"</code>.</p>
+<p>No code branches on the third value: negotiation collapses anything <code>!== 'full'</code> to
+<code>read-only</code>, <code>canNest</code> does the same, and <code>resolveDispatchType</code> keys on
+<code>namedDispatch === false</code> instead. So the drift is narrow and I traced no runtime
+consequence — but it is the <em>inverse</em> of the pattern <a href="../skills/">Skills</a> praises
+elsewhere in this codebase, where union literals are mirrored as frozen objects precisely
+because the type erases at runtime. Here the frozen object is richer than the type, and
+the type is the thing a new call site will be checked against.</p>
+<h3 id="what-the-seams-have-in-common">What the seams have in common<a class="headerlink" href="#what-the-seams-have-in-common" title="Permanent link">&para;</a></h3>
+<p>Five of the seven are the same shape: <strong>a fact represented twice, where only one copy is
+checked.</strong> A point declared in a contract and rendered in a workflow. A wave declared in
+frontmatter and computed in a DAG. A capability's registration point in an ADR, in a
+manifest and in a workflow. An include spelled two ways with a rewriter that knows one. A
+vocabulary frozen at runtime and narrowed in the type system.</p>
+<p>The repo already knows the fix and applies it in the places that matter most — 71 skills
+generated from 71 commands, the loop contract generated from workflow markers,
+<code>src/loop-resolver.cts</code> deriving its point list rather than copying it. Each of those is
+guarded by a check rather than by discipline, and the guards pass on this tree —
+<code>node scripts/lint-command-contract.cjs</code> reports 0 violations across 71 command files and
+152 workflow files. The seams are the pairs where generation was not applied.</p>
+<h2 id="if-you-were-rebuilding-this">If you were rebuilding this<a class="headerlink" href="#if-you-were-rebuilding-this" title="Permanent link">&para;</a></h2>
+<p>Three things this trace argues for, in the order you would need them.</p>
+<p><strong>Make the enforcement strength of every rule explicit and visible.</strong> The trace crosses
+prose-only checks (hop 5), prose-with-observable-evidence (hop 8), hook interception (hop
+7) and compiled predicates (hops 4 and 10) without ever announcing which is which. A
+builder reading <code>execute-phase.md</code> top to bottom cannot tell the veto that is enforced
+from the veto that is merely written. Annotating that in the source — even as a comment
+convention — would cost nothing and would make the enforcement ladder legible from inside
+the artifact instead of only from a survey like this one.</p>
+<p><strong>Pre-declare your extension points, then add a renderless-point check the same day.</strong>
+<code>execute:pre</code> is what the good decision costs when the cheap guard is skipped: accepted,
+consented, registered, inert.</p>
+<p><strong>Generate the second copy of every fact, or expect it to drift.</strong> That is not a
+generalisation from theory — it is what the seven seams above have in common, and what
+the three generated surfaces conspicuously do not.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.tabs", "navigation.sections", "navigation.top", "content.code.copy", "toc.follow"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"provider": "mike"}}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.d7400e89.min.js"></script>
+      
+    
+  </body>
+</html>

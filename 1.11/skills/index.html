@@ -1,0 +1,2407 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="How GSD Core is built internally — and how to build a framework like it yourself.">
+      
+      
+      
+      
+        <link rel="prev" href="../files/dataflow/">
+      
+      
+        <link rel="next" href="catalogue/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
+    
+    
+      
+        <title>Overview - Understanding GSD Core</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.ec1eaa64.min.css">
+      
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#skills" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+      <div data-md-color-scheme="default" data-md-component="outdated" hidden>
+        
+      </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="Understanding GSD Core" class="md-header__button md-logo" aria-label="Understanding GSD Core" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Understanding GSD Core
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Overview
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href=".." class="md-tabs__link">
+        
+  
+  
+    
+  
+  Home
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../loop/" class="md-tabs__link">
+          
+  
+  
+  The Loop
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../files/" class="md-tabs__link">
+          
+  
+  
+  Files & State
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+    
+  
+  
+    
+    
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="./" class="md-tabs__link">
+          
+  
+  
+  Skills
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../agents/" class="md-tabs__link">
+          
+  
+  
+  Agents
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../runtime/" class="md-tabs__link">
+          
+  
+  
+  Runtime
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../capabilities/" class="md-tabs__link">
+          
+  
+  
+  Capabilities
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../architecture/" class="md-tabs__link">
+          
+  
+  
+  Architecture
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../build-your-own/" class="md-tabs__link">
+          
+  
+  
+  Build Your Own
+
+        </a>
+      </li>
+    
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="Understanding GSD Core" class="md-nav__button md-logo" aria-label="Understanding GSD Core" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    Understanding GSD Core
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    The Loop
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    The Loop
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../loop/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../loop/stages/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Stage internals
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Files & State
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Files & State
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../files/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../files/dataflow/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    State machinery
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Skills
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Skills
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#one-source-two-surfaces" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        One source, two surfaces
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#the-frontmatter-contract-field-by-field" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The frontmatter contract, field by field
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="The frontmatter contract, field by field">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#effort-is-stripped-for-a-cache-reason-not-a-cleanliness-reason" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        effort is stripped for a cache reason, not a cleanliness reason
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#requires-is-a-build-graph-not-runtime-state" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        requires is a build graph, not runtime state
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#the-colonhyphen-spine" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The colon/hyphen spine
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="The colon/hyphen spine">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#the-rewrite-table-is-the-directory-listing" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The rewrite table is the directory listing
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#the-twin-diff-is-tiny-and-entirely-mechanical" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The twin diff is tiny and entirely mechanical
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#what-makes-a-markdown-file-executable" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What makes a markdown file executable
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="What makes a markdown file executable">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#the-four-block-skeleton-is-a-calling-convention" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The four-block skeleton is a calling convention
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#is-the-only-operator" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        @ is the only operator
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#allowed-tools-is-the-capability-grant" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        allowed-tools is the capability grant
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#semantics-you-cannot-enforce-get-asserted-redundantly" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Semantics you cannot enforce get asserted redundantly
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#defaults-encoded-as-negative-flags" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Defaults encoded as negative flags
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#dispatch-the-ns-namespace-routers" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Dispatch: the ns-* namespace routers
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#surprises-and-tensions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Surprises and tensions
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Surprises and tensions">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#the-filename-wins-over-the-declared-name" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The filename wins over the declared name:
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#argument-hint-is-declared-six-times-and-never-survives" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        argument-hint: "" is declared six times and never survives
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#the-converter-exists-twice" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The converter exists twice
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="catalogue/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Catalogue
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Agents
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Agents
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../agents/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../agents/orchestration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Orchestration patterns
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" >
+        
+          
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Runtime
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Runtime
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../runtime/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../runtime/hooks/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    The hook system
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../runtime/bootstrap/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Bootstrap & distribution
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7" >
+        
+          
+          <label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Capabilities
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_7">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Capabilities
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../capabilities/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../capabilities/harnesses/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Multi-harness portability
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_8" >
+        
+          
+          <label class="md-nav__link" for="__nav_8" id="__nav_8_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_8_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_8">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Architecture
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_9" >
+        
+          
+          <label class="md-nav__link" for="__nav_9" id="__nav_9_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Build Your Own
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_9_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_9">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Build Your Own
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../build-your-own/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../build-your-own/blueprint/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Minimal blueprint
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#one-source-two-surfaces" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        One source, two surfaces
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#the-frontmatter-contract-field-by-field" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The frontmatter contract, field by field
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="The frontmatter contract, field by field">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#effort-is-stripped-for-a-cache-reason-not-a-cleanliness-reason" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        effort is stripped for a cache reason, not a cleanliness reason
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#requires-is-a-build-graph-not-runtime-state" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        requires is a build graph, not runtime state
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#the-colonhyphen-spine" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The colon/hyphen spine
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="The colon/hyphen spine">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#the-rewrite-table-is-the-directory-listing" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The rewrite table is the directory listing
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#the-twin-diff-is-tiny-and-entirely-mechanical" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The twin diff is tiny and entirely mechanical
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#what-makes-a-markdown-file-executable" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What makes a markdown file executable
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="What makes a markdown file executable">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#the-four-block-skeleton-is-a-calling-convention" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The four-block skeleton is a calling convention
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#is-the-only-operator" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        @ is the only operator
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#allowed-tools-is-the-capability-grant" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        allowed-tools is the capability grant
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#semantics-you-cannot-enforce-get-asserted-redundantly" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Semantics you cannot enforce get asserted redundantly
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#defaults-encoded-as-negative-flags" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Defaults encoded as negative flags
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#dispatch-the-ns-namespace-routers" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Dispatch: the ns-* namespace routers
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#surprises-and-tensions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Surprises and tensions
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Surprises and tensions">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#the-filename-wins-over-the-declared-name" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The filename wins over the declared name:
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#argument-hint-is-declared-six-times-and-never-survives" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        argument-hint: "" is declared six times and never survives
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#the-converter-exists-twice" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The converter exists twice
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<h1 id="skills">Skills<a class="headerlink" href="#skills" title="Permanent link">&para;</a></h1>
+<p>A GSD skill is a markdown file with YAML frontmatter. There is no interpreter, no
+scheduler, no runtime that steps through it. The only thing that "executes" a <code>SKILL.md</code>
+is a language model reading it as part of its context window. Everything interesting in
+this layer follows from that constraint: if you cannot enforce a rule with code, you have
+to encode it as text the model will read, and you have to build a compiler and a linter
+around the text to keep it honest.</p>
+<p>This page takes the skill layer apart: what the frontmatter contract actually buys you,
+how <code>commands/gsd/</code> is mechanically projected into <code>skills/</code>, how dispatch works, and what
+"executable markdown" means when there is nothing to execute it.</p>
+<h2 id="one-source-two-surfaces">One source, two surfaces<a class="headerlink" href="#one-source-two-surfaces" title="Permanent link">&para;</a></h2>
+<p><code>skills/</code> is not hand-written. Every file in it is generated.</p>
+<p><code>scripts/gen-plugin-skills.cjs</code> reads the directory listing of <code>commands/gsd/</code>, and for
+each <code>&lt;stem&gt;.md</code> produces <code>skills/gsd-&lt;stem&gt;/SKILL.md</code> by calling
+<code>convertClaudeCommandToClaudeSkill</code> from the compiled converter. The mapping is exactly
+1:1 and complete: 71 files in <code>commands/gsd/</code>, 71 directories in <code>skills/</code>, each holding a
+single <code>SKILL.md</code>, with no orphan in either direction.</p>
+<p>The generator is deliberately destructive:</p>
+<div class="highlight"><pre><span></span><code><span class="nx">fs</span><span class="p">.</span><span class="nx">rmSync</span><span class="p">(</span><span class="nx">SKILLS_DIR</span><span class="p">,</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">recursive</span><span class="o">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span><span class="w"> </span><span class="nx">force</span><span class="o">:</span><span class="w"> </span><span class="kc">true</span><span class="w"> </span><span class="p">});</span>
+<span class="nx">fs</span><span class="p">.</span><span class="nx">mkdirSync</span><span class="p">(</span><span class="nx">SKILLS_DIR</span><span class="p">,</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">recursive</span><span class="o">:</span><span class="w"> </span><span class="kc">true</span><span class="w"> </span><span class="p">});</span>
+</code></pre></div>
+<p><code>--write</code> deletes the whole tree and regenerates from scratch. <code>--check</code> compares
+byte-for-byte <em>and</em> flags any <code>gsd-*</code> directory with no source command — so a deleted
+command cannot leave a zombie skill behind.</p>
+<div class="admonition note">
+<p class="admonition-title">Generated, but committed</p>
+<p>All 71 generated <code>SKILL.md</code> files are tracked in git. That looks redundant until you
+notice why: the npm package and plugin-only installs must work without running a
+build. So the repo commits the build output and makes staleness a CI failure instead
+of a merge-time surprise. <code>package.json</code> wires <code>gen:plugin-skills -- --write</code> into
+<code>build</code> (after <code>build:lib</code>, on which it hard-depends) and <code>gen-plugin-skills.cjs
+--check</code> into <code>lint:generated-sync</code>, itself inside <code>lint:ci</code>.</p>
+</div>
+<p>The design decision worth stealing: <strong>the command <code>.md</code> is the compiler input, and every
+runtime artifact is output.</strong> Claude skills are only one target. <code>src/runtime-artifact-conversion.cts</code>
+exports converters for Kimi, Cursor, Windsurf, Augment, Trae, CodeBuddy, Cline, Codex,
+opencode, kilo, Qwen, Hermes and ZCode as well. You write the prompt once; the build
+projects it into every host's dialect.</p>
+<h2 id="the-frontmatter-contract-field-by-field">The frontmatter contract, field by field<a class="headerlink" href="#the-frontmatter-contract-field-by-field" title="Permanent link">&para;</a></h2>
+<p>The single most important thing to understand about GSD's frontmatter is that it is
+<strong>layered by audience</strong>. Some fields are a runtime contract with the host and survive
+conversion. Others are a build/install/lint contract and are deliberately destroyed on the
+way out.</p>
+<p><code>convertClaudeCommandToClaudeSkill</code> (<code>src/runtime-artifact-conversion.cts</code>) does not copy
+frontmatter. It <em>reconstructs</em> it, extracting exactly five fields and dropping everything
+else on the floor:</p>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>What it buys</th>
+<th>Survives conversion?</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>name</code></td>
+<td>The token the host registers the skill under and completes on.</td>
+<td>Rewritten, not copied — see below.</td>
+</tr>
+<tr>
+<td><code>description</code></td>
+<td>The one-line summary the host shows in listings, and the text a router matches intent against.</td>
+<td>Yes, re-emitted through <code>yamlQuote()</code>.</td>
+</tr>
+<tr>
+<td><code>argument-hint</code></td>
+<td>Autocomplete/usage string. In practice, the flag documentation.</td>
+<td>Yes — <strong>unless empty</strong>.</td>
+</tr>
+<tr>
+<td><code>allowed-tools</code></td>
+<td>The capability grant. Preserved verbatim as a YAML block list.</td>
+<td>Yes, byte-for-byte.</td>
+</tr>
+<tr>
+<td><code>context</code></td>
+<td><code>context: fork</code> runs the skill in an isolated subagent window (#769).</td>
+<td>Yes — but <strong>no command in <code>commands/gsd/</code> declares it</strong>. Converter capability only.</td>
+</tr>
+<tr>
+<td><code>agent</code></td>
+<td>Re-emitted verbatim by the converter (<code>src/runtime-artifact-conversion.cts:466,509</code>). Its binding semantics are <strong>undocumented anywhere in the repo</strong> — no ADR, no comment, no usage.</td>
+<td>Yes — but 0 of 71 commands declare it.</td>
+</tr>
+<tr>
+<td><code>effort</code></td>
+<td>Sets <code>output_config.effort</code> for the invocation.</td>
+<td><strong>No — stripped.</strong></td>
+</tr>
+<tr>
+<td><code>requires</code></td>
+<td>Declared dependency graph, consumed by the linter and the install profiles.</td>
+<td><strong>No — stripped.</strong></td>
+</tr>
+<tr>
+<td><code>type</code></td>
+<td>Present on five commands. Consumed by nothing.</td>
+<td><strong>No — stripped.</strong></td>
+</tr>
+</tbody>
+</table>
+<p>Two of these strips are worth dwelling on.</p>
+<h3 id="effort-is-stripped-for-a-cache-reason-not-a-cleanliness-reason"><code>effort</code> is stripped for a cache reason, not a cleanliness reason<a class="headerlink" href="#effort-is-stripped-for-a-cache-reason-not-a-cleanliness-reason" title="Permanent link">&para;</a></h3>
+<p>Six commands carry <code>effort:</code> — <code>effort: max</code> on <code>commands/gsd/autonomous.md</code>,
+<code>commands/gsd/execute-phase.md</code> and <code>commands/gsd/plan-phase.md</code>; <code>effort: low</code> on
+<code>commands/gsd/next.md</code>, <code>commands/gsd/progress.md</code> and <code>commands/gsd/stats.md</code>. Zero of
+the 71 <code>SKILL.md</code> files carry it.</p>
+<p>The converter comments explain why, and the reasoning is a performance argument rather
+than a style one:</p>
+<blockquote>
+<p><code>effort:</code> is intentionally NOT emitted into skill frontmatter — a static effort value
+changes <code>output_config.effort</code> on invocation and invalidates the caller's prompt cache
+at both scope boundaries.</p>
+</blockquote>
+<p>So the field is live on the command surface and deliberately dead on the skill surface.
+This is a good example of a general principle: a frontmatter field is not "metadata," it
+is an instruction to a specific host, and a field that is harmless in one delivery
+mechanism can be expensive in another.</p>
+<h3 id="requires-is-a-build-graph-not-runtime-state"><code>requires</code> is a build graph, not runtime state<a class="headerlink" href="#requires-is-a-build-graph-not-runtime-state" title="Permanent link">&para;</a></h3>
+<p>57 of the 71 commands declare <code>requires:</code>; 14 omit it entirely (<code>commands/gsd/help.md</code> is
+one). None of the skills have it. It exists to be linted, and
+<code>scripts/lint-skill-deps.cjs</code> enforces it two ways:</p>
+<ol>
+<li><strong>Frontmatter/body consistency.</strong> Any <code>gsd:&lt;stem&gt;</code> reference in a command body must
+   appear in that command's <code>requires:</code> list.</li>
+<li><strong>Profile closure.</strong> For every non-full install profile, every dependency of every
+   included skill must also be in the closure — so you cannot ship a partial install where
+   a skill routes to something that isn't there.</li>
+</ol>
+<p>The self-reference case is handled with one line, <code>if (ref === stem) continue;</code>, which is
+why <code>commands/gsd/graphify.md</code> can legally declare <code>requires: []</code> while its body mentions
+<code>gsd:graphify</code> three times — every one of those references is to itself.</p>
+<p>(Picking the right example matters here: <code>extractBody()</code> strips frontmatter before
+<code>extractBodyReferences()</code> runs, so a command whose only <code>gsd:</code> occurrence is the
+<code>name:</code> key never exercises the guard at all. Six commands actually do — <code>explore</code>,
+<code>fast</code>, <code>graphify</code>, <code>progress</code>, <code>quick</code> and <code>workstreams</code>.)</p>
+<div class="admonition tip">
+<p class="admonition-title">The linter only works on the command surface — by construction</p>
+<p><code>extractBodyReferences</code> in <code>scripts/lint-skill-deps.cjs</code> matches <code>/(?:\/?)gsd:([a-z0-9_-]+)/g</code>
+— the <strong>colon</strong> form. Since the converter rewrites every skill body to the hyphen
+form, pointing this linter at <code>skills/</code> would find exactly zero references. The
+authoring/lint surface and the shipped/registered surface are separated by nothing more
+than a punctuation character, and that separation is load-bearing.</p>
+</div>
+<h2 id="the-colonhyphen-spine">The colon/hyphen spine<a class="headerlink" href="#the-colonhyphen-spine" title="Permanent link">&para;</a></h2>
+<p>Commands live in the colon namespace (<code>name: gsd:plan-phase</code>). Skills live in the hyphen
+namespace (<code>name: gsd-plan-phase</code>). This is not cosmetic — it is the mechanism that keeps
+the two surfaces from contaminating each other.</p>
+<p>Two things happen at conversion time:</p>
+<ul>
+<li><code>skillFrontmatterName</code> derives the emitted <code>name:</code> <strong>purely from the directory name</strong>
+  (<code>src/runtime-artifact-conversion.cts</code>), and the generator builds that directory name as
+  <code>PREFIX + stem</code> — i.e. from the <em>filename</em>, never from the declared <code>name:</code>.</li>
+<li><code>transformContentToHyphen</code> rewrites every <code>/gsd:&lt;cmd&gt;</code> and <code>gsd:&lt;cmd&gt;</code> occurrence <strong>in
+  the body</strong> to the hyphen form.</li>
+</ul>
+<p>The visible effect: <code>commands/gsd/plan-phase.md</code> says <code>produced by /gsd:review</code>;
+<code>skills/gsd-plan-phase/SKILL.md</code> says <code>produced by /gsd-review</code>. The stated reason is that
+the installed body must match the hyphen <code>name:</code> that Claude Code, Qwen and Hermes register
+under (#2808, #3583).</p>
+<h3 id="the-rewrite-table-is-the-directory-listing">The rewrite table is the directory listing<a class="headerlink" href="#the-rewrite-table-is-the-directory-listing" title="Permanent link">&para;</a></h3>
+<p>This is the most conceptually surprising piece of the build. <code>transformContentToHyphen</code>
+needs to know which tokens are legal command names, and it gets that list from
+<code>readGsdCommandNames()</code> in <code>src/command-roster.cts</code>:</p>
+<div class="highlight"><pre><span></span><code><span class="k">return</span><span class="w"> </span><span class="nx">fs</span><span class="p">.</span><span class="nx">readdirSync</span><span class="p">(</span><span class="nx">COMMANDS_DIR</span><span class="p">)</span>
+<span class="w">  </span><span class="p">.</span><span class="nx">filter</span><span class="p">((</span><span class="nx">f</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="p">)</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="nx">f</span><span class="p">.</span><span class="nx">endsWith</span><span class="p">(</span><span class="s1">'.md'</span><span class="p">))</span>
+<span class="w">  </span><span class="p">.</span><span class="nx">map</span><span class="p">((</span><span class="nx">f</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="p">)</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="nx">f</span><span class="p">.</span><span class="nx">replace</span><span class="p">(</span><span class="sr">/\.md$/</span><span class="p">,</span><span class="w"> </span><span class="s1">''</span><span class="p">));</span>
+</code></pre></div>
+<p><strong>The set of legal namespace tokens is defined by which <code>.md</code> files exist on disk.</strong> Adding
+a command file changes how every other command's prose is rewritten. The markdown files
+are not just the compiler's input; the directory listing is the compiler's symbol table.</p>
+<h3 id="the-twin-diff-is-tiny-and-entirely-mechanical">The twin diff is tiny and entirely mechanical<a class="headerlink" href="#the-twin-diff-is-tiny-and-entirely-mechanical" title="Permanent link">&para;</a></h3>
+<p>Diff any command against its generated skill and you get only six kinds of change:</p>
+<ol>
+<li><code>name:</code> colon → hyphen</li>
+<li><code>description:</code> gains YAML quoting</li>
+<li><code>effort:</code> dropped</li>
+<li><code>requires:</code> dropped</li>
+<li>a blank line inserted after the closing <code>---</code></li>
+<li>body colon → hyphen rewrites</li>
+</ol>
+<p>Across all 71 pairs the largest diff is 23 changed lines (<code>complete-milestone</code>), but that
+is an outlier: the median is 6, and 46 of the 71 pairs fall between 4 and 6 changed lines. The entire <code>&lt;objective&gt;</code> / <code>&lt;execution_context&gt;</code> / <code>&lt;runtime_note&gt;</code> / <code>&lt;context&gt;</code>
+/ <code>&lt;process&gt;</code> prose is carried through byte-for-byte. <strong>The conversion is a renaming pass,
+not a translation.</strong> If you are building something similar, that is the property to aim
+for: the more your converter merely renames, the less there is to go wrong per target
+host, and you will have a lot of target hosts.</p>
+<h2 id="what-makes-a-markdown-file-executable">What makes a markdown file executable<a class="headerlink" href="#what-makes-a-markdown-file-executable" title="Permanent link">&para;</a></h2>
+<p>Here is the central question. A model reads a <code>SKILL.md</code> and then <em>does things</em>. There is
+no interpreter. So what is doing the work?</p>
+<h3 id="the-four-block-skeleton-is-a-calling-convention">The four-block skeleton is a calling convention<a class="headerlink" href="#the-four-block-skeleton-is-a-calling-convention" title="Permanent link">&para;</a></h3>
+<p>Command bodies are not free prose. They follow an XML-ish skeleton:
+<code>&lt;objective&gt;</code> (61 of 71 files), <code>&lt;execution_context&gt;</code> (60), <code>&lt;context&gt;</code> (45),
+<code>&lt;process&gt;</code> (57). Each block has a fixed job:</p>
+<ul>
+<li><code>&lt;objective&gt;</code> — what this run is for, stated before anything else is loaded.</li>
+<li><code>&lt;execution_context&gt;</code> — nothing but bare <code>@</code>-include lines. This is the <em>import block</em>.</li>
+<li><code>&lt;context&gt;</code> — binds runtime values, almost always <code>Arguments: $ARGUMENTS</code>.</li>
+<li><code>&lt;process&gt;</code> — the body. Frequently two sentences.</li>
+</ul>
+<p><code>commands/gsd/help.md</code> is the purest specimen. Its entire <code>&lt;process&gt;</code> is one line:</p>
+<div class="highlight"><pre><span></span><code>Follow ~/.claude/gsd-core/workflows/help.md with $ARGUMENTS.
+</code></pre></div>
+<p>That is the whole program: an include plus a variable binding. The command holds objective,
+flags and a pointer; the actual procedure lives in <code>gsd-core/workflows/</code>, which holds 88
+top-level <code>.md</code> files and 152 including its <code>steps/</code>, <code>modes/</code> and <code>templates/</code>
+subdirectories. <code>commands/gsd/execute-phase.md</code> states the split as a budget:
+<code>Context budget: ~15% orchestrator, 100% fresh per subagent.</code></p>
+<p><strong>Thin orchestrator, fat workflow.</strong> The command is a manifest. The workflow is the code.</p>
+<h3 id="is-the-only-operator"><code>@</code> is the only operator<a class="headerlink" href="#is-the-only-operator" title="Permanent link">&para;</a></h3>
+<p>There is no conditional, no loop, no function call, no variable other than <code>$ARGUMENTS</code>.
+The entire composition mechanism is textual inclusion at load time. The most-included file
+is <code>@~/.claude/gsd-core/references/ui-brand.md</code> — which lives in the repo at
+<code>gsd-core/references/ui-brand.md</code> — pulled into 20 commands. It is a shared output contract
+distributed by inclusion rather than inheritance, because inclusion is the only mechanism
+available.</p>
+<p>And the includes address themselves through <em>install</em> paths, not repo paths:
+<code>@~/.claude/gsd-core/workflows/&lt;stem&gt;.md</code> is where the file will live after installation,
+not where it lives in the source tree. Which means the build needs a linker.
+<code>scripts/lint-command-contract.cjs</code> is it:</p>
+<ul>
+<li><strong>Rule 4</strong> resolves every <code>@</code>-ref back onto the repo layout and fails if the target is
+  missing. (Symbol resolution.)</li>
+<li><strong>Rule 5</strong> requires each <code>@</code>-ref be alone on its line, with no trailing prose. (The parse
+  is line-oriented, so this is a grammar constraint.)</li>
+<li><strong>Rule 6</strong> requires every <code>gsd-core/workflows/*.md</code> be transitively reachable from at
+  least one loader under <code>commands/</code>, <code>agents/</code> or <code>skills/</code>. (Dead-code elimination.)</li>
+</ul>
+<p>A markdown prompt system with no interpreter still has link errors, and it still has
+unreachable code. GSD's answer is to build the compiler passes anyway.</p>
+<h3 id="allowed-tools-is-the-capability-grant"><code>allowed-tools</code> is the capability grant<a class="headerlink" href="#allowed-tools-is-the-capability-grant" title="Permanent link">&para;</a></h3>
+<p>This is the field that most clearly makes frontmatter an interface rather than
+documentation. <code>commands/gsd/plan-phase.md</code> grants Read, Write, Bash, Glob, Grep, Agent,
+AskUserQuestion, WebFetch and <code>mcp__context7__*</code>. The namespace routers get exactly
+<code>[Read, Skill]</code> — because their entire program is "read a table, dispatch." The tool list
+<em>is</em> the sandbox, and it is expressed in the same YAML the host reads for autocomplete.</p>
+<h3 id="semantics-you-cannot-enforce-get-asserted-redundantly">Semantics you cannot enforce get asserted redundantly<a class="headerlink" href="#semantics-you-cannot-enforce-get-asserted-redundantly" title="Permanent link">&para;</a></h3>
+<p>This is the thesis. When you have no interpreter to check anything, the only enforcement
+mechanism left is repeating yourself at the model.</p>
+<p><code>commands/gsd/execute-phase.md</code> devotes a block to insisting its own documentation is not
+self-activating:</p>
+<div class="highlight"><pre><span></span><code>Flag handling rule:
+- The optional flags documented below are available behaviors, not implied active behaviors
+- A flag is active only when its literal token appears in `$ARGUMENTS`
+- If a documented flag is absent from `$ARGUMENTS`, treat it as inactive
+</code></pre></div>
+<p>Then, 27 lines further down — <em>after</em> the flag list the rule is warning about — it restates
+the same instruction a fourth time, now enumerated per flag:</p>
+<div class="highlight"><pre><span></span><code>- `--gaps-only` is active only if the literal `--gaps-only` token is present in `$ARGUMENTS`
+- `--interactive` is active only if the literal `--interactive` token is present in `$ARGUMENTS`
+- If none of these tokens appear, run the standard full-phase execution flow with no flag-specific filtering
+- Do not infer that a flag is active just because it is documented in this prompt
+</code></pre></div>
+<p>This exists because a model that reads a list of flags is tempted to use them. There is no
+argument parser to say no, so the guard is a natural-language assertion — a generic
+three-bullet rule stated before the flags, and a per-flag restatement stated after them.</p>
+<p>Similarly, ten commands carry a <code>&lt;runtime_note&gt;</code> block telling the model that VS Code
+Copilot's <code>vscode_askquestions</code> is the equivalent of <code>AskUserQuestion</code>. Cross-host
+portability is handled by <em>instructing the model</em>, not by capability negotiation.
+<code>commands/gsd/plan-phase.md</code>'s version adds a defensive clause <code>execute-phase</code>'s does not:
+<code>Do not skip questioning steps because AskUserQuestion appears unavailable.</code></p>
+<div class="admonition warning">
+<p class="admonition-title">The guard is duplicated, and the include mechanism cannot absorb it</p>
+<p>This guard appears in exactly two files — <code>commands/gsd/execute-phase.md</code> and
+<code>commands/gsd/docs-update.md</code> — and comparing them exposes a real limitation.
+<code>commands/gsd/docs-update.md</code> carries the same shape in its <code>&lt;context&gt;</code> block, headed
+<code>**Available optional flags (documentation only — not automatically active):**</code>, with
+its own per-flag enumeration for <code>--force</code> and <code>--verify-only</code> and the closing line
+<strong>byte-identical</strong> to <code>execute-phase</code>'s.</p>
+<p>So the invariant part is genuinely shared text, and this repo has a mechanism for
+shared text — <code>@</code>-inclusion, which 20 commands use for <code>ui-brand.md</code>. But the
+surrounding enumeration is parameterized by flag name, and <code>@</code>-inclusion has no
+parameters. It splices a file in verbatim; it cannot take arguments. Extracting the
+one invariant line while leaving the parameterized bulk duplicated would arguably make
+things worse.</p>
+<p>This is the sharpest limit of the whole design. The composition primitive is textual
+inclusion, which means <strong>anything that varies per call site cannot be factored out at
+all</strong> — it has to be copy-pasted and kept in sync by hand, in the one layer where no
+linter is watching. A prompt system with no parameterized include has no functions,
+only headers.</p>
+</div>
+<h3 id="defaults-encoded-as-negative-flags">Defaults encoded as negative flags<a class="headerlink" href="#defaults-encoded-as-negative-flags" title="Permanent link">&para;</a></h3>
+<p>One more prompt-layer technique worth naming. <code>commands/gsd/plan-phase.md</code> carries 22
+documented flags in a single <code>argument-hint</code> string (<code>execute-phase</code> carries 4), and the
+list shows behaviour migrating from opt-in to default by <em>inverting the flag rather than
+removing it</em>:</p>
+<ul>
+<li><code>--no-tracer</code> opts <strong>out</strong> of tracer-first decomposition; horizontal layering is
+  described in-file as "the legacy default."</li>
+<li><code>--no-reversibility-gates</code> suppresses a checkpoint that one-way-door decisions get by
+  default.</li>
+<li><code>--mvp</code> "no longer <em>turns it on</em>" — it is now enrichment on top of a default it used to
+  enable.</li>
+</ul>
+<p>The <code>--no-reversibility-gates</code> entry contains the sharpest sentence in the flag docs:
+<em>"the flag changes what stops the run, not what the plan remembers."</em> Safe by default,
+escapable by explicit negative flag, with the record kept either way.</p>
+<h2 id="dispatch-the-ns-namespace-routers">Dispatch: the <code>ns-*</code> namespace routers<a class="headerlink" href="#dispatch-the-ns-namespace-routers" title="Permanent link">&para;</a></h2>
+<p>Six files in <code>commands/gsd/</code> are a different artifact kind sharing the directory:
+<code>ns-context</code>, <code>ns-ideate</code>, <code>ns-manage</code>, <code>ns-project</code>, <code>ns-review</code>, <code>ns-workflow</code>.</p>
+<p>They have no <code>&lt;objective&gt;</code>, no <code>&lt;execution_context&gt;</code>, no <code>&lt;process&gt;</code>. Their entire body is
+a markdown table:</p>
+<div class="highlight"><pre><span></span><code>| User wants | Invoke |
+|---|---|
+| Review code for quality and correctness | gsd-code-review |
+| Auto-fix code review findings | gsd-code-review --fix |
+| Debug a failing feature or error | gsd-debug |
+...
+
+Invoke the matched skill directly using the Skill tool.
+</code></pre></div>
+<p>Their <code>description</code> is not a sentence but a pipe-delimited keyword line —
+<code>"quality gates | code review debug audit security eval ui"</code> for <code>commands/gsd/ns-review.md</code>,
+<code>"workflow | discuss plan execute verify phase progress"</code> for <code>commands/gsd/ns-workflow.md</code>.
+Their <code>allowed-tools</code> is exactly <code>[Read, Skill]</code>.</p>
+<p>That is the whole dispatch mechanism: <strong>the routing table is a markdown table, and the
+matcher is the model.</strong> The <code>description</code> keywords are the index; the table is the
+dispatch map; <code>Skill</code> is the only capability needed to act on a match. These six files are
+part of why the four-block skeleton counts above fall short of 71 — they are a second
+artifact kind that happens to share the directory, and the build treats them identically to
+every other command because nothing in the frontmatter distinguishes them.</p>
+<p>Routers also carry their own migration history in user-facing prose.
+<code>commands/gsd/ns-review.md</code> states <code>gsd-code-review-fix was absorbed by gsd-code-review --fix in #2790</code>,
+and <code>commands/gsd/ns-workflow.md</code> spends five lines explaining that "Sub-skill names below
+are post-#2790 consolidated targets" and that "The reclaimed <code>gsd-next</code> target is the
+state-aware smart-entry launcher, not the retired workflow-advance command." Issue numbers
+and retirement notices ship <em>inside the runtime prompt</em>, because the model reading it needs
+to not route to a command that no longer exists.</p>
+<div class="admonition note">
+<p class="admonition-title">'Router' is overloaded in this repo</p>
+<p>The <code>ns-*</code> files are prompt-level routers. Separately, <code>src/planning-command-router.cts</code>
+and <code>src/agent-command-router.cts</code> are CLI subcommand dispatchers for <code>gsd-tools</code> — a
+different layer entirely, dispatching argv rather than intent. They are worth a glance
+for two conventions: strictness argued from consequence (<code>src/planning-command-router.cts</code>
+rejects extra args because "silently ignoring an argument a caller believed was scoping
+the query would return a full-project snapshot presented as a scoped one — a confidently
+wrong answer"), and TypeScript unions mirrored as frozen runtime objects
+(<code>AGENT_FAILURE_CLASSES</code> in <code>src/agent-command-router.cts</code>, consumed for real by
+<code>src/commands.cts</code>) because union literals erase at runtime and a second surface would
+otherwise re-declare them and drift.</p>
+<p>They also disagree with each other. <code>src/planning-command-router.cts</code> routes through the
+shared <code>routeCjsCommandFamily</code> adapter (<code>src/cjs-command-router-adapter.cts</code>) and calls
+<code>error(...)</code> then explicitly <code>return</code>s; <code>src/agent-command-router.cts</code> hand-rolls the
+same behaviour with a bare <code>if (subcommand !== 'classify-failure')</code> and falls straight
+through after <code>error(...)</code>. Same codebase, same <code>io.error</code>, two different assumptions
+about whether it terminates. And <code>src/planning-command-router.cts</code> claims the router
+signature is "<code>{ args, cwd, raw, error }</code> — identical to the other host routers," which
+is not true: <code>gsd-core/bin/gsd-tools.cjs</code> registers planning directly in its table but
+needs a wrapper for agent that silently discards <code>cwd</code> and the injected <code>error</code>.</p>
+</div>
+<h2 id="surprises-and-tensions">Surprises and tensions<a class="headerlink" href="#surprises-and-tensions" title="Permanent link">&para;</a></h2>
+<p>These are the places where the design leaks, and they are more instructive than the parts
+that work.</p>
+<h3 id="the-filename-wins-over-the-declared-name">The filename wins over the declared <code>name:</code><a class="headerlink" href="#the-filename-wins-over-the-declared-name" title="Permanent link">&para;</a></h3>
+<p><code>commands/gsd/ns-review.md</code> declares <code>name: gsd-quality</code>. But
+<code>skills/gsd-ns-review/SKILL.md</code> ships <code>name: gsd-ns-review</code>, because the generator keys off
+the filename stem (<code>PREFIX + stem</code>) and <code>skillFrontmatterName</code> returns the directory name
+unchanged. Every <code>ns-*</code> file has this mismatch (<code>ns-context</code>→<code>gsd-context</code>,
+<code>ns-ideate</code>→<code>gsd-ideate</code>, <code>ns-manage</code>→<code>gsd-manage</code>, <code>ns-project</code>→<code>gsd-project</code>,
+<code>ns-workflow</code>→<code>gsd-workflow</code>), but <code>ns-review</code> is the only one where the declared name is
+not even a rename of the stem.</p>
+<p>The skill surface provably ignores <code>name:</code>. Whether the <em>command</em> surface honours the
+declared <code>name:</code> or its filename is not resolved by the source — which means six files
+declare an identity that at least one of their two surfaces does not use.</p>
+<h3 id="argument-hint-is-declared-six-times-and-never-survives"><code>argument-hint: ""</code> is declared six times and never survives<a class="headerlink" href="#argument-hint-is-declared-six-times-and-never-survives" title="Permanent link">&para;</a></h3>
+<p>All six <code>ns-*</code> commands declare <code>argument-hint: ""</code>. The converter emits the field only
+under <code>if (argumentHint)</code> — and the empty string is falsy, so the field silently vanishes.
+Confirmed against <code>skills/gsd-ns-review/SKILL.md</code>, which has no <code>argument-hint</code> line at
+all. Six files declare a field that the build cannot distinguish from absence.</p>
+<h3 id="the-converter-exists-twice">The converter exists twice<a class="headerlink" href="#the-converter-exists-twice" title="Permanent link">&para;</a></h3>
+<p><code>bin/install.js</code> line 64 already does
+<code>require('../gsd-core/bin/lib/runtime-artifact-conversion.cjs')</code>. Yet <code>bin/install.js</code> also
+defines its <strong>own</strong> <code>convertClaudeCommandToClaudeSkill</code>, with the same signature and a
+byte-identical doc comment, and re-exports it.</p>
+<p>This is precisely the drift class the repo has a dedicated linter for.
+<code>scripts/lint-compiled-artifact-sync.cjs</code> opens by narrating a real incident:</p>
+<blockquote>
+<h1 id="2653-gsd-corebinlibapi-coveragecjs-sat-four-days-behind-its-cts-after-pr-2551">2653: <code>gsd-core/bin/lib/api-coverage.cjs</code> sat four days behind its <code>.cts</code> after PR #2551<a class="headerlink" href="#2653-gsd-corebinlibapi-coveragecjs-sat-four-days-behind-its-cts-after-pr-2551" title="Permanent link">&para;</a></h1>
+<p>changed the source without regenerating the artifact, shipping a module that silently
+lacked the entire #2366 fix while CI stayed green.</p>
+</blockquote>
+<p><code>src/runtime-artifact-conversion.cts</code> itself calls out the same pattern around another
+export, describing it as "the exact drift class this PR exists to reduce." The awareness is
+documented; the duplicate survives.</p>
+<h3 id="an-arity-mismatch-typescript-structurally-cannot-see">An arity mismatch TypeScript structurally cannot see<a class="headerlink" href="#an-arity-mismatch-typescript-structurally-cannot-see" title="Permanent link">&para;</a></h3>
+<p><code>scripts/gen-plugin-skills.cjs</code> calls the converter with <strong>five</strong> arguments:</p>
+<div class="highlight"><pre><span></span><code><span class="kd">const</span><span class="w"> </span><span class="nx">converted</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">conversion</span><span class="p">.</span><span class="nx">convertClaudeCommandToClaudeSkill</span><span class="p">(</span><span class="nx">src</span><span class="p">,</span><span class="w"> </span><span class="nx">skillName</span><span class="p">,</span><span class="w"> </span><span class="nx">RUNTIME</span><span class="p">,</span><span class="w"> </span><span class="nx">cmdNames</span><span class="p">,</span><span class="w"> </span><span class="kc">true</span><span class="p">);</span>
+</code></pre></div>
+<p>The function is declared with <strong>four</strong> parameters —
+<code>function convertClaudeCommandToClaudeSkill(content, skillName, runtime = null, cmdNames = null)</code>
+— identically in <code>src/runtime-artifact-conversion.cts</code> and in <code>bin/install.js</code>. The trailing
+<code>true</code> is dropped on the floor.</p>
+<p>The reason no tooling catches it is architectural, not accidental. The call goes through a
+<code>require()</code> of <code>gsd-core/bin/lib/runtime-artifact-conversion.cjs</code>, which is a build output
+and is gitignored — it does not exist in a clean checkout. TypeScript never sees the call
+site, because the call site is a <code>.cjs</code> script reaching across a <code>require()</code> boundary into
+an emitted artifact. <strong>Build-at-publish buys you a single source of truth and costs you
+cross-boundary type checking.</strong> That is the trade, stated plainly.</p>
+<h3 id="a-contract-linters-own-header-is-stale">A contract linter's own header is stale<a class="headerlink" href="#a-contract-linters-own-header-is-stale" title="Permanent link">&para;</a></h3>
+<p><code>scripts/lint-command-contract.cjs</code> announces that it "Enforces the <code>commands/gsd/*.md</code>
+contract across all 65 command files." There are 71. The linter globs the directory, so it
+is functionally correct — its documentation is six commands behind. A small thing, but a
+pointed one on a page about machine-checked conventions: the file that exists to prevent
+drift has drifted in the one part of itself no machine reads.</p>
+<h3 id="a-command-contradicts-its-own-tool-in-writing">A command contradicts its own tool, in writing<a class="headerlink" href="#a-command-contradicts-its-own-tool-in-writing" title="Permanent link">&para;</a></h3>
+<p><code>commands/gsd/plan-phase.md</code>'s <code>&lt;context&gt;</code> says the phase number is optional — "when
+omitted, the orchestrating workflow reads ROADMAP.md and selects the next unplanned phase"
+— and then immediately admits that "<code>gsd-tools.cjs</code> itself has no auto-detect feature and
+requires an explicit phase number."</p>
+<p>The optionality lives entirely in the prompt layer. What is notable is that the file <em>says
+so</em> rather than papering over it. When your program is prose, you can document the seam
+between what the prompt promises and what the tool delivers, in the same file, and the
+model reading it gets both facts.</p>
+<h2 id="what-to-take-from-this-layer">What to take from this layer<a class="headerlink" href="#what-to-take-from-this-layer" title="Permanent link">&para;</a></h2>
+<p>If you are building a framework like this one:</p>
+<ol>
+<li><strong>Pick one authoring surface and compile everything else from it.</strong> GSD authors commands
+   and generates 15+ host formats. The converter's job should be renaming, not translating.</li>
+<li><strong>Layer your frontmatter by audience.</strong> Runtime contract fields survive; build, install
+   and lint fields get stripped. Decide which is which explicitly, and comment <em>why</em> — the
+   <code>effort</code> strip is a prompt-cache argument that nobody would reconstruct from the code.</li>
+<li><strong>Separate your surfaces with a token you can grep.</strong> The colon/hyphen split means a
+   linter aimed at the wrong surface finds nothing rather than finding something wrong.</li>
+<li><strong>Build the compiler passes even though it's markdown.</strong> Link resolution, grammar
+   constraints and reachability are all real failure modes in a prompt system. GSD has a
+   linter for each: <code>scripts/lint-command-contract.cjs</code>, <code>scripts/lint-skill-deps.cjs</code>,
+   <code>scripts/lint-compiled-artifact-sync.cjs</code>, and <code>--check</code> modes on every generator. The
+   repo's consistent preference is a script over a code-review rule.</li>
+<li><strong>Commit your generated artifacts and gate on staleness</strong> if consumers must work without
+   a build. Then make <code>--check</code> part of CI, not part of code review.</li>
+<li><strong>Accept that some semantics can only be asserted.</strong> When there is no parser, redundant
+   natural-language guards are a legitimate engineering technique — but route them through
+   your inclusion mechanism so they stay in one place.</li>
+</ol>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.tabs", "navigation.sections", "navigation.top", "content.code.copy", "toc.follow"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"provider": "mike"}}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.d7400e89.min.js"></script>
+      
+    
+  </body>
+</html>

@@ -1,0 +1,2296 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="How GSD Core is built internally — and how to build a framework like it yourself.">
+      
+      
+      
+      
+        <link rel="prev" href="../">
+      
+      
+        <link rel="next" href="../../skills/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
+    
+    
+      
+        <title>State machinery - Understanding GSD Core</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.ec1eaa64.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#state-machinery" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+      <div data-md-color-scheme="default" data-md-component="outdated" hidden>
+        
+      </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="Understanding GSD Core" class="md-header__button md-logo" aria-label="Understanding GSD Core" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Understanding GSD Core
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              State machinery
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../.." class="md-tabs__link">
+        
+  
+  
+    
+  
+  Home
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../loop/" class="md-tabs__link">
+          
+  
+  
+  The Loop
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+    
+  
+  
+    
+    
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="../" class="md-tabs__link">
+          
+  
+  
+  Files & State
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../skills/" class="md-tabs__link">
+          
+  
+  
+  Skills
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../agents/" class="md-tabs__link">
+          
+  
+  
+  Agents
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../runtime/" class="md-tabs__link">
+          
+  
+  
+  Runtime
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../capabilities/" class="md-tabs__link">
+          
+  
+  
+  Capabilities
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../architecture/" class="md-tabs__link">
+          
+  
+  
+  Architecture
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../build-your-own/" class="md-tabs__link">
+          
+  
+  
+  Build Your Own
+
+        </a>
+      </li>
+    
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="Understanding GSD Core" class="md-nav__button md-logo" aria-label="Understanding GSD Core" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    Understanding GSD Core
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    The Loop
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    The Loop
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../loop/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../loop/stages/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Stage internals
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Files & State
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Files & State
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    State machinery
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    State machinery
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#the-artifact-graph" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The artifact graph
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#a-zero-that-is-not-an-answer" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        A zero that is not an answer
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#two-folds-and-a-hard-guard" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Two folds and a hard guard
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#withhold-rather-than-guess" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Withhold rather than guess
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#disk-is-the-authority-the-checkbox-is-metadata" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Disk is the authority; the checkbox is metadata
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#windowed-and-un-windowed-kept-on-purpose" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Windowed and un-windowed, kept on purpose
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#what-the-snapshot-is-for" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What the snapshot is for
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#one-grammar-filtered-views" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        One grammar, filtered views
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#surviving-interruption" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Surviving interruption
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Surviving interruption">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1-the-write-mutex" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. The write mutex
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-the-checkpoint" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. The checkpoint
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3-the-resume-gate" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. The resume gate
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#4-scope-enforced-in-a-shell-script" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. Scope, enforced in a shell script
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#two-mutation-safety-models-for-one-tree" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Two mutation-safety models for one tree
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#where-the-machinery-leaks" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Where the machinery leaks
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#conventions-worth-stealing" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Conventions worth stealing
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Skills
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Skills
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../skills/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../skills/catalogue/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Catalogue
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Agents
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Agents
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../agents/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../agents/orchestration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Orchestration patterns
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" >
+        
+          
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Runtime
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Runtime
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../runtime/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../runtime/hooks/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    The hook system
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../runtime/bootstrap/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Bootstrap & distribution
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7" >
+        
+          
+          <label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Capabilities
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_7">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Capabilities
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../capabilities/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../capabilities/harnesses/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Multi-harness portability
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_8" >
+        
+          
+          <label class="md-nav__link" for="__nav_8" id="__nav_8_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_8_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_8">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Architecture
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_9" >
+        
+          
+          <label class="md-nav__link" for="__nav_9" id="__nav_9_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Build Your Own
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_9_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_9">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Build Your Own
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../build-your-own/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../build-your-own/blueprint/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Minimal blueprint
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#the-artifact-graph" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The artifact graph
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#a-zero-that-is-not-an-answer" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        A zero that is not an answer
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#two-folds-and-a-hard-guard" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Two folds and a hard guard
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#withhold-rather-than-guess" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Withhold rather than guess
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#disk-is-the-authority-the-checkbox-is-metadata" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Disk is the authority; the checkbox is metadata
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#windowed-and-un-windowed-kept-on-purpose" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Windowed and un-windowed, kept on purpose
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#what-the-snapshot-is-for" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What the snapshot is for
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#one-grammar-filtered-views" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        One grammar, filtered views
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#surviving-interruption" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Surviving interruption
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Surviving interruption">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1-the-write-mutex" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. The write mutex
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-the-checkpoint" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. The checkpoint
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3-the-resume-gate" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. The resume gate
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#4-scope-enforced-in-a-shell-script" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. Scope, enforced in a shell script
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#two-mutation-safety-models-for-one-tree" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Two mutation-safety models for one tree
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#where-the-machinery-leaks" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Where the machinery leaks
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#conventions-worth-stealing" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Conventions worth stealing
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<h1 id="state-machinery">State machinery<a class="headerlink" href="#state-machinery" title="Permanent link">&para;</a></h1>
+<p>GSD Core has no database. Its entire state lives in markdown and JSON under <code>.planning/</code>,
+written partly by code and partly by an LLM following a workflow document. That choice
+forces a specific engineering problem to the surface: <strong>every read is a parse, and every
+parse can fail partially.</strong> A directory listing that threw. A milestone section whose
+window closed early. A <code>STATE.md</code> whose <code>## Current Position</code> heading is missing.</p>
+<p>The interesting part of this codebase is not the parsers. It is the machinery built around
+them so that a partial read is never silently rounded to a confident answer — and so the
+loop can be killed mid-execution and pick up where it left off.</p>
+<p>This page is about that machinery: how roadmap state is parsed, how it is reconciled
+against disk, what the snapshot layer is for, and what actually survives an interruption.</p>
+<h2 id="the-artifact-graph">The artifact graph<a class="headerlink" href="#the-artifact-graph" title="Permanent link">&para;</a></h2>
+<p>Reads and writes are not symmetric here. Writes go straight at files. Reads mostly do not —
+they route through a query layer that composes a scoped projection first. The one place
+that <em>does</em> stat a file directly is the interruption checkpoint, and that asymmetry is
+deliberate.</p>
+<p><img alt="Kroki" src="https://kroki.io/plantuml/svg/eNptlE2P2jAQhu_5FSNObKsEtcceqo2yUJD4CEmKgrRSZSUT8BLs1HZgadX_XttASNKeLD_vO-OZsZNnqYhQ9bF0SiwUKA6C7vYKciowU5QzRx4oq4ggR8j4seIMmYrVpUQwBsJ2JbYsck9yfqZsBwUpZVvJsSB1qSZch9NfCJ8-t8SSMlSXCoELteeOU5HsQHYIg1jpRcJwJ3M34wJHZy4ORcnPcvTBO-ZPA_jtwKMSGDB8V1p4ZUPBa4VCO4iEZddUlYS51Z5I1FZrCLsGfMdMR3c9addzQkGLi2sKujs2vWNILbFjCP2uQ6Csj_oYwd80vLsi509rBBGSHCqi9jCUItNtZ0r-27ce0A9RM_hZo7iY7nWUy1l5Mbd2JCyX10msu2GSmtXlZ4ZCX5GgJ2IuXb6yjxAHq3AMyE5Y8gptdNypzBeKFkSXA0PPjJTpZKNbaQU16aOV_7Lww6axRaOkqbsZR7PJLPCT2WrZTHDSdmy3bjj3GzGc98T4-2LhR9u7HnfSB6tlMk6TuxikjRgnfjJugpKGe5l-nJTV6O5RoH1FU3_5sppMvDfJ2TXN1IxgCa77Fdbw5TpvJ-ztN7392u5jJ7ZrtNCCuSB5A5tJD4TzHoj7IXHSgNvpQdqQ9P-glTUEz7uBs6AKjcUQe06XJA-yscRWeyOhb1EwfaDrbCzR_xYF9hEOvxGlv_knJ3qothIYFpTld97q6hlZbn5LfwH-rWxP?"></p>
+<p>The read band is one node in the picture and two implementations underneath it.
+<code>planning.inspect</code> (<code>src/planning-inspect.cts</code>) reaches the shared derivations through
+<code>buildPlanningSnapshot</code>, as does <code>src/verify.cts</code> (imported at line 56, invoked at 1559
+and 1636) — while <code>roadmap.analyze</code> (<code>src/roadmap.cts</code>) composes the same
+owners directly and never touches the snapshot. That split matters later: it is why the
+containment gap in <a href="#where-the-machinery-leaks">Where the machinery leaks</a> lands on the
+inspect path and not on the analyze path.</p>
+<p>Artifact roles, locations and consumers are inventoried in
+<code>gsd-core/references/artifact-types.md</code>, which opens with the rule that makes the graph
+above the real specification: <em>"A well-formatted artifact that no workflow reads is inert —
+the consumption mechanism is what gives an artifact meaning."</em></p>
+<h2 id="a-zero-that-is-not-an-answer">A zero that is not an answer<a class="headerlink" href="#a-zero-that-is-not-an-answer" title="Permanent link">&para;</a></h2>
+<p>The spine of the read path is 49 lines with zero imports: <code>src/planning-scope.cts</code>. Its
+whole content is a frozen four-value enum — <code>COMPLETE</code>, <code>TRUNCATED</code>, <code>UNSCOPED</code>,
+<code>UNREADABLE</code> — and a <code>Scope</code> type. Its header states the problem it exists to solve:</p>
+<blockquote>
+<p><code>SCOPE.COMPLETE</code> with zero items is a real answer — a phase genuinely has no plans yet.
+<code>SCOPE.TRUNCATED</code>, <code>SCOPE.UNSCOPED</code>, and <code>SCOPE.UNREADABLE</code> with zero items are NOT —
+they mean the scan could not see (part of) the phase directory, so a caller must not treat
+that zero as "this phase has no plans."</p>
+</blockquote>
+<p>Modules on the read path — <code>src/roadmap-parser.cts</code>, <code>src/planning-snapshot.cts</code>,
+<code>src/planning-inspect.cts</code>, <code>src/state-document.cts</code>, <code>src/verification.cts</code> — import it and
+return <code>{ value, scope }</code> envelopes rather than bare values. Two design decisions are worth
+stealing whole:</p>
+<p><strong>It is a leaf module on purpose.</strong> The header says so: <em>"this is a leaf module (mirrors
+<code>src/phase-id.cts</code>). It imports nothing, so any consumer can depend on it without risking a
+cycle."</em> A discriminator that everything returns has to be importable from everything. If it
+carries dependencies, it becomes a cycle magnet within a release.</p>
+<p><strong>It is a frozen enum, not a message string.</strong> The stated reason is that <code>CONTRIBUTING.md</code>
+bans raw-text matching on outputs and requires a typed IR, so callers branch on a value
+rather than pattern-matching prose. The same rule is then applied to a place most codebases
+exempt — subprocess output. <code>buildPlanningTrackedField</code> in <code>src/planning-snapshot.cts</code>
+determines repo presence from <code>git rev-parse --is-inside-work-tree</code>'s <em>exit code</em> rather
+than matching git's stderr, because git localizes its error text; the comment calls this
+<em>"exactly the 'raw text matching on subprocess output' CONTRIBUTING.md bans, applied to
+production code rather than a test."</em></p>
+<div class="admonition note">
+<p class="admonition-title">The module admits it is provisional</p>
+<p><code>src/planning-scope.cts</code>'s header marks its own contract <code>PROVISIONAL ... may be revised
+before the epic (#3180) ships</code>. A contract module that says out loud how settled it is
+tells a downstream author how much to build on it — cheap to write, and absent from
+almost every codebase.</p>
+</div>
+<h2 id="two-folds-and-a-hard-guard">Two folds and a hard guard<a class="headerlink" href="#two-folds-and-a-hard-guard" title="Permanent link">&para;</a></h2>
+<p>A scope on a single read is easy. The coordination problem is combining several.</p>
+<p><code>src/planning-snapshot.cts</code> defines a severity ordering (<code>COMPLETE</code> 0 → <code>UNREADABLE</code> 3) and
+<code>worstScope(...scopes)</code> around line 77-92, described in-file as <em>"the one new piece of
+coordination logic"</em> the module introduces. The comment is careful about its own
+epistemics: the ordering <em>"is a genuine design choice, not inherited from anywhere"</em>, and
+<code>TRUNCATED</code> vs <code>UNSCOPED</code> <em>"are not ranked against each other by any upstream decision"</em> —
+the ordering exists only so a future rule can name which failure was worse.</p>
+<p><code>src/planning-inspect.cts</code> imports the same function and folds again, per phase row
+(<code>worstScope(phase.scope, plans.scope, uat.scope, goal.scope, dependencies.scope)</code> at line
+1174) and once more at the top level.</p>
+<p>The chain terminates in refusal. <code>src/health-diagnostic-rules/roadmap-disk-consistency.cts</code>
+opens both of its rules — line 187 and line 238 — by returning an empty diagnostic list
+whenever <code>snapshot.roadmapDeclaredPhases.scope</code> is not <code>COMPLETE</code>. The comment names the
+failure mode precisely: an empty declared-phase list <em>"must not be mistaken for 'the roadmap
+legitimately declares zero phases' here."</em></p>
+<p>That is the shape: <strong>propagate, fold, then guard at the point of consequence.</strong> The scope
+value never gets reconciled away in the middle; it survives to the exact site where acting
+on it would produce a wrong claim.</p>
+<h2 id="withhold-rather-than-guess">Withhold rather than guess<a class="headerlink" href="#withhold-rather-than-guess" title="Permanent link">&para;</a></h2>
+<p>The same decision is expressed three independent times, by three authors solving three
+different problems — which is the strongest evidence available that it is a real house rule
+rather than one person's taste.</p>
+<table>
+<thead>
+<tr>
+<th>Site</th>
+<th>Mechanism</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>cmdRoadmapAnalyze</code> (<code>src/roadmap.cts</code>)</td>
+<td>Computes a <strong>second, independent</strong> <code>progressScope</code>; emits <code>progress_percent: null</code> unless it is <code>COMPLETE</code>, plus a separate <code>progress_scope</code> field so a consumer can see <em>why</em></td>
+</tr>
+<tr>
+<td><code>makeFraction</code> (<code>src/planning-inspect.cts</code>, line 876)</td>
+<td>Returns <code>percent: null</code> and pushes a <code>PERCENT_WITHHELD</code> diagnostic — <em>"a percentage derived from an incomplete read would be a confident wrong answer"</em></td>
+</tr>
+<tr>
+<td><code>getMilestoneInfo</code> (<code>src/roadmap-parser.cts</code>)</td>
+<td>Its old <code>{version:'v1.0', name:'milestone'}</code> default was <strong>deleted</strong>, because that default was output-identical to a successful read of a genuine v1.0 project</td>
+</tr>
+</tbody>
+</table>
+<p>The third row is the sharpest of the three. The bug was not that the fallback was wrong —
+it was that the fallback was <em>indistinguishable from success</em>. Any default value that a real
+input could also produce destroys the caller's ability to detect failure. That is a lint you
+can run in your head over your own defaults.</p>
+<p>The <code>progress_scope</code> field deserves a second look too. Two scopes coexist in one payload and
+are allowed to disagree — the top-level <code>scope</code> describes the heading-windowing that
+produced <code>phases</code>/<code>total_plans</code>, while <code>progressScope</code> describes the directory enumeration
+that produced the percentage. The comment refuses to reconcile them, because <em>"a consumer
+seeing <code>progress_percent: null</code> needs a field to tell WHY without reading source."</em> Merging
+two independent confidences into one number is itself a form of guessing.</p>
+<h2 id="disk-is-the-authority-the-checkbox-is-metadata">Disk is the authority; the checkbox is metadata<a class="headerlink" href="#disk-is-the-authority-the-checkbox-is-metadata" title="Permanent link">&para;</a></h2>
+<p>Reconciling parsed state with disk needs an answer to "who wins." GSD Core answers it once,
+in one function, and then makes every other module route through it.</p>
+<p><code>isPhaseComplete</code> (<code>src/verification.cts</code>) is documented as <em>"the single canonical owner of
+'is phase P complete?'"</em> and is <strong>disk-strict</strong>: it reads <code>*-VERIFICATION.md</code>
+unconditionally, plan count is not a precondition, and — the load-bearing sentence — <em>"A
+ROADMAP checkbox has no machine authority and is never consulted — this function never reads
+ROADMAP.md."</em></p>
+<p>Two follow-through details make that stick:</p>
+<ul>
+<li><strong>Two non-answers are distinguished.</strong> <code>complete</code> is exactly <code>verification.status ===
+  'passed'</code>, but the full routing result rides along so a caller can tell a <em>failing</em>
+  verdict (<code>gaps_found</code>, <code>human_needed</code>, <code>stale</code>) from an <em>absent</em> one (<code>missing</code>). And
+  <code>scope</code> goes <code>UNREADABLE</code> when the phase directory itself could not be listed — a caller
+  <em>"must not read <code>value.complete: false</code> here as a confident 'not complete'"</em>.</li>
+<li><strong>The demotion is published, not just enforced.</strong> <code>planning-inspect</code> emits
+  <code>roadmap_acceptance.authoritative: false</code> in its payload. An external consumer learns the
+  authority model from the data, not from source archaeology.</li>
+</ul>
+<p><code>src/planning-snapshot.cts</code> still parses the ROADMAP checkbox — into
+<code>roadmapPhaseCheckboxes</code> — and defends doing so with one line worth memorizing: <em>"reading
+the data is not re-litigating who is authoritative."</em> Authority and observability are
+separate questions. The checkbox is useful evidence about human intent even when it has no
+vote.</p>
+<h2 id="windowed-and-un-windowed-kept-on-purpose">Windowed and un-windowed, kept on purpose<a class="headerlink" href="#windowed-and-un-windowed-kept-on-purpose" title="Permanent link">&para;</a></h2>
+<p>The snapshot carries two phase enumerations that look redundant and are not.
+<code>phaseDirs</code> is milestone-<strong>windowed</strong> (only directories whose phase id is declared by the
+current milestone); <code>allPhaseDirNames</code> is described in-field as its <em>"un-windowed twin."</em></p>
+<p>The reason is in <code>roadmap-disk-consistency.cts</code>'s header, and it is a genuinely subtle
+class of bug. W007 is the rule "this phase directory has no matching ROADMAP entry." Source
+it from the windowed set and it becomes <em>"structurally inert: every member of the set is
+already provably claimable."</em> The rule would run, pass, and prove nothing.</p>
+<p>What lifts this above a plausible argument is that the header records an empirical check —
+a <code>node -e</code> trace against a real <code>buildPlanningSnapshot</code> in which a genuine orphan directory
+(<code>04-extra</code>) was <em>"silently absent from <code>phaseDirs.value</code> and W007 fired zero diagnostics."</em></p>
+<div class="admonition tip">
+<p class="admonition-title">The generalizable rule</p>
+<p>Some checks are defined by what a filter <strong>excludes</strong>. Any correctly-scoped view is the
+wrong input for them, and the failure is silent-pass rather than error. When you narrow
+a collection for one consumer, ask whether another consumer's question lives in the
+discarded remainder.</p>
+</div>
+<h2 id="what-the-snapshot-is-for">What the snapshot is for<a class="headerlink" href="#what-the-snapshot-is-for" title="Permanent link">&para;</a></h2>
+<p><code>buildPlanningSnapshot(cwd)</code> builds a parsed projection of <code>.planning/</code> — deliberately
+additive, and growing — <code>src/planning-inspect.cts:23</code> puts numbers on it ("4 fields at
+Phase 10, 20+ by Phase 12"), while <code>src/planning-snapshot.cts:118</code> states the
+additive-only rule without the counts. Two
+constraints explain its existence, and neither is "caching."</p>
+<p><strong>Rules may not do I/O.</strong> Every health diagnostic is a <code>check(snapshot)</code> with one signature
+and no ambient reads. So the probes live in the builder instead: <code>git ls-files -- .planning</code>,
+<code>git worktree list</code>, <code>checkAgentsInstalled</code>. The comments openly admit that <code>agentInstall</code>
+and <code>worktreeHealth</code> are <em>not</em> <code>.planning/</code>-sourced and are exposed anyway — named as such
+<em>"so a future reader does not mistake them for §7 derivations."</em> The uniform rule signature
+was judged worth the impurity, and the impurity was labelled rather than hidden.</p>
+<p><strong>The internal shape must not leak.</strong> <code>src/planning-inspect.cts</code> refuses to serialize the
+snapshot, and says why at length: <code>PlanningSnapshot</code> is <em>"explicitly additive and still
+growing (4 fields at Phase 10, 20+ by Phase 12)"</em> while schema-v1 is a frozen external
+contract, so handing the churning shape to external consumers is <em>"a Hyrum's-Law break
+waiting to happen."</em> It declares <code>PLANNING_INSPECT_SCHEMA_VERSION = 1</code>, its own frozen
+<code>INSPECT_DIAGNOSTIC</code> vocabulary, and maps into a flat schema of its own. The invariant it
+states — <em>"Adding a field to <code>PlanningSnapshot</code> must never change what <code>planning.inspect</code>
+emits"</em> — is the whole firewall in one sentence.</p>
+<p>There is a smaller convention worth copying: <strong>one builder, several named outputs</strong>.
+<code>buildStateFields</code> returns three fields from a single <code>STATE.md</code> read <em>"rather than reading
+and parsing the same file three times"</em>, and — the better half of the argument — so that
+the degraded-read warning <em>"stays a single call site instead of a risk of tripling on one
+degraded read."</em> A sibling builder states the inverse constraint just as crisply: <em>"the
+three subjects are independent QUESTIONS, not independent SCANS."</em></p>
+<h2 id="one-grammar-filtered-views">One grammar, filtered views<a class="headerlink" href="#one-grammar-filtered-views" title="Permanent link">&para;</a></h2>
+<p>Consistency-with-disk is impossible if two call sites disagree about <em>what the current
+milestone is</em>. <code>src/roadmap-parser.cts</code> collapses that to a single grammar constant —
+<code>MILESTONE_HEADING_LINE_SOURCE</code> at line 202, described as <em>"the ONE textual expression"</em> of
+the milestone-heading grammar in the file. <code>listMilestoneHeadings</code> (version-agnostic
+enumeration) and <code>locateMilestoneHeadings</code> (version-filtered) are both built from it, the
+latter documented as <em>"a version-FILTERED VIEW over ... the SAME grammar"</em> rather than a
+second expression of it.</p>
+<p>The layering continues: <code>selectMilestoneHeading</code> is the sole selection owner,
+<code>computeMilestoneSectionEnd</code> the sole window-end owner, <code>sliceMilestoneWindow</code> the sole
+composition of the two, and <code>classifyMilestoneWindow</code> a pure, I/O-free decision table.</p>
+<p>The most transferable idea here is that <strong>composition counts as duplication</strong>.
+<code>sliceMilestoneWindow</code> exists because two call sites had each independently composed
+<code>locateMilestoneHeadings</code> + <code>computeMilestoneSectionEnd</code> into a window <em>"and they disagreed
+(one skipped CLOSED headings, the other did not)"</em> — with the diagnosis spelled out:
+<em>"calling the owner and then re-assembling the result locally is indistinguishable from
+re-deriving it."</em> Extracting shared <em>functions</em> is not enough; the shared <em>assembly</em> has to
+be owned too.</p>
+<p>And the convention is enforced by tooling rather than trust. <code>scripts/lint-phase-id-drift.cjs</code>
+matches <code>/^\s*\/\/.*phase-id-owner:/</code> and requires a dedicated comment line to sanction any
+hand-rolled phase-id regex — which is why <code>src/roadmap.cts</code> carries sanction lines naming
+exactly what a "fix" would break. <code>scripts/lint-milestone-window-drift.cjs</code> designates
+<code>src/roadmap-parser.cts</code> as its <code>OWNER_FILE</code>.</p>
+<div class="admonition warning">
+<p class="admonition-title">The guard's blind spot is documented inside the file it exempts</p>
+<p>Because the owner file is exempt by construction, intra-file copies are invisible to the
+linter. <code>src/roadmap-parser.cts</code> records that a byte-identical inline copy of
+<code>hasVersionedMilestones</code> existed in two of its own functions and <em>"was found by review
+instead"</em>, because <em>"the guard does not catch intra-owner-file copies by construction."</em>
+If you build a drift lint, write down what it cannot see — in the place a maintainer will
+be standing when it matters.</p>
+</div>
+<h2 id="surviving-interruption">Surviving interruption<a class="headerlink" href="#surviving-interruption" title="Permanent link">&para;</a></h2>
+<p>Four independent layers, none of which assumes the others worked.</p>
+<h3 id="1-the-write-mutex">1. The write mutex<a class="headerlink" href="#1-the-write-mutex" title="Permanent link">&para;</a></h3>
+<p><code>src/planning-workspace.cts</code> owns the path seam (<code>planningDir</code>, <code>planningRoot</code>,
+<code>planningPaths</code> — the nine canonical file paths) and <code>withPlanningLock</code>, the only write
+mutex in this set. It is an <code>O_EXCL</code> create (<code>flag: 'wx'</code>) whose body is
+<code>{pid, cwd, acquired}</code> JSON, and its hardening reads as a list of specific incidents rather
+than defensive habit:</p>
+<ul>
+<li><strong>Pid-liveness gate.</strong> A dead holder is stolen promptly; a live one is waited on. The
+  prior implementation <em>"unconditionally unlinked WHATEVER lock existed — even a fresh, live
+  holder's"</em>, force-stealing a live writer's critical section.</li>
+<li><strong>Identity re-confirm before the steal.</strong> <code>(dev, ino, body)</code> is snapshotted at decision
+  time and re-checked immediately before the steal, so a racer that recreated a fresh lock
+  in the decision→steal gap never has its replacement deleted. The <em>body</em> is part of the
+  identity because <code>(dev, ino)</code> alone is defeated by inode reuse.</li>
+<li><strong>Atomic rename-then-remove.</strong> Only one racer can win the rename; a failed rename means
+  someone else already stole it, so the code <em>"must NOT fall through to a delete."</em></li>
+<li><strong>A deadman ceiling above the timeout.</strong> 60s ceiling over a 10s lock timeout, because the
+  lock body carries no start time and liveness alone cannot detect pid reuse. Without it, a
+  false-alive holder <em>"would make <code>withPlanningLock</code> throw on every call with no self-heal."</em></li>
+<li><strong>A retry set of transient errnos</strong>, added for a Docker overlay-fs race.</li>
+<li><strong>A <code>process.on('exit')</code> drain</strong> of locks held by this process.</li>
+</ul>
+<p>One of the comments is a small masterclass in why swallowed errors are expensive. An earlier
+<code>catch { /* ok */ }</code> around the directory-create hid a real <code>EACCES</code>/<code>ENOSPC</code> failure; the
+lock write then failed with <code>ENOENT</code>; <code>ENOENT</code> was in the retry set; the loop burned the full
+10-second budget and reported <em>"a PHANTOM 'held by a live process' contention pointing at a
+nonexistent holder."</em> A swallowed error did not stay small — it re-emerged as a confident
+lie about a different subsystem.</p>
+<p>The lock is also a <strong>test seam</strong>: <code>_setLockProbes</code> injects <code>isPidAlive</code>, and
+<code>_setPlanningLockTestHooks</code> exposes a <code>beforeSteal</code> hook that fires after the steal decision
+but before the identity re-confirm, so a test can script the exact race window. Designing the
+seam at the decision boundary is what makes the concurrency hardening testable at all.</p>
+<h3 id="2-the-checkpoint">2. The checkpoint<a class="headerlink" href="#2-the-checkpoint" title="Permanent link">&para;</a></h3>
+<p><code>gsd-core/workflows/pause-work.md</code> writes a two-file handoff: <code>HANDOFF.json</code> (machine) plus
+<code>.continue-here.md</code> (human). Location is context-dependent — phase directory, spike, sketch,
+deliberation, or <code>.planning/</code> root — and the workflow instructs that when no context is
+detectable, the ambiguity is <em>recorded in the file</em> rather than resolved by guessing. The
+same discipline as <code>SCOPE</code>, applied to a prose artifact.</p>
+<p><code>gsd-core/workflows/resume-project.md</code> searches for them with a bounded <code>find</code> across those
+locations plus a legacy fallback.</p>
+<h3 id="3-the-resume-gate">3. The resume gate<a class="headerlink" href="#3-the-resume-gate" title="Permanent link">&para;</a></h3>
+<p><code>gsd-core/workflows/next.md</code> runs safety gates before any routing decision. Gate 1 is a hard
+stop on <code>.continue-here.md</code> existing — a plain <code>[ -f ... ]</code> test, deliberately not routed
+through the parser, because "did a previous session leave a checkpoint" must be answerable
+even when every parse is failing. Gate 2 hard-stops on <code>status: error</code> in <code>STATE.md</code>.</p>
+<p>Then Route 0 detects interrupted execution structurally: scan phases in ROADMAP order and
+stop at the first where <code>plans.length &gt; summaries.length</code> — <em>"at least one PLAN.md has no
+matching SUMMARY.md."</em> Interruption is not recorded as a flag someone has to remember to
+write. It is inferred from the artifacts a completed plan would have left behind. A <code>kill -9</code>
+between writing a PLAN and writing its SUMMARY is indistinguishable from a graceful pause,
+which is exactly the property you want.</p>
+<h3 id="4-scope-enforced-in-a-shell-script">4. Scope, enforced in a shell script<a class="headerlink" href="#4-scope-enforced-in-a-shell-script" title="Permanent link">&para;</a></h3>
+<p>The best evidence that the envelope is a real contract rather than internal decoration is
+that it crosses out of TypeScript. Route 0's own bash in <code>gsd-core/workflows/next.md</code> reads
+<code>.scope</code> off the <code>roadmap.analyze</code> JSON and treats any non-<code>complete</code> value as
+<strong>scan-failed</strong>, warning and falling through rather than proceeding:</p>
+<blockquote>
+<p>roadmap.analyze succeeded and returned a well-formed document, but its milestone window did
+not see all of its input, so <code>.phases[]</code> is a NON-answer rather than a real empty. Looping
+it would run the invariant over a phase list the scan could not populate and report
+"clean" — the silent disarm.</p>
+</blockquote>
+<p>A safety invariant that reports "clean" because it could not see its input is worse than one
+that does not run. The workflow's own acceptance checklist pins this as a requirement.</p>
+<h2 id="two-mutation-safety-models-for-one-tree">Two mutation-safety models for one tree<a class="headerlink" href="#two-mutation-safety-models-for-one-tree" title="Permanent link">&para;</a></h2>
+<p><code>.planning/</code> is mutated under two different safety models, and the split is principled.</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>Read-modify-write (<code>src/roadmap.cts</code>)</th>
+<th>Migration (<code>src/roadmap-upgrade.cts</code>)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Risk</td>
+<td>Concurrent writers</td>
+<td>A half-applied structural rewrite</td>
+</tr>
+<tr>
+<td>Mechanism</td>
+<td><code>withPlanningLock(cwd, ...)</code> around every <code>ROADMAP.md</code> edit</td>
+<td><code>git status --porcelain</code> must be empty before starting</td>
+</tr>
+<tr>
+<td>Undo</td>
+<td>Nothing to undo — the critical section is exclusive</td>
+<td><code>performedRenames</code> replayed in reverse (line 631) plus a <code>fileBackups</code> map populated by <code>snapshotFile(...)</code> before each write (line 622) and replayed from the catch block (line 637)</td>
+</tr>
+<tr>
+<td>Scope envelope</td>
+<td>Yes</td>
+<td>No — the module imports neither <code>planning-scope.cjs</code> nor the parser</td>
+</tr>
+</tbody>
+</table>
+<p>The stated reason for the second model is the one people get wrong: a <code>git reset --hard</code> +
+<code>git clean</code> rollback <em>"restores NOTHING for a gitignored <code>.planning/</code>"</em> — and <code>commit_docs:
+false</code> is the default. <strong>Your undo strategy is only as good as the tracking status of the
+files it covers.</strong> Verify that before you make version control your safety net.</p>
+<p><code>roadmap-upgrade.cts</code> is structurally outside the whole single-owner regime that
+<code>docs/adr/3180-planning-semantic-model-single-owner.md</code> establishes: it imports no
+<code>roadmap-parser.cjs</code> and no <code>planning-scope.cjs</code>, carrying its own three module-level regexes
+and its own line-indexed parse. It does share the phase-id vocabulary from <code>src/phase-id.cts</code>.
+That is a defensible boundary for a one-shot migration tool — it should not be coupled to a
+model it is migrating <em>away from</em> — but see the last tension below for what it cost.</p>
+<h2 id="where-the-machinery-leaks">Where the machinery leaks<a class="headerlink" href="#where-the-machinery-leaks" title="Permanent link">&para;</a></h2>
+<p>The conventions above are unusually well enforced, which makes the gaps informative. These
+are the ones with behavioural consequences.</p>
+<p><strong>1. A phase status outside its own vocabulary, and the router cannot see it.</strong> In
+<code>collectAnalyzePhases</code> (<code>src/roadmap.cts</code>), the markdown-table branch (#3577) emits
+<code>disk_status: dirMatchA ? 'ok' : 'no_directory'</code> at line 514. <code>'ok'</code> is not in the heading
+branch's vocabulary (<code>complete|partial|planned|researched|discussed|empty|no_directory</code>). The
+selectors immediately below match <code>planned|partial</code> for <code>currentPhase</code> and
+<code>empty|no_directory|discussed|researched</code> for <code>nextPhase</code> — so a table-declared phase that
+<em>has</em> a directory matches <strong>neither</strong>. This is not cosmetic: <code>gsd-core/workflows/plan-phase.md</code>
+auto-detects which phase to plan by reading <code>next_phase</code> off <code>roadmap.analyze</code>. The same
+branch also sets <code>tHasContext</code> via a bare <code>fs.existsSync(.../'CONTEXT.md')</code> (line 501) instead
+of the canonical dual-form predicate that handles the padded <code>NN-CONTEXT.md</code> shape — despite
+the branch claiming the "same enrichment contract as headings."</p>
+<p><strong>2. The recovery path produces an internally inconsistent document.</strong> <code>cmdRoadmapAnalyze</code>
+introduces <code>effectiveContent</code> so the #3165 fallback re-scan is reflected downstream, and
+switches it when the recovery fires. But <code>milestones</code> is still derived from the original
+scoped <code>content</code>, while the checklist/<code>missing_details</code> scan uses <code>effectiveContent</code>. When
+the recovery path fires, <code>phases</code> and <code>missing_phase_details</code> come from the fallback document
+and <code>milestones</code> does not — one payload assembled from two different views of the file.</p>
+<p><strong>3. Containment is asymmetric inside one command.</strong> <code>src/planning-inspect.cts</code> builds an
+elaborate symlink-containment layer for its own reads: <code>isWithinRoot</code> as <em>"the ONE
+containment comparison every containment check in this module shares"</em> (equality or
+<code>root + path.sep</code>, never a bare <code>startsWith</code>, which <em>"would wrongly accept a sibling
+directory like <code>.planning-evil/</code>"</em>), <code>fs.realpathSync</code> on both sides, and containment gates
+placed <em>before</em> <code>readdirSync</code> because it follows directory symlinks. Then
+<code>buildPlanningInspect</code> calls <code>buildPlanningSnapshot(cwd)</code> first thing — and the snapshot's
+builders read with plain <code>fs.readFileSync</code>/<code>platformReadSync</code>, no containment. Snapshot-sourced
+values reach the payload having bypassed the boundary the module documents at length. A
+security boundary enforced at a consumer rather than an owner protects only the paths that
+consumer reads directly.</p>
+<p><strong>4. A raw re-derivation in the module that forbids them.</strong> <code>src/planning-inspect.cts</code> line
+1170 derives the phase id with an inline <code>/^(\d+(?:\.\d+)*)/.exec(phase.dir)</code> — in a module
+whose header declares "COMPOSED, NOT RE-DERIVED", and which already imports the canonical
+phase-key helpers. A letter-leading directory yields <code>phaseId: null</code>, which routes into a
+diagnostic reading "Phase directory name carries no recognizable phase number." The
+<code>worstScope</code> fold two lines below it is textbook; the line above it is the thing the file
+exists to prevent.</p>
+<p><strong>5. The migration tool parses a different milestone model than every read path.</strong>
+<code>roadmap-upgrade.cts</code>'s <code>MILESTONE_HEADING_RE</code> matches <code>^##</code> only, while the owner grammar in
+<code>src/roadmap-parser.cts</code> is <code>^#{1,3}</code>. A roadmap using <code>#</code> or <code>###</code> milestone headings is
+understood one way by the migrator and another way by everything else. This is the price of
+the deliberate isolation described above — worth naming, because "this tool is exempt from the
+shared model" and "this tool disagrees with the shared model about the input" are different
+claims, and only the first one was decided.</p>
+<p>Three smaller items, recorded for honesty rather than consequence: <code>getMilestoneInfo</code>'s large
+doc comment in <code>src/roadmap-parser.cts</code> sits above a different function than the one it
+describes; <code>getMilestonePhaseFilter</code>'s catch block claims a variable is "left as-is" when it
+was reassigned inside the try (stale, not wrong in effect); and <code>PlanningSnapshot</code>'s interface
+flags that the design doc's own table and prose disagree on the field count, following the
+table and saying so <em>"rather than silently reconciled, since correcting the design doc's prose
+is outside this diff's scope."</em></p>
+<h2 id="conventions-worth-stealing">Conventions worth stealing<a class="headerlink" href="#conventions-worth-stealing" title="Permanent link">&para;</a></h2>
+<p>Independent of this domain, four habits in this code do most of the work:</p>
+<p><strong>Disclose the limit instead of shrinking the scope.</strong> <code>countMilestoneHeadings</code> ends with
+<em>"Honest limit: ... it is recorded here rather than hidden."</em> <code>roadmap-disk-consistency.cts</code>'s
+header carries a <em>"KNOWN GAP, disclosed rather than silently dropped"</em> about dash-shaped ids
+never matching checkbox keys. <code>planning-snapshot.cts</code> discloses that one of its builders does
+not walk a second root. None of these are fixed. All of them are findable by the next person
+who hits the symptom.</p>
+<p><strong>Name the direction of the error.</strong> Not "this might be wrong" but which way. The known gap
+above errs in <em>"the conservative direction (a possible false W006, not a suppressed true
+one)."</em> <code>getMilestonePhaseFilter</code>'s degraded path falls back to a pass-all filter, described
+as <em>"a safe, non-corrupting (over-inclusive, never under-inclusive) degrade."</em> And
+<code>buildPlanningTrackedField</code> treats an <code>ENOBUFS</code> overflow from <code>git ls-files</code> as <strong>proof of
+tracking</strong> rather than a degraded read, because <em>"<code>ls-files</code> only overflows because it had
+non-empty output to begin with"</em> and misclassifying it would drop the finding <em>"in precisely
+the scenario where it matters most."</em> Direction is what lets a reader decide whether to act.</p>
+<p><strong>Comments as a rejected-alternatives archive.</strong> <code>countMilestoneHeadings</code> carries roughly
+eighty lines documenting three prior models that each shipped and each broke a real roadmap
+shape, before naming the model that survived. Comment density across this module set runs
+from 20% to 67% of lines. The payoff is not readability — it is that the next person cannot
+re-propose a model that already failed, and can recognise the shape of input that killed it.</p>
+<p><strong>Distinguish relocation from reinvention, explicitly.</strong> Snapshot builders say things like
+<em>"Relocates ... verbatim from <code>verify.cts</code>"</em> and, on a near-miss, <em>"Confirmed NOT a fit for
+<code>listArchiveVersionDirs</code> ... that function scans <code>milestones/*-phases/</code> DIRECTORIES, a
+different target than this field's <code>milestones/*-ROADMAP.md</code> FILES — reusing it here would
+silently answer the wrong question."</em> Recording the reuse you <em>rejected</em>, and why, is what
+stops the next refactor from making the mistake for you.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.tabs", "navigation.sections", "navigation.top", "content.code.copy", "toc.follow"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"provider": "mike"}}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.d7400e89.min.js"></script>
+      
+    
+  </body>
+</html>

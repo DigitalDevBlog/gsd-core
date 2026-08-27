@@ -1,0 +1,2508 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="How GSD Core is built internally — and how to build a framework like it yourself.">
+      
+      
+      
+      
+        <link rel="prev" href="../skills/catalogue/">
+      
+      
+        <link rel="next" href="orchestration/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
+    
+    
+      
+        <title>Overview - Understanding GSD Core</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.ec1eaa64.min.css">
+      
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#agents" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+      <div data-md-color-scheme="default" data-md-component="outdated" hidden>
+        
+      </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="Understanding GSD Core" class="md-header__button md-logo" aria-label="Understanding GSD Core" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Understanding GSD Core
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Overview
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href=".." class="md-tabs__link">
+        
+  
+  
+    
+  
+  Home
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../loop/" class="md-tabs__link">
+          
+  
+  
+  The Loop
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../files/" class="md-tabs__link">
+          
+  
+  
+  Files & State
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../skills/" class="md-tabs__link">
+          
+  
+  
+  Skills
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+    
+  
+  
+    
+    
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="./" class="md-tabs__link">
+          
+  
+  
+  Agents
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../runtime/" class="md-tabs__link">
+          
+  
+  
+  Runtime
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../capabilities/" class="md-tabs__link">
+          
+  
+  
+  Capabilities
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../architecture/" class="md-tabs__link">
+          
+  
+  
+  Architecture
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../build-your-own/" class="md-tabs__link">
+          
+  
+  
+  Build Your Own
+
+        </a>
+      </li>
+    
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="Understanding GSD Core" class="md-nav__button md-logo" aria-label="Understanding GSD Core" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    Understanding GSD Core
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    The Loop
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    The Loop
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../loop/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../loop/stages/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Stage internals
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Files & State
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Files & State
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../files/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../files/dataflow/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    State machinery
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Skills
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Skills
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../skills/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../skills/catalogue/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Catalogue
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Agents
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Agents
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#the-file" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The file
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="The file">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#what-each-field-actually-does" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What each field actually does
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#the-body" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The body
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#the-roster-is-a-registry-not-a-directory-listing" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The roster is a registry, not a directory listing
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="The roster is a registry, not a directory listing">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#seven-of-the-35-are-generated" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Seven of the 35 are generated
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#least-privilege-tool-scoping" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Least-privilege tool scoping
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Least-privilege tool scoping">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#what-the-scoping-buys" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What the scoping buys
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#what-the-scoping-costs" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What the scoping costs
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#the-dead-branch-bug-class" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The dead-branch bug class
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#the-contract-an-agent-fulfils-for-its-caller" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The contract an agent fulfils for its caller
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="The contract an agent fulfils for its caller">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#the-filesystem-is-the-primary-handoff-medium" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The filesystem is the primary handoff medium
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#bidirectional-enforcement" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Bidirectional enforcement
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#the-registrys-stated-rationale-is-wrong" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The registry's stated rationale is wrong
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#two-more-that-ci-does-not-see" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Two more that CI does not see
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#the-gap-in-the-contract-agent_hint" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The gap in the contract: agent_hint
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#loose-conventions-around-the-tight-core" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Loose conventions around the tight core
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#building-your-own" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Building your own
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="orchestration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Orchestration patterns
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" >
+        
+          
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Runtime
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Runtime
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../runtime/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../runtime/hooks/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    The hook system
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../runtime/bootstrap/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Bootstrap & distribution
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7" >
+        
+          
+          <label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Capabilities
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_7">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Capabilities
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../capabilities/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../capabilities/harnesses/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Multi-harness portability
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_8" >
+        
+          
+          <label class="md-nav__link" for="__nav_8" id="__nav_8_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_8_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_8">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Architecture
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_9" >
+        
+          
+          <label class="md-nav__link" for="__nav_9" id="__nav_9_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Build Your Own
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_9_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_9">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Build Your Own
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../build-your-own/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../build-your-own/blueprint/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Minimal blueprint
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#the-file" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The file
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="The file">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#what-each-field-actually-does" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What each field actually does
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#the-body" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The body
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#the-roster-is-a-registry-not-a-directory-listing" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The roster is a registry, not a directory listing
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="The roster is a registry, not a directory listing">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#seven-of-the-35-are-generated" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Seven of the 35 are generated
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#least-privilege-tool-scoping" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Least-privilege tool scoping
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Least-privilege tool scoping">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#what-the-scoping-buys" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What the scoping buys
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#what-the-scoping-costs" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What the scoping costs
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#the-dead-branch-bug-class" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The dead-branch bug class
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#the-contract-an-agent-fulfils-for-its-caller" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The contract an agent fulfils for its caller
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="The contract an agent fulfils for its caller">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#the-filesystem-is-the-primary-handoff-medium" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The filesystem is the primary handoff medium
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#bidirectional-enforcement" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Bidirectional enforcement
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#the-registrys-stated-rationale-is-wrong" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The registry's stated rationale is wrong
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#two-more-that-ci-does-not-see" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Two more that CI does not see
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#the-gap-in-the-contract-agent_hint" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The gap in the contract: agent_hint
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#loose-conventions-around-the-tight-core" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Loose conventions around the tight core
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#building-your-own" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Building your own
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<h1 id="agents">Agents<a class="headerlink" href="#agents" title="Permanent link">&para;</a></h1>
+<p>An agent definition in GSD Core is a single markdown file with four YAML keys and a prompt
+body. There are exactly 35 of them in <code>agents/</code>. That is the whole storage format — no
+class, no registration call, no interface to implement.</p>
+<p>The interesting part is what surrounds that file. A definition alone is inert; what makes
+it <em>dispatchable</em> is a set of agreements that live outside it — a roster that three
+separate files must agree on, a tool grant that gets rewritten per runtime, and a declared
+completion contract in <code>gsd-core/references/agent-contracts.md</code> that a CI script enforces
+in both directions. This page works through those agreements, because they are the part
+you would have to rebuild.</p>
+<p>The question to hold throughout: <strong>what must a subagent definition specify to be safe to
+spawn?</strong></p>
+<h2 id="the-file">The file<a class="headerlink" href="#the-file" title="Permanent link">&para;</a></h2>
+<p>Every one of the 35 files in <code>agents/</code> opens the same way:</p>
+<div class="highlight"><pre><span></span><code><span class="nn">---</span>
+<span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">gsd-plan-checker</span>
+<span class="nt">description</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Verifies plans will achieve phase goal before execution. Goal-backward analysis of plan quality. Spawned by /gsd:plan-phase orchestrator.</span>
+<span class="nt">tools</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Read, Bash, Glob, Grep, Skill</span>
+<span class="nt">color</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">green</span>
+<span class="nn">---</span>
+</code></pre></div>
+<p>Four keys, and the frequency across the roster is total: all 35 declare <code>name</code>,
+<code>description</code>, <code>tools</code>, and <code>color</code>. Exactly one key appears anywhere else — a single
+<code>model: sonnet</code> in <code>agents/gsd-mempalace-curator.md</code>.</p>
+<p>That uniformity is not accidental, and it is worth noticing that the schema is <em>small</em>. A
+framework of this size could easily have grown per-agent timeouts, retry policies, memory
+settings, or permission modes. Instead those live in the orchestration layer, and the
+agent file stays a prompt plus a grant.</p>
+<h3 id="what-each-field-actually-does">What each field actually does<a class="headerlink" href="#what-each-field-actually-does" title="Permanent link">&para;</a></h3>
+<p>The four fields are not four instances of the same thing. They are read by different
+consumers, and they fail differently.</p>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Who reads it</th>
+<th>Failure mode if wrong</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>name</code></td>
+<td>The dispatcher, as <code>subagent_type</code></td>
+<td>Spawn fails or silently falls back</td>
+</tr>
+<tr>
+<td><code>description</code></td>
+<td>The dispatcher, for selection; also scanned by CI</td>
+<td>Wrong agent picked; no length gate</td>
+</tr>
+<tr>
+<td><code>tools</code></td>
+<td>Install-time converters, then the host's permission layer</td>
+<td>Install aborts, or a body path is dead</td>
+</tr>
+<tr>
+<td><code>color</code></td>
+<td>The host UI only</td>
+<td>Nothing — no GSD logic reads it</td>
+</tr>
+</tbody>
+</table>
+<p><code>name</code> is the dispatch address. Workflows spawn by literal string:
+<code>gsd-core/workflows/secure-phase.md:123</code> carries <code>subagent_type="gsd-security-auditor"</code>,
+and <code>gsd-core/workflows/validate-phase.md:118</code> carries
+<code>subagent_type="gsd-nyquist-auditor"</code>. There is no indirection — the filename stem, the
+<code>name:</code> value, and the dispatch string are the same token in three places.</p>
+<p><code>color</code> is the honest outlier — the only one of the four that <strong>no behavioural decision
+depends on</strong>. GSD's own logic does touch it: <code>colorNameToHex</code>
+(<code>src/runtime-artifact-conversion.cts:128</code>) translates the name to a hex value at <code>:1928</code>
+and <code>:2112</code> for hosts that want one. But every use is presentational — it is translated,
+forwarded or discarded depending on where the agent is being installed, and nothing
+branches on its value. <code>src/runtime-artifact-conversion.cts:1899</code> and <code>:2083</code> strip it outright
+for opencode and Kilo agents, and the Cursor, Windsurf, and Augment converters do the same
+(<code>:2332</code>, <code>:2351</code>, <code>:2370</code>). Meanwhile the Qwen converter re-emits it verbatim
+(<code>:2466</code>) and the Copilot converter reads it at <code>:2283</code>. If you are designing a comparable
+format, <code>color</code> is a useful reminder that a field can be worth keeping for
+human ergonomics while carrying zero semantic load — provided you know which one it is.</p>
+<div class="admonition note">
+<p class="admonition-title">Two disagreeing signals in one file</p>
+<p><code>agents/gsd-mempalace-curator.md:5</code> pins <code>model: sonnet</code>. But model selection for the
+roster is data, not prose: <code>gsd-core/bin/shared/model-catalog.json</code> assigns that agent
+<code>routingTier: "light"</code>, and the catalog's <code>adaptiveTierMap</code> maps <code>light</code> to haiku. So
+under the adaptive profile the catalog resolves haiku while the file pins sonnet. The
+other 34 agents carry one signal; this one carries two. Which wins depends on the
+install path, but the disagreement is in the source either way.</p>
+</div>
+<h3 id="the-body">The body<a class="headerlink" href="#the-body" title="Permanent link">&para;</a></h3>
+<p>Below the frontmatter, the bodies are markdown but structured with XML pseudo-tags rather
+than headings. All 35 use a <code>&lt;role&gt;</code> block, and 34 open with it directly
+(<code>agents/gsd-intel-updater.md</code> leads with <code>&lt;required_reading&gt;</code> instead). From there the
+common sections are <code>&lt;success_criteria&gt;</code> (30 of 35), <code>&lt;execution_flow&gt;</code> (19), <code>&lt;structured_returns&gt;</code> (14), <code>&lt;project_context&gt;</code> (13), and <code>&lt;critical_rules&gt;</code>
+(11 of 35). One agent breaks the convention entirely: <code>agents/gsd-mempalace-curator.md</code>
+switches to markdown <code>##</code> headings after <code>&lt;role&gt;</code>/<code>&lt;inputs&gt;</code> — which is harmless only
+because the contract checker's marker detection is in-fence only, so its <code>## Gate</code> and
+<code>## Report</code> headings cannot be mistaken for completion markers.</p>
+<p>Shared prose is meant to be <code>@</code>-included from <code>gsd-core/references/</code>, and this is where the
+convention is thinnest. Only five agents — executor, planner, verifier, debugger, and
+phase-researcher — actually <code>@</code>-include
+<code>~/.claude/gsd-core/references/mandatory-initial-read.md</code>. Three others
+(<code>gsd-doc-writer</code>, <code>gsd-doc-verifier</code>, <code>gsd-mempalace-curator</code>) <strong>inline a prose paraphrase</strong>
+of the same instruction instead, and six agents reference <code>~/.claude/gsd-core</code> nowhere at
+all. A shared reference that five of 35 files use is not yet a convention; it is a habit
+three authors happened to share, with the other copies already drifting into restatement.</p>
+<div class="admonition note">
+<p class="admonition-title">Those <code>@~/.claude/</code> paths are not a portability bug</p>
+<p>It looks Claude-specific, but it is an authoring convention resolved at install time.
+<code>_applyRuntimeRewrites</code> — defined in <code>src/runtime-artifact-conversion.cts</code> and
+re-exported through <code>bin/install.js:7408</code> — rewrites <code>~/.claude/</code>, <code>$HOME/.claude/</code>,
+and <code>./.claude/</code> to the target runtime's config location. The Copilot converter's own
+header (<code>bin/install.js:1753-1757</code>) spells the mapping out: global installs send
+<code>~/.claude/ → ~/.copilot/</code> and <code>./.claude/ → ./.github/</code>, local installs send both to
+<code>./.github/</code>. Authors write one canonical path; the installer localises it.</p>
+</div>
+<h2 id="the-roster-is-a-registry-not-a-directory-listing">The roster is a registry, not a directory listing<a class="headerlink" href="#the-roster-is-a-registry-not-a-directory-listing" title="Permanent link">&para;</a></h2>
+<p>The most transferable structural decision on this page: <strong>GSD Core does not discover agents
+by listing a directory.</strong> Three independent files must name the same 35 agents, and a
+script enforces the agreement.</p>
+<table>
+<thead>
+<tr>
+<th>File</th>
+<th>What it holds</th>
+<th>Count</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>agents/*.md</code></td>
+<td>The definitions themselves</td>
+<td>35</td>
+</tr>
+<tr>
+<td><code>gsd-core/bin/shared/model-catalog.json</code></td>
+<td>Keys under <code>agents</code>, each <code>{golden, balanced, budget, phaseType, routingTier}</code></td>
+<td>35</td>
+</tr>
+<tr>
+<td><code>gsd-core/references/agent-contracts.md</code></td>
+<td>Rows in the <code>## Agent Registry</code> table</td>
+<td>35</td>
+</tr>
+</tbody>
+</table>
+<p>All three sets are identical — no entry appears in one and not the others — and
+<code>node scripts/check-contract-drift.cjs</code> reports <code>35 agents, 38 markers, 0 violations</code>.
+The script is wired at <code>package.json:92</code> and runs inside <code>lint:ci</code> at <code>:122</code>.</p>
+<p>The consequence is worth stating plainly, because it inverts the intuition that the
+filesystem is the source of truth. <code>src/agent-install-check.cts:159</code> derives the expected
+roster from <code>Object.keys(MODEL_PROFILES)</code> — re-exported by <code>src/model-profiles.cts</code> from
+<code>src/model-catalog.cts</code>, which reads <code>model-catalog.json</code>. <strong>An agent <code>.md</code> dropped into
+<code>agents/</code> with no catalog entry is invisible to the install checker.</strong> The catalog is the
+roster; the directory is just where the prompts happen to live.</p>
+<div class="admonition tip">
+<p class="admonition-title">Path provenance</p>
+<p><code>gsd-core/bin/shared/model-catalog.json</code> is committed (<code>git check-ignore</code> exits 1 on
+it). Do not confuse it with <code>gsd-core/bin/lib/*.cjs</code>, which is mostly build output
+compiled from <code>src/*.cts</code> and gitignored. Only eight <code>.cjs</code> files are committed under
+<code>bin/lib/</code>; anything else you find there is generated.</p>
+</div>
+<h3 id="seven-of-the-35-are-generated">Seven of the 35 are generated<a class="headerlink" href="#seven-of-the-35-are-generated" title="Permanent link">&para;</a></h3>
+<p>A subset goes further than validation. <code>scripts/gen-research-agents.cjs</code> treats the seven
+researcher agents' frontmatter as <em>derived</em> from a hand-authored profile table in
+<code>scripts/research-profiles.cjs</code>. Each profile declares <code>name</code>, <code>description</code>, <code>color</code>,
+<code>tools</code>, plus three body-content assertions: <code>requiredIncludes</code> (the
+<code>@~/.claude/gsd-core/references/*.md</code> files the body must <code>@</code>-include), <code>requiredSeamCalls</code>
+(the <code>gsd_run query …</code> calls it must make), and <code>outputContract</code> (its output path and
+return marker).</p>
+<p><code>--write</code> regenerates only the frontmatter block, leaving the body byte-identical; <code>--check</code>
+asserts all four properties. The generator preserves the existing commented-hooks block
+byte-for-byte rather than re-emitting it — a small detail that tells you the authors wanted
+<code>--write</code> to produce an empty <code>git diff</code> on a clean tree.</p>
+<p>Note where the enforcement lives: <code>gen-research-agents.cjs</code> is <strong>not</strong> in <code>lint:ci</code> and not
+in <code>lint:generated-sync</code>. It is enforced by <code>tests/research-agent-profiles.test.cjs</code>, which
+imports <code>checkAgent</code> directly. Same guarantee, different pipeline — worth knowing if you
+go looking for it in the lint chain and conclude it is unguarded.</p>
+<h2 id="least-privilege-tool-scoping">Least-privilege tool scoping<a class="headerlink" href="#least-privilege-tool-scoping" title="Permanent link">&para;</a></h2>
+<p><code>tools:</code> is the security-relevant field, and GSD Core uses it with real discrimination
+rather than granting every agent everything.</p>
+<table>
+<thead>
+<tr>
+<th>Tool</th>
+<th>Agents granting it (of 35)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>Read</code></td>
+<td>35</td>
+</tr>
+<tr>
+<td><code>Grep</code> / <code>Glob</code></td>
+<td>33</td>
+</tr>
+<tr>
+<td><code>Bash</code></td>
+<td>32</td>
+</tr>
+<tr>
+<td><code>Write</code></td>
+<td>26</td>
+</tr>
+<tr>
+<td><code>Skill</code></td>
+<td>22</td>
+</tr>
+<tr>
+<td><code>Edit</code></td>
+<td>12</td>
+</tr>
+<tr>
+<td><code>WebSearch</code></td>
+<td>8</td>
+</tr>
+<tr>
+<td><code>WebFetch</code></td>
+<td>7</td>
+</tr>
+<tr>
+<td><code>AskUserQuestion</code></td>
+<td>3</td>
+</tr>
+<tr>
+<td><code>Agent</code></td>
+<td>1</td>
+</tr>
+</tbody>
+</table>
+<p>The spread runs from <code>agents/gsd-user-profiler.md</code>, which grants exactly one tool
+(<code>tools: Read</code>), to <code>agents/gsd-phase-researcher.md</code> with 17. <code>Agent</code> — the ability to
+spawn further subagents — is granted to exactly one agent,
+<code>agents/gsd-debug-session-manager.md</code>, whose whole job is to run a multi-cycle spawn loop
+in an isolated context. That is a defensible use of a dangerous capability: one holder,
+named, with a stated reason.</p>
+<h3 id="what-the-scoping-buys">What the scoping buys<a class="headerlink" href="#what-the-scoping-buys" title="Permanent link">&para;</a></h3>
+<p>Beyond the obvious blast-radius reduction, the grant list is <strong>legible structure</strong>. You can
+read a great deal about an agent's role from its tools without opening the body: three
+agents lack <code>Bash</code> entirely (<code>gsd-doc-classifier</code>, <code>gsd-dom-verifier</code>, <code>gsd-user-profiler</code>),
+and nine lack <code>Write</code>.</p>
+<p>But be careful how much you infer. The contract registry classifies agents by how their
+caller detects completion, and cross-tabulating that against <code>Write</code> is instructive:</p>
+<table>
+<thead>
+<tr>
+<th>Registry <code>Kind</code></th>
+<th>Write-less agents in that class</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>structured-return</code></td>
+<td>5 — advisor-researcher, assumptions-analyzer, framework-selector, integration-checker, user-profiler</td>
+</tr>
+<tr>
+<td><code>sentinel-match</code></td>
+<td>3 — plan-checker, security-auditor, ui-checker</td>
+</tr>
+<tr>
+<td><code>artifact+query</code></td>
+<td>1 — mempalace-curator</td>
+</tr>
+</tbody>
+</table>
+<p>The nine Write-less agents scatter across <strong>all three</strong> completion classes. Absence of
+<code>Write</code> is necessary for <code>structured-return</code> but nowhere near sufficient — which matters,
+because the contract document argues otherwise. More on that below.</p>
+<h3 id="what-the-scoping-costs">What the scoping costs<a class="headerlink" href="#what-the-scoping-costs" title="Permanent link">&para;</a></h3>
+<p>Three real costs, all visible in the source.</p>
+<p><strong>1. The grant list is not portable, and a bad translation aborts the load.</strong> <code>tools:</code> is
+authored in Claude's vocabulary and must be rewritten for every other runtime.
+<code>convertGeminiToolName</code> (<code>bin/install.js:1583</code>) excludes <code>Task</code>, <code>Agent</code>, <code>AskUserQuestion</code>,
+<code>Skill</code>, and <code>SlashCommand</code> from Gemini agents, and the comments record why in incident
+terms: emitting
+<code>AskUserQuestion</code> "causes frontmatter validation errors (#3362)", and the lowercase
+fallback for <code>Skill</code> would emit an invalid name "that fails frontmatter validation
+(tools.N: Invalid tool name) and <strong>aborts the entire agent load</strong> (#1394)". A
+least-privilege list is a per-runtime translation surface, and the failure is loud and
+total rather than degraded.</p>
+<p><strong>2. The parser must handle every YAML spelling.</strong> 33 agents write <code>tools:</code> as a
+comma-separated inline string; two (<code>gsd-nyquist-auditor</code>, <code>gsd-security-auditor</code>) use a
+block sequence. <code>parseFrontmatterTools</code> in <code>bin/install.js:2014</code> carries an explicit
+<code>collecting</code> state machine to accept both, plus <code>allowed-tools:</code> as an alias.</p>
+<p><strong>3. The grant can silently drift from the body.</strong> This is the expensive one, and GSD Core
+has both the bug and the guard.</p>
+<h3 id="the-dead-branch-bug-class">The dead-branch bug class<a class="headerlink" href="#the-dead-branch-bug-class" title="Permanent link">&para;</a></h3>
+<p>Issue #2526 records the shape: <code>gsd-ui-auditor</code> declared
+<code>tools: Read, Write, Bash, Grep, Glob, Skill</code> — no MCP grant at all — while its body
+presented a <code>&lt;playwright_mcp_approach&gt;</code> block as the <em>preferred</em> capture path. As the
+regression test puts it, "that branch was unreachable by construction: the availability
+check had a fixed answer, the three <code>mcp__playwright__*</code> calls could never dispatch, and
+the 'when Playwright-MCP is NOT available' fallback was the only branch that ever ran."</p>
+<p>The guard is <code>tests/mcp-tool-inheritance.test.cjs</code>, and it is a model of how to write this
+kind of check. It reads frontmatter through the canonical parser rather than a hand-rolled
+scan (the test requires <code>gsd-core/bin/lib/frontmatter.cjs</code> — a <strong>generated, gitignored</strong>
+build artifact compiled from <code>src/frontmatter.cts</code>, which is the file to cite). It then
+documents five deliberate scope boundaries, each with a stated reason and each exercised by
+a negative control:</p>
+<ul>
+<li><strong>Server-level, not exact-tool</strong> — the bug class is a server with zero grants.</li>
+<li><strong>Trailing <code>__</code> required</strong> — bare prose naming a server is not an invocation.</li>
+<li><strong>Single-character server ids are prose metavariables</strong> — <code>mcp__X__*</code> in an example is
+  not a reference; the sanctioned multi-character placeholder is <code>mcp__&lt;SERVER&gt;__*</code>, exempt
+  because <code>&lt;</code> lies outside the regex character class. The test explicitly refuses to exempt
+  <code>mcp__SERVER__*</code>, reasoning that an all-caps escape hatch "would be a false NEGATIVE for
+  any real server that happens to be spelled in caps, and a guard that misses a dead
+  reference fails in the direction this whole check exists to prevent."</li>
+<li><strong><code>description</code> is scanned, <code>tools:</code> is not</strong> — because <code>tools:</code> "legitimately contains
+  the grants themselves and would self-reference into a guaranteed pass."</li>
+</ul>
+<p>That last one generalises: <strong>a consistency check must never scan the field it is checking
+against.</strong> It is the kind of thing you only learn by writing the vacuous version first.</p>
+<div class="admonition warning">
+<p class="admonition-title">The guard is spelling-dependent, and one instance escapes it</p>
+<p><code>agents/gsd-mempalace-curator.md</code> reproduces the exact #2526 shape. Its frontmatter is
+<code>tools: Read, Bash, Grep, Glob</code> — no MCP wildcard. Its body instructs "prefer the
+<code>mempalace_*</code> MCP tools interactively" and names seven concrete calls
+(<code>mempalace_diary_write</code>, <code>mempalace_diary_read</code>, <code>mempalace_kg_query</code>,
+<code>mempalace_kg_add</code>, <code>mempalace_kg_invalidate</code>, <code>mempalace_find_tunnels</code>,
+<code>mempalace_create_tunnel</code>). Only the Bash/CLI fallback is reachable.</p>
+<p>It survives CI because the guard's <code>REFERENCE_RE</code> is <code>/mcp__([A-Za-z0-9_-]+?)__/g</code> — it
+only sees tools spelled with the <code>mcp__&lt;server&gt;__</code> prefix. The curator names its MCP
+tools in their bare form, so the regex never fires. Nine other agents <em>do</em> declare MCP
+wildcards (<code>mcp__context7__*</code>, <code>mcp__chrome-devtools__*</code>, the firecrawl/exa/tavily set),
+which is what makes the curator's omission look like an oversight rather than a
+convention.</p>
+<p>The transferable lesson is uncomfortable: the guard checks a <em>spelling</em>, not a
+<em>capability</em>. It catches the bug in the notation the original bug happened to use.</p>
+</div>
+<div class="admonition danger">
+<p class="admonition-title">A missing <code>tools:</code> key is unchecked — and, per the test's authors, ungranted</p>
+<p>Two separate things go quiet when <code>tools:</code> is absent, and they belong to different
+layers.</p>
+<p><strong>The check goes vacuous.</strong> In <code>tests/mcp-tool-inheritance.test.cjs</code>, <code>toolTokens</code>
+returns <code>null</code> when there is no <code>tools:</code> key, and <code>ungrantedServers</code> then returns <code>[]</code>
+before examining the body at all — the agent passes without being checked. That is
+visible directly in the test source.</p>
+<p><strong>The harness is said to grant everything.</strong> The test's own comment glosses a missing
+key as "no <code>tools:</code> key at all (inherits everything)". That is the authors' statement
+about host-harness semantics, not something GSD Core implements or that I traced into
+GSD's code — but it is the assumption the guard was written against.</p>
+<p>All 35 agents declare <code>tools:</code>, so the hole is unoccupied today. Still, the combination
+is the sharpest answer to the page's framing question: <strong>a definition is safe to spawn
+because its grant is stated, not inherited.</strong> If the permissive case is also the
+unchecked case, the two failure modes compound — you lose the restriction and the
+warning at the same moment. If you build this, make an absent <code>tools:</code> a hard error
+rather than a default, so the schema cannot be quietly forgotten into grant-all.</p>
+</div>
+<h2 id="the-contract-an-agent-fulfils-for-its-caller">The contract an agent fulfils for its caller<a class="headerlink" href="#the-contract-an-agent-fulfils-for-its-caller" title="Permanent link">&para;</a></h2>
+<p>Spawning is only half the problem. The caller also has to know <strong>when the agent is done and
+where the result is</strong> — and in a prompt-driven system neither is guaranteed by a type
+signature. <code>gsd-core/references/agent-contracts.md</code> is where GSD Core writes that down.</p>
+<p>Its <code>## Agent Registry</code> table gives every agent a <code>Completion Markers</code> list, a <code>Consumed by</code>
+list, and a <code>Kind</code>. Marker Rule 4 defines <code>Kind</code> as exactly one of three values, and the 35
+rows split evenly enough to show all three are load-bearing:</p>
+<table>
+<thead>
+<tr>
+<th><code>Kind</code></th>
+<th>How the caller detects completion</th>
+<th>Rows</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>sentinel-match</code></td>
+<td>Exact-case string match on a declared <code>## MARKER</code> H2</td>
+<td>15</td>
+</tr>
+<tr>
+<td><code>artifact+query</code></td>
+<td>Agent writes a file; caller reads or queries it</td>
+<td>15</td>
+</tr>
+<tr>
+<td><code>structured-return</code></td>
+<td>Agent returns parseable text inline; caller reads the return</td>
+<td>5</td>
+</tr>
+</tbody>
+</table>
+<p>Naming the mechanism is the design move. "Which string do I match?" becomes a table lookup
+instead of a read-35-prompts exercise, and — more importantly — it becomes checkable.</p>
+<h3 id="the-filesystem-is-the-primary-handoff-medium">The filesystem is the primary handoff medium<a class="headerlink" href="#the-filesystem-is-the-primary-handoff-medium" title="Permanent link">&para;</a></h3>
+<p>Notice that <code>artifact+query</code> and <code>sentinel-match</code> tie at 15 each, and that the two largest-by-file-size
+agents are both artifact-based. Control in GSD Core passes through the filesystem more often
+than through the return channel, and the agent prompts say so in unusually blunt terms.
+<code>agents/gsd-planner.md</code> and <code>agents/gsd-executor.md</code> carry an identical hard <code>Write contract</code>
+block: the orchestrator reads the artifact from disk and "does NOT read your return message
+for the file content"; "Do NOT return the PLAN.md/SUMMARY.md content in your response"; and
+"If writing still fails, surface the actual error — Do NOT silently fall back to returning
+content."</p>
+<p>That last clause is the interesting one. The obvious fallback — if the write fails, just
+return the content — is explicitly forbidden, because a caller that reads from disk would
+see a missing file and a success message. The design prefers a loud failure to a
+half-honoured contract.</p>
+<p>The contract document is willing to record its own asymmetries. Its closing note observes
+that <code>## PLAN COMPLETE</code> is gsd-executor's declared marker, but <code>execute-phase.md</code> does not
+regex-match it — completion is detected via SUMMARY.md existence and git commit state — and
+labels this "intentional behavior, not a mismatch." Documenting the gap beats pretending
+the abstraction is uniform.</p>
+<h3 id="bidirectional-enforcement">Bidirectional enforcement<a class="headerlink" href="#bidirectional-enforcement" title="Permanent link">&para;</a></h3>
+<p><code>scripts/check-contract-drift.cjs</code> (297 lines) is what keeps the table from becoming
+stale prose. Its header enumerates seven arms, and two of them are worth calling out as
+patterns:</p>
+<ul>
+<li><strong>Arm 3 checks agreement in both directions.</strong> Every marker an agent emits in-fence and
+  every marker the registry declares must match. If a row's <code>Kind</code> is <code>artifact+query</code> or
+  <code>structured-return</code>, then emitting <em>any</em> marker is itself a violation
+  (<code>vestigial_marker</code>) — the opt-out is not a free pass.</li>
+<li><strong>Arm 7 runs the check backwards.</strong> A workflow or command matching a quoted <code>## TOKEN</code>
+  that no agent declares is <code>unmatched_consumer_token</code> — dispatch-on-phantom. Most drift
+  checkers only ask "is every declaration used?"; this one also asks "is every use
+  declared?"</li>
+</ul>
+<p>Marker detection is deliberately <strong>in-fence only</strong>, which is why
+<code>gsd-mempalace-curator</code>'s prose H2 headings (<code>## Gate</code>, <code>## Tasks</code>, <code>## Report</code>) do not
+register as phantom markers.</p>
+<p>There is also a small piece of vocabulary design here. A marker that is emitted but matched
+by nobody is annotated <code>(unconsumed: &lt;reason&gt;)</code> rather than deleted — Marker Rule 7 restricts
+the exemption to display formats and warns "use it for display formats, never to silence a
+real orphan." The check still verifies the marker is declared <em>and</em> emitted, and still counts
+it for case-collision purposes; only the consumer requirement is waived. Contrast with
+gsd-doc-synthesizer's <code>## Synthesis Complete</code>, which #3565 <strong>deleted</strong> because it
+case-collided with gsd-research-synthesizer's <code>## SYNTHESIS COMPLETE</code>. Annotate the
+deliberate exception; delete the actual collision.</p>
+<h3 id="the-registrys-stated-rationale-is-wrong">The registry's stated rationale is wrong<a class="headerlink" href="#the-registrys-stated-rationale-is-wrong" title="Permanent link">&para;</a></h3>
+<p>The <code>Kind</code> column is correct. The prose justifying two of its cells is not.</p>
+<p>The gsd-integration-checker row explains its <code>structured-return</code> classification with
+"(agent has no Write tool -- it cannot write an artifact)". That agent's grant is
+<code>Read, Bash, Glob, Grep, Skill</code>. <strong>It has <code>Bash</code></strong> — it can write a file trivially. And
+<code>gsd-mempalace-curator</code> holds a near-identical Write-less, Bash-having grant
+(<code>Read, Bash, Grep, Glob</code>) yet the same table classifies it <code>artifact+query</code> precisely
+because it writes a session diary.</p>
+<p>So the stated premise is false, and it yields opposite conclusions on two rows with the same
+tool grant. The broader cross-tabulation above makes the point with a count rather than an
+anecdote: of the nine Write-less agents, five are <code>structured-return</code>, three are
+<code>sentinel-match</code>, and one is <code>artifact+query</code>. Lacking <code>Write</code> predicts nothing.</p>
+<p>This is a narrow documentation defect with a wide lesson. <code>Kind</code> is a genuine property of
+the caller relationship — a <em>choice</em> about where the result lands — and the moment it is
+re-derived from a tool grant, it stops being a contract and becomes an inference. The
+column is machine-checked; the parenthetical is not, and it rotted.</p>
+<h3 id="two-more-that-ci-does-not-see">Two more that CI does not see<a class="headerlink" href="#two-more-that-ci-does-not-see" title="Permanent link">&para;</a></h3>
+<p>The three-way roster alignment is perfect and the drift checker is clean, which makes the
+un-linted defects stand out by contrast:</p>
+<ul>
+<li><code>agents/gsd-doc-verifier.md</code> has an <strong>unbalanced XML tag</strong>. <code>&lt;role&gt;</code> opens at line 14 and
+  closes at line 25; a second, stray <code>&lt;/role&gt;</code> sits at line 217 as the final line of the
+  file, after <code>&lt;/success_criteria&gt;</code>. Every other section in that file balances. The drift
+  checker validates fenced-code-block closure in agent files (arm 2) but not XML tag
+  balance, so it passes.</li>
+<li><code>agents/gsd-doc-writer.md:597-605</code> numbers its <code>&lt;critical_rules&gt;</code> <strong>1, 2, 3, 4, 8, 9, 5,
+  6, 7</strong>. Rules 8 and 9 were spliced in after rule 4 without renumbering. Rule 3's
+  forward-reference to "see rule 7" still resolves, but any future "rule N" reference is
+  ambiguous.</li>
+</ul>
+<p>Both are the same failure: the agent bodies are prompts, and prompt structure has no
+compiler. GSD Core built checkers for the two structural properties that break dispatch
+(fence closure, marker agreement) and none for the properties that only break comprehension.</p>
+<h2 id="the-gap-in-the-contract-agent_hint">The gap in the contract: <code>agent_hint</code><a class="headerlink" href="#the-gap-in-the-contract-agent_hint" title="Permanent link">&para;</a></h2>
+<p>The clearest example of a contract with a consumer but no producer.</p>
+<p>A PLAN.md can declare <code>agent_hint: &lt;name&gt;</code> in its frontmatter to opt into a specialist
+executor. The consumer chain is complete and careful:</p>
+<ul>
+<li><code>src/config.cts:96</code> gates it on <code>workflow.agent_hint_routing</code>, default-on.</li>
+<li><code>src/plan-document.cts:293</code> and <code>src/phase.cts:600,932</code> parse the frontmatter field.</li>
+<li><code>gsd-core/workflows/execute-phase/steps/per-plan-executor-routing.md</code> resolves it into
+  <code>EXECUTOR_TYPE</code>, which becomes <code>subagent_type</code> at dispatch.</li>
+<li><code>resolveAgentHint</code> (<code>src/agent-install-check.cts:387</code>) does the resolution.</li>
+</ul>
+<p><code>resolveAgentHint</code> is worth reading as a piece of defensive design. It answers a different
+question from the roster check — "does an agent file for this <strong>arbitrary</strong> name exist?" —
+so a plan can name a domain specialist that shares the gsd-executor contract without being
+in the built-in 35. It is fail-closed on every axis: empty or whitespace names return
+<code>null</code>; any name containing <code>/</code>, <code>\</code>, or <code>..</code> is rejected, with the comment naming the
+attack outright ("a value like <code>../../README</code> cannot path-traverse out of the agents dir via
+<code>path.join</code> and match an unrelated file — that would echo an invalid <code>subagent_type</code> and
+block the wave"); and a resolution miss returns <code>null</code> so the caller falls back to
+<code>gsd-executor</code>. A misspelled hint degrades to the default rather than failing the wave.</p>
+<p>And yet: <strong><code>grep -rn agent_hint agents/</code> returns zero hits across all 35 agent files.</strong>
+<code>gsd-planner.md</code>'s <code>## Frontmatter Fields</code> table (lines 397-410) does not list it. The agent
+that authors PLAN.md has never been told the field exists.</p>
+<p>The routing step is also candid that it is only half-wired. On the <code>orchestrator-worktree</code>
+isolation backend a resolved hint "cannot be honored yet" — that backend spawns via a
+process path with no <code>subagent_type</code> — so the step emits a note to stderr rather than
+silently dropping it:</p>
+<div class="highlight"><pre><span></span><code>note: plan ${plan_id} agent_hint='${PLAN_HINT}' resolved, but orchestrator-worktree
+dispatch does not route subagent types in this release — using the default executor.
+</code></pre></div>
+<p>Announcing a partial implementation at the seam is the right call. Not telling the producer
+its field exists is not. A frontmatter field is a two-sided contract, and only one side was
+written.</p>
+<h2 id="loose-conventions-around-the-tight-core">Loose conventions around the tight core<a class="headerlink" href="#loose-conventions-around-the-tight-core" title="Permanent link">&para;</a></h2>
+<p>The enforced parts of the agent format are genuinely tight. The unenforced parts are not,
+and the contrast is informative about where the authors chose to spend their linting budget.</p>
+<p><strong>Descriptions have no budget.</strong> <code>scripts/lint-descriptions.cjs</code> enforces a 100-character
+ceiling — on <code>commands/gsd/*.md</code> only, hard-coded to <code>COMMANDS_DIR</code>. Agent descriptions run
+from 72 to 362 characters with no gate at all, despite being the surface a dispatcher selects
+on and the surface the #2526 MCP check scans. Worse, the linter is unwired: it appears in no
+<code>lint:ci</code> chain and nothing in <code>.github/</code> references it. It is exercised only against
+synthetic fixtures by <code>tests/skill-frontmatter-contract.test.cjs</code>, which runs the script as
+a subprocess — the script is tested, but never actually run over the real tree. Meanwhile
+<code>docs/research/2026-05-12-skill-surface-budget.md:34</code> states the budget is "enforced in CI
+by <code>scripts/lint-descriptions.cjs</code>." It is not. (The repo's <code>docs/</code> tree is unreliable in
+exactly this way; prefer source.)</p>
+<p><strong>Frontmatter form varies.</strong> 33 agents use inline comma-separated <code>tools:</code>; two
+(<code>gsd-nyquist-auditor</code>, <code>gsd-security-auditor</code>) use a block sequence. Nothing enforces one
+spelling, so the parser carries the cost — see <code>parseFrontmatterTools</code> above. The body-level
+variation is covered in <a href="#the-body">The body</a>.</p>
+<p><strong>Two-thirds of the roster carries dead config.</strong> 25 of 35 agent frontmatters contain
+commented-out <code># hooks:</code> blocks, and <strong>not one agent has a live <code>hooks:</code> key</strong>. Most are
+<code>PostToolUse</code> matchers on <code>Write|Edit</code> running <code>npx eslint --fix $FILE</code>. Several are pure
+placebo: <code>gsd-doc-classifier</code> and <code>gsd-doc-synthesizer</code> would run <code>command: "true"</code>;
+<code>gsd-ai-researcher</code> would <code>echo 'AI-SPEC written'</code>. <code>gsd-intel-updater</code> has a bare
+<code># hooks:</code> with no body. <code>gsd-code-fixer</code> and <code>gsd-code-reviewer</code> use an entirely different,
+non-schema shape (<code>#   - before_write</code>).</p>
+<p>That last cluster deserves a beat. Beyond being dead weight that every reader must decide
+to ignore, the eslint variant would — if uncommented — run <code>npx eslint --fix</code> inside
+arbitrary user projects that may not use eslint. Commented-out code in a <em>prompt</em> is a
+peculiar hazard: the file is read by a language model as well as by a parser, and a block
+that looks like configuration is context the agent pays for on every spawn.</p>
+<h2 id="building-your-own">Building your own<a class="headerlink" href="#building-your-own" title="Permanent link">&para;</a></h2>
+<p>What must a subagent definition specify to be safe to spawn? Reading GSD Core's answer
+backwards, the definition needs four things, and the surrounding system needs two more.</p>
+<p><strong>In the definition:</strong></p>
+<ol>
+<li><strong>A dispatch identity</strong> that is the same token everywhere — filename, <code>name:</code>, and the
+   caller's spawn string. GSD Core keeps all three literally identical, which removes an
+   entire class of mapping bug.</li>
+<li><strong>An explicit tool grant, where absent means deny.</strong> GSD Core's guard treats a missing
+   <code>tools:</code> as grant-all; all 35 files happen to declare it, so the hole is theoretical
+   today. Make it an error, and the schema will not betray you later.</li>
+<li><strong>A declared completion mechanism</strong>, not just a declared marker. The <code>sentinel-match</code> /
+   <code>artifact+query</code> / <code>structured-return</code> split is the reusable idea: the caller needs to
+   know <em>where to look</em>, and that is a different fact from <em>what to look for</em>.</li>
+<li><strong>A stated behaviour on partial failure.</strong> The planner and executor's "do not silently
+   fall back to returning content" is the pattern — pick the loud failure over the
+   half-honoured contract.</li>
+</ol>
+<p><strong>Around the definition:</strong></p>
+<ol>
+<li><strong>A registry, not a directory scan.</strong> Make some other file the roster and check both
+   directions. GSD Core's three-way alignment across <code>agents/</code>, <code>model-catalog.json</code>, and
+   <code>agent-contracts.md</code> costs one CI script and makes "I added a file and nothing happened"
+   impossible to ship silently.</li>
+<li><strong>Guards that check the <em>capability</em>, not the <em>spelling</em>.</strong> This is where GSD Core's
+   own machinery falls short, and it is the most useful thing on this page. The #2526 check
+   is thoughtfully built — canonical parser, documented scope boundaries, negative controls
+   to prove it still fires — and it still misses <code>gsd-mempalace-curator</code> because that agent
+   writes <code>mempalace_diary_write</code> instead of <code>mcp__mempalace__diary_write</code>. A guard written
+   against the notation of the bug that prompted it will catch that bug again and little
+   else.</li>
+</ol>
+<p>The pattern underneath all six: in a prompt-driven system, every contract is <em>prose</em> until
+something machine-checks it. GSD Core's agent layer is a fairly precise map of which
+contracts got checked. The roster, the markers, and the MCP grants did — and they hold. The
+<code>Kind</code> rationale, the XML balance, the rule numbering, and <code>agent_hint</code>'s producer side did
+not — and every one of them has drifted.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.tabs", "navigation.sections", "navigation.top", "content.code.copy", "toc.follow"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"provider": "mike"}}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.d7400e89.min.js"></script>
+      
+    
+  </body>
+</html>

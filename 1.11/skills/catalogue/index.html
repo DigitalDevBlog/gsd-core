@@ -1,0 +1,2487 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="How GSD Core is built internally — and how to build a framework like it yourself.">
+      
+      
+      
+      
+        <link rel="prev" href="../">
+      
+      
+        <link rel="next" href="../../agents/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
+    
+    
+      
+        <title>Catalogue - Understanding GSD Core</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.ec1eaa64.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#skill-catalogue" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+      <div data-md-color-scheme="default" data-md-component="outdated" hidden>
+        
+      </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="Understanding GSD Core" class="md-header__button md-logo" aria-label="Understanding GSD Core" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Understanding GSD Core
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Catalogue
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../.." class="md-tabs__link">
+        
+  
+  
+    
+  
+  Home
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../loop/" class="md-tabs__link">
+          
+  
+  
+  The Loop
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../files/" class="md-tabs__link">
+          
+  
+  
+  Files & State
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+    
+  
+  
+    
+    
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="../" class="md-tabs__link">
+          
+  
+  
+  Skills
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../agents/" class="md-tabs__link">
+          
+  
+  
+  Agents
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../runtime/" class="md-tabs__link">
+          
+  
+  
+  Runtime
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../capabilities/" class="md-tabs__link">
+          
+  
+  
+  Capabilities
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../architecture/" class="md-tabs__link">
+          
+  
+  
+  Architecture
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../build-your-own/" class="md-tabs__link">
+          
+  
+  
+  Build Your Own
+
+        </a>
+      </li>
+    
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="Understanding GSD Core" class="md-nav__button md-logo" aria-label="Understanding GSD Core" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    Understanding GSD Core
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    The Loop
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    The Loop
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../loop/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../loop/stages/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Stage internals
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Files & State
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Files & State
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../files/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../files/dataflow/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    State machinery
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Skills
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Skills
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Catalogue
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Catalogue
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#the-three-partitions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The three partitions
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#axis-1-loop-position" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Axis 1 — Loop position
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Axis 1 — Loop position">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#position-is-declared-one-layer-below-the-skill" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Position is declared one layer below the skill
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#the-positioning-rule-for-the-other-66" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The positioning rule for the other 66
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#the-retroactive-gate-cluster-is-a-confession" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The retroactive-gate cluster is a confession
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#axis-2-intent-domain-the-six-ns-routers" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Axis 2 — Intent domain: the six ns-* routers
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Axis 2 — Intent domain: the six ns-* routers">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#the-cover-is-not-a-partition-and-nothing-checks-that-it-is" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The cover is not a partition, and nothing checks that it is
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#this-taxonomy-was-supposed-to-be-the-install-layout-and-got-reverted" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        This taxonomy was supposed to be the install layout — and got reverted
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#axis-3-install-tier-what-actually-ships" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Axis 3 — Install tier: what actually ships
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Axis 3 — Install tier: what actually ships">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#dependency-in-degree-shows-where-the-load-sits" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Dependency in-degree shows where the load sits
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#the-role-cross-cut-the-repo-does-not-ship" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The role cross-cut the repo does not ship
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#a-minor-fourth-axis-dispatch-primitive" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        A minor fourth axis: dispatch primitive
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#what-to-take-into-your-own-framework" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What to take into your own framework
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Agents
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Agents
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../agents/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../agents/orchestration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Orchestration patterns
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" >
+        
+          
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Runtime
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Runtime
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../runtime/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../runtime/hooks/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    The hook system
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../runtime/bootstrap/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Bootstrap & distribution
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7" >
+        
+          
+          <label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Capabilities
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_7">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Capabilities
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../capabilities/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../capabilities/harnesses/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Multi-harness portability
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_8" >
+        
+          
+          <label class="md-nav__link" for="__nav_8" id="__nav_8_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_8_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_8">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Architecture
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_9" >
+        
+          
+          <label class="md-nav__link" for="__nav_9" id="__nav_9_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Build Your Own
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_9_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_9">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Build Your Own
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../build-your-own/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../build-your-own/blueprint/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Minimal blueprint
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#the-three-partitions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The three partitions
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#axis-1-loop-position" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Axis 1 — Loop position
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Axis 1 — Loop position">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#position-is-declared-one-layer-below-the-skill" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Position is declared one layer below the skill
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#the-positioning-rule-for-the-other-66" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The positioning rule for the other 66
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#the-retroactive-gate-cluster-is-a-confession" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The retroactive-gate cluster is a confession
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#axis-2-intent-domain-the-six-ns-routers" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Axis 2 — Intent domain: the six ns-* routers
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Axis 2 — Intent domain: the six ns-* routers">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#the-cover-is-not-a-partition-and-nothing-checks-that-it-is" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The cover is not a partition, and nothing checks that it is
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#this-taxonomy-was-supposed-to-be-the-install-layout-and-got-reverted" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        This taxonomy was supposed to be the install layout — and got reverted
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#axis-3-install-tier-what-actually-ships" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Axis 3 — Install tier: what actually ships
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Axis 3 — Install tier: what actually ships">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#dependency-in-degree-shows-where-the-load-sits" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Dependency in-degree shows where the load sits
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#the-role-cross-cut-the-repo-does-not-ship" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The role cross-cut the repo does not ship
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#a-minor-fourth-axis-dispatch-primitive" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        A minor fourth axis: dispatch primitive
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#what-to-take-into-your-own-framework" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What to take into your own framework
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<h1 id="skill-catalogue">Skill catalogue<a class="headerlink" href="#skill-catalogue" title="Permanent link">&para;</a></h1>
+<p>Seventy-one markdown files live in <code>commands/gsd/</code>, and seventy-one directories mirror
+them in <code>skills/</code>. Any framework that reaches this size faces the same question, and it
+is not "what does each one do?" — a reader can open the files. It is: <strong>what stops
+seventy-one from becoming sprawl?</strong></p>
+<p>GSD Core's answer is more interesting than a single taxonomy. It partitions the same 71
+skills <strong>three separate times, along three orthogonal axes</strong>, and each partition is owned
+by a different mechanism, serves a different consumer, and is enforced — or not enforced —
+independently. That is the transferable lesson on this page. The lists below are evidence
+for it.</p>
+<div class="admonition quote">
+<p class="admonition-title">The organising principle, in one sentence</p>
+<p>Do not classify skills once and hope the classification holds. Classify them <strong>once per
+consumer</strong>, and give each classification a mechanism that breaks when it drifts — because
+the partition without an enforcing consumer is the one that has already drifted.</p>
+</div>
+<h2 id="the-three-partitions">The three partitions<a class="headerlink" href="#the-three-partitions" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Axis</th>
+<th>What it groups by</th>
+<th>Where it is declared</th>
+<th>Who consumes it</th>
+<th>Enforcement</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Loop position</strong></td>
+<td>Which loop step a skill <em>is</em>, or which artifact it reads/writes</td>
+<td><code>gsd:loop-host</code> markers in 5 workflow files</td>
+<td>The loop-host contract and its extension points</td>
+<td>Generated + byte-compared in CI (<code>scripts/gen-loop-host-contract.cjs</code>)</td>
+</tr>
+<tr>
+<td><strong>Intent domain</strong></td>
+<td>What the user is trying to do</td>
+<td><code>requires:</code> + a prose table in six <code>ns-*</code> router files</td>
+<td>Runtime dispatch; nested install layout on 5 runtimes</td>
+<td>Partial — target existence tested, coverage is not</td>
+</tr>
+<tr>
+<td><strong>Install tier</strong></td>
+<td>Whether a skill ships at all</td>
+<td><code>PROFILES</code> in <code>src/install-profiles.cts</code></td>
+<td>The installer's staging pass</td>
+<td>Machine-enforced (<code>scripts/lint-skill-deps.cjs</code>)</td>
+</tr>
+</tbody>
+</table>
+<p>Two of these are generated and gated. One is prose. Watch which one has already drifted.</p>
+<hr />
+<h2 id="axis-1-loop-position">Axis 1 — Loop position<a class="headerlink" href="#axis-1-loop-position" title="Permanent link">&para;</a></h2>
+<h3 id="position-is-declared-one-layer-below-the-skill">Position is declared one layer <em>below</em> the skill<a class="headerlink" href="#position-is-declared-one-layer-below-the-skill" title="Permanent link">&para;</a></h3>
+<p>This is the first surprise, and it reshapes what "group by loop position" can even mean.
+<strong>Zero of the 71 command files declare a loop position.</strong> Nothing in a skill's frontmatter
+says "I am the plan step" or "I run after execute."</p>
+<p>Position is declared in the <em>workflow</em> layer, in exactly five of the 88 files in
+<code>gsd-core/workflows/</code>, as a structured HTML comment at the top of the file. Here is the
+complete declaration from <code>gsd-core/workflows/plan-phase.md</code>:</p>
+<div class="highlight"><pre><span></span><code>&lt;!-- gsd:loop-host
+step: plan
+points: plan:pre, plan:post
+agent-roles: researcher, planner, checker
+produces: PLAN.md
+consumes: CONTEXT.md
+--&gt;
+</code></pre></div>
+<p>So the loop-position axis is <strong>deliberately sparse</strong>: five skills <em>are</em> the loop, and the
+other 66 orbit it.</p>
+<table>
+<thead>
+<tr>
+<th>Step</th>
+<th>Marker lives in</th>
+<th>Skill shell</th>
+<th>Consumes</th>
+<th>Produces</th>
+<th>Agent roles</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>discuss</td>
+<td><code>gsd-core/workflows/discuss-phase.md</code></td>
+<td><code>commands/gsd/discuss-phase.md</code></td>
+<td>—</td>
+<td><code>CONTEXT.md</code></td>
+<td>orchestrator</td>
+</tr>
+<tr>
+<td>plan</td>
+<td><code>gsd-core/workflows/plan-phase.md</code></td>
+<td><code>commands/gsd/plan-phase.md</code></td>
+<td><code>CONTEXT.md</code></td>
+<td><code>PLAN.md</code></td>
+<td>researcher, planner, checker</td>
+</tr>
+<tr>
+<td>execute</td>
+<td><code>gsd-core/workflows/execute-phase.md</code></td>
+<td><code>commands/gsd/execute-phase.md</code></td>
+<td><code>PLAN.md</code></td>
+<td><code>SUMMARY.md</code></td>
+<td>executor, verifier</td>
+</tr>
+<tr>
+<td>verify</td>
+<td><code>gsd-core/workflows/verify-work.md</code></td>
+<td><code>commands/gsd/verify-work.md</code></td>
+<td><code>SUMMARY.md</code></td>
+<td><code>UAT.md</code></td>
+<td>orchestrator</td>
+</tr>
+<tr>
+<td>ship</td>
+<td><code>gsd-core/workflows/ship.md</code></td>
+<td><code>commands/gsd/ship.md</code></td>
+<td><code>UAT.md</code></td>
+<td>—</td>
+<td>orchestrator</td>
+</tr>
+</tbody>
+</table>
+<p>The two columns are the point: the marker is never in the file on the left of the skill
+layer. A reader looking only at <code>commands/gsd/</code> cannot reconstruct this table.</p>
+<h3 id="the-positioning-rule-for-the-other-66">The positioning rule for the other 66<a class="headerlink" href="#the-positioning-rule-for-the-other-66" title="Permanent link">&para;</a></h3>
+<p>The <code>produces:</code> / <code>consumes:</code> fields are not decoration — they form a clean artifact
+dependency chain, <code>CONTEXT.md → PLAN.md → SUMMARY.md → UAT.md</code>. That chain gives you the
+rule for placing everything else:</p>
+<div class="admonition tip">
+<p class="admonition-title">A satellite skill's loop position is the artifact it reads or writes</p>
+<p>You cannot read it off the frontmatter, but you can read it off the description, because
+the descriptions are unusually disciplined about saying so.</p>
+</div>
+<p>The evidence is in the <code>description:</code> fields themselves. <code>commands/gsd/spec-phase.md</code> says
+its <code>SPEC.md</code> comes "before discuss-phase." <code>commands/gsd/mempalace-recall.md</code> says
+"before planning." <code>commands/gsd/audit-milestone.md</code> says "before archiving."
+<code>commands/gsd/add-tests.md</code> says "for a completed phase based on UAT criteria" — which
+places it after verify, not after execute.</p>
+<table>
+<thead>
+<tr>
+<th>Position</th>
+<th>Skills</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Pre-discuss</strong></td>
+<td><code>spec-phase</code> (ambiguity scoring → <code>SPEC.md</code>), <code>explore</code>, <code>sketch</code>, <code>spike</code>, <code>capture</code></td>
+</tr>
+<tr>
+<td><strong>Pre-plan</strong></td>
+<td><code>mempalace-recall</code>, <code>map-codebase</code>, <code>graphify</code>, <code>ui-phase</code> (<code>UI-SPEC.md</code>), <code>ai-integration-phase</code> (<code>AI-SPEC.md</code>), <code>mvp-phase</code> (SPIDR-splits, then calls plan)</td>
+</tr>
+<tr>
+<td><strong>Post-plan</strong></td>
+<td><code>review</code> (cross-AI peer review of plans), <code>plan-review-convergence</code> (replan until concerns resolve), <code>ultraplan-phase</code></td>
+</tr>
+<tr>
+<td><strong>Post-execute</strong></td>
+<td><code>code-review</code>, <code>secure-phase</code>, <code>validate-phase</code>, <code>ui-review</code>, <code>eval-review</code>, <code>undo</code></td>
+</tr>
+<tr>
+<td><strong>Post-verify</strong></td>
+<td><code>add-tests</code>, <code>audit-uat</code></td>
+</tr>
+<tr>
+<td><strong>Pre-ship</strong></td>
+<td><code>pr-branch</code> — "ready for code review", so it stages the PR that <code>ship</code> then opens</td>
+</tr>
+<tr>
+<td><strong>Post-ship</strong></td>
+<td><code>extract-learnings</code>, <code>mempalace-capture</code>, <code>docs-update</code></td>
+</tr>
+<tr>
+<td><strong>Milestone boundary</strong></td>
+<td><code>new-milestone</code>, <code>review-backlog</code> (promotes backlog items into the active milestone), <code>audit-milestone</code>, <code>complete-milestone</code>, <code>milestone-summary</code>, <code>cleanup</code></td>
+</tr>
+<tr>
+<td><strong>Loop-bypassing</strong></td>
+<td><code>quick</code> ("skip optional agents"), <code>fast</code> ("no subagents, no planning overhead") — these substitute for the loop</td>
+</tr>
+<tr>
+<td><strong>Loop-driving</strong></td>
+<td><code>autonomous</code> — "Run all remaining phases autonomously — discuss→plan→execute per phase"</td>
+</tr>
+<tr>
+<td><strong>Off-loop</strong></td>
+<td>Everything in the meta/management group below: config, workspace, thread, help, stats, and the six routers</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition note">
+<p class="admonition-title">These positions are derived, not declared</p>
+<p>Only some rows are self-declared — the ones whose own <code>description:</code> names a position
+(<code>spec-phase</code> "before discuss-phase", <code>mempalace-recall</code> "before planning",
+<code>audit-milestone</code> "before archiving", <code>add-tests</code> "based on UAT criteria", and the four
+<code>retroactiv*</code> hits below). The rest — <code>map-codebase</code>, <code>graphify</code>, <code>undo</code>, <code>pr-branch</code> —
+are placed by artifact dependency and are inference, not repo fact. That gap is itself the
+finding: there is no field to check them against.</p>
+</div>
+<p><code>autonomous</code> deserves its own row because it is the one skill that iterates the entire
+five-step contract rather than occupying a position on it — which is exactly why it is one
+of only three commands carrying <code>effort: max</code>, alongside <code>plan-phase</code> and <code>execute-phase</code>.</p>
+<h3 id="the-retroactive-gate-cluster-is-a-confession">The retroactive-gate cluster is a confession<a class="headerlink" href="#the-retroactive-gate-cluster-is-a-confession" title="Permanent link">&para;</a></h3>
+<p>Four commands describe themselves as <em>retroactive</em> — the word appears in
+<code>commands/gsd/secure-phase.md</code>, <code>commands/gsd/validate-phase.md</code>,
+<code>commands/gsd/ui-review.md</code>, and <code>commands/gsd/eval-review.md</code>. Their descriptions are
+almost formulaic: "Retroactively verify threat mitigations for a completed phase,"
+"Retroactively audit and fill Nyquist validation gaps for a completed phase," "Retroactive
+6-pillar visual audit of implemented frontend code." Add <code>commands/gsd/audit-uat.md</code>
+("Cross-phase audit of all outstanding UAT and verification items") and
+<code>commands/gsd/add-tests.md</code>, and you have six catch-up gates.</p>
+<div class="admonition warning">
+<p class="admonition-title">The design tension worth naming</p>
+<p>Every optional in-loop gate has a retroactive twin. That is the framework admitting, in its
+own catalogue, that its gates get skipped — and choosing to ship an after-the-fact
+equivalent for each rather than making the gate mandatory. It is a real architectural
+choice with a real cost: six extra skills exist because the loop is advisory.</p>
+<p>If you are building your own framework, this is the fork. Mandatory gates mean fewer
+skills and more friction. Advisory gates mean less friction and a second catalogue of
+remediation skills that must be kept in sync with the first. GSD Core took the second
+road, visibly and consistently.</p>
+</div>
+<hr />
+<h2 id="axis-2-intent-domain-the-six-ns-routers">Axis 2 — Intent domain: the six <code>ns-*</code> routers<a class="headerlink" href="#axis-2-intent-domain-the-six-ns-routers" title="Permanent link">&para;</a></h2>
+<p>Six files partition the <em>other 65</em>. They share a shape that appears nowhere else in the
+71: <code>allowed-tools: [Read, Skill]</code> and nothing more, a <code>description:</code> in keyword-tag form
+rather than prose, no XML tags, no <code>@</code> includes, a <code>requires:</code> list naming exactly their
+routing targets, a two-column <code>| User wants | Invoke |</code> table, and the closing line
+<code>Invoke the matched skill directly using the Skill tool.</code></p>
+<table>
+<thead>
+<tr>
+<th>Router file</th>
+<th>Declared <code>name:</code></th>
+<th>Targets</th>
+<th>Exists to</th>
+<th>Representative skills</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>commands/gsd/ns-workflow.md</code></td>
+<td><code>gsd-workflow</code></td>
+<td>16</td>
+<td>Drive the phase pipeline end to end</td>
+<td><code>discuss-phase</code>, <code>plan-phase</code>, <code>execute-phase</code>, <code>verify-work</code>, <code>phase</code>, <code>progress</code></td>
+</tr>
+<tr>
+<td><code>commands/gsd/ns-manage.md</code></td>
+<td><code>gsd-manage</code></td>
+<td>18</td>
+<td>Manage the installation and the session, not the work</td>
+<td><code>config</code>, <code>workspace</code>, <code>workstreams</code>, <code>thread</code>, <code>update</code>, <code>surface</code>, <code>help</code></td>
+</tr>
+<tr>
+<td><code>commands/gsd/ns-review.md</code></td>
+<td><code>gsd-quality</code></td>
+<td>11</td>
+<td>Gate quality — review, audit, debug, secure</td>
+<td><code>code-review</code>, <code>secure-phase</code>, <code>debug</code>, <code>forensics</code>, <code>audit-fix</code>, <code>ui-review</code></td>
+</tr>
+<tr>
+<td><code>commands/gsd/ns-project.md</code></td>
+<td><code>gsd-project</code></td>
+<td>10</td>
+<td>Handle the project and milestone lifecycle</td>
+<td><code>new-project</code>, <code>onboard</code>, <code>new-milestone</code>, <code>complete-milestone</code>, <code>import</code>, <code>ingest-docs</code></td>
+</tr>
+<tr>
+<td><code>commands/gsd/ns-context.md</code></td>
+<td><code>gsd-context</code></td>
+<td>6</td>
+<td>Acquire and persist codebase intelligence</td>
+<td><code>map-codebase</code>, <code>graphify</code>, <code>docs-update</code>, <code>extract-learnings</code>, <code>mempalace-recall</code></td>
+</tr>
+<tr>
+<td><code>commands/gsd/ns-ideate.md</code></td>
+<td><code>gsd-ideate</code></td>
+<td>5</td>
+<td>Explore before committing to a plan</td>
+<td><code>explore</code>, <code>sketch</code>, <code>spike</code>, <code>spec-phase</code>, <code>capture</code></td>
+</tr>
+</tbody>
+</table>
+<p>Note the <code>name:</code> column. All six routers declare hyphen-form names that drop the <code>ns-</code>
+prefix, and <code>ns-review.md</code> declares <code>gsd-quality</code> — matching neither its filename nor its
+basename. Two mechanisms make this inert on Claude: the canonical roster is built by
+reading filenames in <code>src/command-roster.cts</code>, and Claude skill generation forces <code>name:</code>
+to the directory name in <code>src/runtime-artifact-conversion.cts</code>. A non-Claude converter path
+in the same file does read <code>name:</code> with a fallback, so the field may not be inert on every
+runtime.</p>
+<h3 id="the-cover-is-not-a-partition-and-nothing-checks-that-it-is">The cover is not a partition, and nothing checks that it is<a class="headerlink" href="#the-cover-is-not-a-partition-and-nothing-checks-that-it-is" title="Permanent link">&para;</a></h3>
+<p>The six <code>requires:</code> lists sum to <strong>66 entries but only 65 unique targets</strong>. <code>spec-phase</code>
+appears in both <code>ns-ideate</code> and <code>ns-workflow</code> — legitimately, since specifying a phase is
+both an ideation act and a pipeline step.</p>
+<p>The repo knows. <code>tests/helpers/nested-layout.cjs</code> builds the child→router map and comments:
+"A few skills are intentionally multi-owner (e.g. <code>spec-phase</code> is required by both
+<code>ns-ideate</code> and <code>ns-workflow</code>). <code>ROUTER_STEMS</code> is sorted, so the alphabetically-last owner
+wins." An <strong>alphabetical tie-break</strong> decides which router physically owns a skill on disk.</p>
+<p>What is tested is the <em>forward</em> direction only. <code>tests/skill-manifest.test.cjs</code> asserts each
+router's <code>name:</code>, that its description is ≤ 60 chars and contains a pipe, that
+<code>allowed-tools</code> includes <code>Skill</code>, that the body carries a <code>| User wants</code> table, and that
+every route target resolves to a surviving command or a known consolidated parent. The
+<em>reverse</em> direction — that all 65 non-router commands are covered — is asserted nowhere.</p>
+<div class="admonition warning">
+<p class="admonition-title">The prose partition is the one that drifted</p>
+<p>Two of the three axes are generated and byte-compared. The third is six markdown tables,
+and it is off by exactly one entry with a hand-written alphabetical tie-break papering
+over it. This is not a bug — <code>spec-phase</code> genuinely belongs to both. It is a demonstration:
+<strong>a taxonomy with no enforcing consumer is decoration, and decoration drifts.</strong></p>
+</div>
+<h3 id="this-taxonomy-was-supposed-to-be-the-install-layout-and-got-reverted">This taxonomy was supposed to be the install layout — and got reverted<a class="headerlink" href="#this-taxonomy-was-supposed-to-be-the-install-layout-and-got-reverted" title="Permanent link">&para;</a></h3>
+<p>The most instructive fact about the routers is that they were once <strong>structural</strong>. Under
+issue #69, the installer nests each concrete skill inside its owning router's directory, so
+the top level of the skills folder shows six entries instead of seventy-one. The machinery
+is still there: <code>buildNamespaceBundleMap()</code> in <code>src/install-profiles.cts</code> derives the map
+from the routers' own <code>requires:</code> frontmatter, and <code>transformRouterBodyToNested()</code> rewrites
+the routing table to match.</p>
+<p>Then it was reverted on the primary runtime. <code>tests/install-nested-layout.test.cjs</code> records
+why in its decision matrix: "Claude reverted to flat (#924): Claude Code scans only one
+level under <code>~/.claude/skills/</code> so nested concretes were never discoverable by the Skill
+tool." <code>tests/runtime-artifact-layout.test.cjs</code> now asserts the opposite of the original
+design — "full profile should have &gt;= 60 top-level skill dirs (flat layout, #924)" — with
+the parenthetical "(Previously nested: exactly 6 <code>gsd-ns-*</code> router dirs. That broke
+Skill-tool discovery.)"</p>
+<p>Five runtimes still nest (cline, qwen, hermes, augment, trae); eight are flat (claude,
+cursor, codex, copilot, codebuddy, opencode, kilo, antigravity).</p>
+<div class="admonition note">
+<p class="admonition-title">What this costs you to know</p>
+<p>The same taxonomy is <strong>load-bearing structure on five runtimes and inert prose on eight</strong>.
+If you build a taxonomy that doubles as your physical layout, you have coupled your
+information architecture to a host's discovery algorithm — and hosts change theirs. GSD
+Core's recovery was to keep the derivation and make the layout a per-runtime decision,
+which is the right shape: the map survives, only its projection varies.</p>
+</div>
+<hr />
+<h2 id="axis-3-install-tier-what-actually-ships">Axis 3 — Install tier: what actually ships<a class="headerlink" href="#axis-3-install-tier-what-actually-ships" title="Permanent link">&para;</a></h2>
+<p>The third partition ignores both of the others. <code>PROFILES</code> in <code>src/install-profiles.cts</code>
+names three tiers, and its doc comment states the rule: "The effective set for any profile
+is CLOSURE(base, <code>requires:</code> manifest). <code>standard</code> is a superset of <code>core</code>; <code>full</code> is the
+identity (all skills)."</p>
+<p>The base sets are small and hand-picked. <code>core</code> lists eight stems; <code>standard</code> lists fifteen,
+annotated in-source as "Core loop", "Phase management (hot nodes from audit — required by
+38+ skills)", and "Workspace / state". <code>full</code> is the <code>'*'</code> sentinel.</p>
+<p>Running the shipped algorithm — <code>computeClosure()</code> over <code>parseRequires()</code>, which is
+<code>requires:</code>-only, with body scanning reserved for deriving <em>agents</em> — gives the real
+answer:</p>
+<table>
+<thead>
+<tr>
+<th>Profile</th>
+<th>Base stems</th>
+<th>Closure</th>
+<th>Share of 71</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>core</code></td>
+<td>8</td>
+<td><strong>15</strong></td>
+<td>21%</td>
+</tr>
+<tr>
+<td><code>standard</code></td>
+<td>15</td>
+<td><strong>23</strong></td>
+<td>32%</td>
+</tr>
+<tr>
+<td><code>full</code></td>
+<td>—</td>
+<td><strong>71</strong></td>
+<td>100%</td>
+</tr>
+</tbody>
+</table>
+<p>The <code>core</code> closure is: <code>code-review</code>, <code>config</code>, <code>discuss-phase</code>, <code>execute-phase</code>, <code>help</code>,
+<code>import</code>, <code>new-project</code>, <code>phase</code>, <code>plan-phase</code>, <code>quick</code>, <code>review</code>, <code>settings</code>, <code>surface</code>,
+<code>update</code>, <code>verify-work</code>. <code>standard</code> adds eight more: <code>ingest-docs</code>, <code>manager</code>,
+<code>map-codebase</code>, <code>onboard</code>, <code>pause-work</code>, <code>progress</code>, <code>resume-work</code>, <code>workspace</code>.</p>
+<p>Two things fall out of those lists that no reading of the catalogue would predict.</p>
+<div class="admonition warning">
+<p class="admonition-title">The named profiles install four of the five loop steps</p>
+<p><code>ship</code> is in neither closure. The loop contract declares five steps and byte-checks that
+declaration in CI, yet <code>core</code> and <code>standard</code> install discuss → plan → execute → verify and
+stop. A <code>core</code> install can produce <code>UAT.md</code> and has nothing that consumes it.</p>
+</div>
+<div class="admonition warning">
+<p class="admonition-title">The routing layer only exists at <code>full</code></p>
+<p>None of the six <code>ns-*</code> routers appear in either closure. At <code>core</code> or <code>standard</code> the
+intent-domain taxonomy is not installed at all. The installer anticipates this explicitly —
+<code>stageSkillsForRuntimeAsSkills()</code> in <code>src/install-profiles.cts</code> comments that "A partial
+surface that drops a whole router cluster falls back to flat automatically," and gates
+nesting on <code>[...bundles.routerStems].every((r) =&gt; present.has(r))</code>. Axis 2 is a
+<code>full</code>-install-only concept, by construction.</p>
+</div>
+<div class="admonition warning">
+<p class="admonition-title">The 15-skill minimum installs a redundant pair</p>
+<p>Both <code>config</code> and <code>settings</code> are in the <code>core</code> closure. <code>skills/gsd-settings/SKILL.md</code>
+describes "Configure GSD workflow toggles and model profile";
+<code>skills/gsd-config/SKILL.md</code> describes "Configure GSD settings — workflow toggles,
+advanced knobs, integrations, and model profile" — a strict superset — and
+<code>commands/gsd/config.md</code> includes the <code>settings.md</code>, <code>settings-advanced.md</code> and
+<code>settings-integrations.md</code> workflow fragments. Only <code>config</code> appears in <code>ns-manage</code>'s
+<code>requires:</code>, so the router partition already treats <code>settings</code> as absorbed.</p>
+<p>This is the sharpest evidence on the page for the limits of enforcement. The CI gate
+checks closure <em>reachability</em> — can every required skill be reached — and never closure
+<em>non-redundancy</em>. So duplication survives in the one tier that is supposed to be
+ruthlessly minimal. <strong>Machine enforcement catches drift; it does not catch overlap.</strong>
+If you build a profile system, know that you are buying the first guarantee and not the
+second.</p>
+</div>
+<p>This axis is the one with real teeth. <code>scripts/lint-skill-deps.cjs</code> runs two checks in CI:
+that no skill body references <code>/gsd:&lt;stem&gt;</code> absent from its own <code>requires:</code>, and that for
+every non-<code>full</code> profile, no skill in the closure requires something outside the closure —
+failing with "add the missing skills to the profile base set in <code>install-profiles.cjs</code>."</p>
+<h3 id="dependency-in-degree-shows-where-the-load-sits">Dependency in-degree shows where the load sits<a class="headerlink" href="#dependency-in-degree-shows-where-the-load-sits" title="Permanent link">&para;</a></h3>
+<p>Because <code>requires:</code> drives the closure, in-degree is a direct measure of structural
+centrality. Across all 57 declared <code>requires:</code> lists, every target resolves to a real
+command file — zero dangling entries.</p>
+<table>
+<thead>
+<tr>
+<th>Skill</th>
+<th>Inbound <code>requires:</code></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>phase</code></td>
+<td>35</td>
+</tr>
+<tr>
+<td><code>config</code></td>
+<td>12</td>
+</tr>
+<tr>
+<td><code>review</code></td>
+<td>9</td>
+</tr>
+<tr>
+<td><code>plan-phase</code></td>
+<td>9</td>
+</tr>
+<tr>
+<td><code>update</code></td>
+<td>7</td>
+</tr>
+<tr>
+<td><code>progress</code></td>
+<td>6</td>
+</tr>
+</tbody>
+</table>
+<p>Fourteen commands declare no <code>requires:</code> at all — <code>audit-uat</code>, <code>capture</code>, <code>debug</code>,
+<code>explore</code>, <code>help</code>, <code>import</code>, <code>ingest-docs</code>, <code>milestone-summary</code>, <code>next</code>, <code>phase</code>,
+<code>profile-user</code>, <code>resume-work</code>, <code>update</code>, <code>workspace</code>. <code>lint-skill-deps.cjs</code> only fails on
+body references <em>not</em> listed, so an absent <code>requires:</code> is legal for a skill that
+cross-references nothing. The consequence is quiet but real: these fourteen contribute no
+edges, so a partial install selecting one pulls in nothing alongside it.</p>
+<hr />
+<h2 id="the-role-cross-cut-the-repo-does-not-ship">The role cross-cut the repo does not ship<a class="headerlink" href="#the-role-cross-cut-the-repo-does-not-ship" title="Permanent link">&para;</a></h2>
+<p>Group the same 71 by <em>role</em> — planning, execution, verification, diagnostics, context,
+meta — and you get a clean, complete taxonomy. You also get one that exists nowhere in the
+repo. It is worth building precisely to see why it was never built.</p>
+<table>
+<thead>
+<tr>
+<th>Role</th>
+<th>Count</th>
+<th>Exists to</th>
+<th>Representative skills</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Planning / intent formation</strong></td>
+<td>20</td>
+<td>Turn intent into a committed artifact — spec, context, plan, roadmap</td>
+<td><code>discuss-phase</code>, <code>spec-phase</code>, <code>plan-phase</code>, <code>mvp-phase</code>, <code>ui-phase</code>, <code>ai-integration-phase</code>, <code>review</code>, <code>plan-review-convergence</code>, <code>phase</code>, <code>new-project</code>, <code>onboard</code>, <code>explore</code>, <code>sketch</code>, <code>spike</code></td>
+</tr>
+<tr>
+<td><strong>Execution</strong></td>
+<td>9</td>
+<td>Turn a plan into committed code</td>
+<td><code>execute-phase</code>, <code>quick</code>, <code>fast</code>, <code>autonomous</code>, <code>add-tests</code>, <code>docs-update</code>, <code>undo</code>, <code>pr-branch</code>, <code>ship</code></td>
+</tr>
+<tr>
+<td><strong>Verification</strong></td>
+<td>9</td>
+<td>Prove the built thing matches what was planned</td>
+<td><code>verify-work</code>, <code>code-review</code>, <code>audit-uat</code>, <code>secure-phase</code>, <code>eval-review</code>, <code>ui-review</code>, <code>validate-phase</code>, <code>audit-milestone</code>, <code>audit-fix</code></td>
+</tr>
+<tr>
+<td><strong>Diagnostics</strong></td>
+<td>6</td>
+<td>Answer "what went wrong / where do I stand"</td>
+<td><code>debug</code>, <code>forensics</code>, <code>health</code>, <code>stats</code>, <code>milestone-summary</code>, <code>extract-learnings</code></td>
+</tr>
+<tr>
+<td><strong>Context / intelligence</strong></td>
+<td>6</td>
+<td>Acquire and persist knowledge the other roles consume</td>
+<td><code>map-codebase</code>, <code>graphify</code>, <code>mempalace-recall</code>, <code>mempalace-capture</code>, <code>docs-update</code>, <code>extract-learnings</code></td>
+</tr>
+<tr>
+<td><strong>Meta / self-management</strong></td>
+<td>23</td>
+<td>Manage GSD itself, the session, and dispatch</td>
+<td><code>config</code>, <code>settings</code>, <code>update</code>, <code>surface</code>, <code>help</code>, <code>workspace</code>, <code>workstreams</code>, <code>thread</code>, <code>pause-work</code>, <code>resume-work</code>, <code>next</code>, <code>progress</code>, <code>manager</code>, <code>cleanup</code>, <code>inbox</code>, <code>profile-user</code>, <code>complete-milestone</code>, and the six <code>ns-*</code> routers</td>
+</tr>
+</tbody>
+</table>
+<p>The buckets hold 73 slots across 71 skills and cover every one of them, because exactly two
+skills are genuinely dual-role: <strong><code>docs-update</code></strong> is execution (it writes files, verified
+against the codebase) and context (it produces reference material), and
+<strong><code>extract-learnings</code></strong> is diagnostics (post-mortem on completed artifacts) and context (it
+files what it learns for later recall).</p>
+<div class="admonition note">
+<p class="admonition-title">Context/intelligence is a sixth bucket on purpose</p>
+<p>Folding it into planning would be tidier but would erase a distinction the repo itself
+draws: <code>commands/gsd/ns-context.md</code> makes codebase intelligence a first-class domain with
+its own router. When your subject already separates two things, do not merge them for
+symmetry.</p>
+</div>
+<p>Two observations about this table matter more than the table.</p>
+<p>First, <strong>the meta bucket is the largest</strong> — 23 of 71, nearly a third. A framework of this
+size spends a third of its surface managing itself: configuration, workspaces, threads,
+session pause/resume, install updates, skill surfacing, and routing. That is not overhead
+to be apologised for; it is what the scale costs. Budget for it.</p>
+<p>Second, and more importantly: <strong>role cuts straight across the router partition.</strong>
+<code>ns-workflow</code> alone contains planning skills (<code>discuss-phase</code>, <code>plan-phase</code>), execution
+skills (<code>execute-phase</code>, <code>autonomous</code>, <code>fast</code>), and verification skills (<code>verify-work</code>).
+<code>ns-review</code> mixes verification (<code>code-review</code>, <code>secure-phase</code>) with diagnostics (<code>debug</code>,
+<code>forensics</code>). The two taxonomies are not refinements of each other — they are genuinely
+orthogonal.</p>
+<div class="admonition quote">
+<p class="admonition-title">Why the repo ships no role taxonomy</p>
+<p>Role is not a property of a skill; it is a property of <em>why you invoked it</em>. <code>map-codebase</code>
+is context acquisition when you run it before planning and diagnostics when you run it to
+understand a bug. No consumer in the codebase needs to know a skill's role, so no mechanism
+declares one — and by the principle at the top of this page, an undeclared classification
+is the correct outcome, not an omission.</p>
+</div>
+<hr />
+<h2 id="a-minor-fourth-axis-dispatch-primitive">A minor fourth axis: dispatch primitive<a class="headerlink" href="#a-minor-fourth-axis-dispatch-primitive" title="Permanent link">&para;</a></h2>
+<p><code>allowed-tools</code> yields a fourth grouping for free — by what a skill is permitted to <em>do</em>,
+which is a proxy for its position in the control graph.</p>
+<table>
+<thead>
+<tr>
+<th>Primitive</th>
+<th>Count</th>
+<th>Group</th>
+<th>What it means</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>Agent</code></td>
+<td>30</td>
+<td>Heavy orchestrators</td>
+<td><code>plan-phase</code>, <code>execute-phase</code>, <code>code-review</code>, <code>map-codebase</code>, … fan work out to subagents</td>
+</tr>
+<tr>
+<td><code>Skill</code></td>
+<td>8</td>
+<td>Routers</td>
+<td>The six <code>ns-*</code> files plus <code>manager</code> and <code>plan-review-convergence</code> — intent-to-skill dispatch</td>
+</tr>
+<tr>
+<td><code>SlashCommand</code></td>
+<td>3</td>
+<td>State-aware launchers</td>
+<td><code>next</code>, <code>progress</code>, <code>resume-work</code> — detect project state, then hand off. <code>commands/gsd/next.md</code> says it plainly: "This is a launcher/router only. It never does the work itself"</td>
+</tr>
+<tr>
+<td><code>TodoWrite</code></td>
+<td>1</td>
+<td>—</td>
+<td><code>execute-phase</code>, alone</td>
+</tr>
+</tbody>
+</table>
+<p>Note that the eight <code>Skill</code> holders are <em>not</em> the same set as the six routers, and the three
+<code>SlashCommand</code> holders are a different dispatch style again — routing by <em>state</em> rather than
+by <em>intent</em>. Three dispatch primitives, three named sets, minimal overlap.</p>
+<p>The agent set is itself derived rather than declared: <code>parseCallsAgents()</code> in
+<code>src/install-profiles.cts</code> regex-scans each skill body for <code>\bgsd-[a-z][a-z-]*</code> patterns and
+stores the hits under <code>_calls_agents_&lt;stem&gt;</code> keys, so the installer computes which of the
+subagent definitions to stage from the prose of the skills that survived the profile
+closure. Nothing declares "this skill needs that agent" — it is read out of the text.</p>
+<hr />
+<h2 id="what-to-take-into-your-own-framework">What to take into your own framework<a class="headerlink" href="#what-to-take-into-your-own-framework" title="Permanent link">&para;</a></h2>
+<ol>
+<li>
+<p><strong>Ask "who consumes this grouping?" before you create it.</strong> GSD Core has three
+   partitions because it has three consumers: an extension contract, a dispatcher, and an
+   installer. It has no role taxonomy because nothing consumes one. Every taxonomy without a
+   consumer is documentation you will have to maintain by hand and will not.</p>
+</li>
+<li>
+<p><strong>Make the load-bearing partitions generated, not authored.</strong> Loop position lives in
+   five markers compiled by <code>scripts/gen-loop-host-contract.cjs</code>; install tier lives in one
+   <code>PROFILES</code> constant expanded by transitive closure and gated by
+   <code>scripts/lint-skill-deps.cjs</code>. Neither can silently disagree with reality. The one
+   partition made of prose tables is the one carrying a documented alphabetical tie-break.</p>
+</li>
+<li>
+<p><strong>Declare position at the layer that has it.</strong> No skill file says which loop step it is,
+   because skills are shells — the workflow underneath does the work and carries the marker.
+   Putting the metadata where the behaviour lives means it cannot drift from the behaviour.</p>
+</li>
+<li>
+<p><strong>A <code>produces:</code> / <code>consumes:</code> chain is the cheapest ordering you can buy.</strong>
+   <code>CONTEXT.md → PLAN.md → SUMMARY.md → UAT.md</code> is four fields across five files, and it
+   places dozens of satellite skills unambiguously. Artifact dependency beats a hand-kept
+   sequence number every time.</p>
+</li>
+<li>
+<p><strong>Derive the dependency graph from one field and let it do multiple jobs.</strong>
+   <code>requires:</code> drives partial installs <em>and</em> the CI lint <em>and</em> the router→child map used by
+   the nested layout. One declaration, three consumers, no second source of truth.</p>
+</li>
+<li>
+<p><strong>Expect a third of your surface to be self-management, and expect a retroactive twin
+   for every optional gate.</strong> These are the two size-driven costs visible in this catalogue.
+   Neither is a defect; both are predictable, and knowing they are coming lets you design for
+   them instead of discovering them at seventy-one files.</p>
+</li>
+</ol>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.tabs", "navigation.sections", "navigation.top", "content.code.copy", "toc.follow"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"provider": "mike"}}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.d7400e89.min.js"></script>
+      
+    
+  </body>
+</html>
